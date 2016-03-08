@@ -1,0 +1,4 @@
+requests==2.7.0
+tornado==4.2
+backports.ssl_match_hostname==3.4.0.2
+netdisco==0.5.1

@@ -1,0 +1,4 @@
+1. Install node server on the ISY controller.
+2. Inside of the Kodi settings menu, enable Zeroconf discovery.
+3. For the time being, authentication is not supported. Blank out the username and password options for the Web Server in the Kodi Settings menu.
+4. Using the ISY GUI, force a device discovery using the *Kodi Discovery* node. Automatic discovery will run approximately every 30 seconds.

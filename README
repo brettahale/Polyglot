@@ -1,0 +1,43 @@
+Polyglot Server
+
+This is the source code for the Polyglot server that will allow the ISY 
+controller to communicate with third party devices.
+
+To download development dependencies, run:
+    sudo make setup
+
+When running for development, create /etc/polyglot and give the dev user 
+permission for read + write.
+
+To run the pure Python version for development, type:
+    python -m polyglot -v
+
+To compile the C code version of this application, use make.
+    make build
+The C code version will be placed in the build directory. The compiled
+version may be run with the same python command from the build directory.
+    python -m polyglot -v
+
+To install the C code version of this application, again, use make. This will
+also take care of the aforementioned dependencies.
+    make build
+    sudo make install
+
+This installs polyglot globally and creates a user called polyglot that may run
+the application. Other users are not permitted to access the config directory.
+This is done for basic security reasons as passwords will likely be sored 
+there. To run the application as the polyglot user:
+    sudo su polyglot
+    polyglot
+To run the application as the current user:
+    polyglot -c CONFIG_DIR
+Where CONFIG_DIR is a full path to a custom created config directory to which
+the current user has read + write permissions.
+
+In the future, su access to polyglot will be disabled and an init script will
+be created to run the server.
+
+[todo] Test make install
+[todo] Test running installed version
+[todo] Create init script
+[todo] Disable su to polyglot user

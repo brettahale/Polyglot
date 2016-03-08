@@ -1,0 +1,20 @@
+# KODI DISCO LABELS
+ND-KODIDISCO-NAME = Kodi Discovery
+CMD-NETDISCO-NAME = Find Kodi Nodes Now
+
+# KODI NODE LABELS
+ND-KODI-NAME = Kodi
+ST-KODIND-ST-NAME = Player Status
+PLAYER_ST-1 = Off
+PLAYER_ST-2 = Idle
+PLAYER_ST-3 = Playing Movie
+PLAYER_ST-4 = Paused Movie
+PLAYER_ST-5 = Playing Music
+PLAYER_ST-6 = Paused Music
+PLAYER_ST-7 = Playing Pictures
+PLAYER_ST-8 = Paused Pictures
+CMD-KODIND-PLAY-NAME = Play
+CMD-KODIND-PAUSE-NAME = Pause
+CMD-KODIND-STOP-NAME = Stop
+CMD-KODIND-PREV-NAME = Previous
+CMD-KODIND-NEXT-NAME = Next

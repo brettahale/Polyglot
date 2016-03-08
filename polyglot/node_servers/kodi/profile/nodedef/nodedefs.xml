@@ -1,0 +1,33 @@
+<nodeDefs>
+
+    <!-- Kodi Discovery -->
+    <nodeDef id="KODIDISCO" nls="KDISCO">
+        <editors />
+        <sts />
+        <cmds>
+            <sends />
+            <accepts>
+                <cmd id="NETDISCO" />
+            </accepts>
+        </cmds>
+    </nodeDef>
+
+    <!-- Kodi Node -->
+    <nodeDef id="KODI" nls="KODIND">
+        <editors />
+        <sts>
+            <st id="ST" editor="PLAYST" />
+        </sts>
+        <cmds>
+            <sends />
+            <accepts>
+                <cmd id="PLAY" />
+                <cmd id="PAUSE" />
+                <cmd id="STOP" />
+                <cmd id="NEXT" />
+                <cmd id="PREV" />
+            </accepts>
+        </cmds>
+    </nodeDef>
+
+</nodeDefs>

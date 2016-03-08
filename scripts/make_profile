@@ -1,0 +1,9 @@
+#! /bin/bash
+
+# make_profile NS_NAME
+
+ns_name=$1
+
+cd ../polyglot/node_servers/$ns_name/profile
+rm profile.zip
+zip -r --exclude="*CVS*" profile.zip editor nls nodedef version.txt

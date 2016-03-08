@@ -1,0 +1,50 @@
+<!doctype html>
+<html>
+<head>
+
+  <title>Polyglot</title>
+
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1, user-scalable=no">
+
+  <script>
+    // http://stackoverflow.com/questions/19519535/detect-if-browser-tab-is-active-or-user-has-switched-away
+    var vis = (function(){
+      var stateKey, eventKey, keys = {
+          hidden: "visibilitychange",
+          webkitHidden: "webkitvisibilitychange",
+          mozHidden: "mozvisibilitychange",
+          msHidden: "msvisibilitychange"
+      };
+      for (stateKey in keys) {
+          if (stateKey in document) {
+              eventKey = keys[stateKey];
+              break;
+          }
+      }
+      return function(c) {
+          if (c) document.addEventListener(eventKey, c);
+          return !document[stateKey];
+      }
+    })();
+  </script>
+
+  <script src="bower_components/webcomponentsjs/webcomponents-lite.js"></script>
+  <link rel="import" href="src/x-app.html">
+
+  <style>
+
+    body {
+      font-family: 'Roboto', sans-serif;
+    }
+
+  </style>
+
+</head>
+<body>
+
+  <x-app id="app"></x-app>
+
+</body>
+</html>

@@ -1,0 +1,148 @@
+<link rel="import" href="../bower_components/polymer/polymer.html">
+<!-- iron -->
+<link rel="import" href="../bower_components/iron-icons/iron-icons.html">
+<link rel="import" href="../bower_components/iron-ajax/iron-ajax.html">
+<!-- paper -->
+<link rel="import" href="../bower_components/paper-icon-button/paper-icon-button.html">
+<link rel="import" href="../bower_components/paper-tooltip/paper-tooltip.html">
+<link rel="import" href="../bower_components/paper-input/paper-input.html">
+<link rel="import" href="../bower_components/paper-checkbox/paper-checkbox.html">
+<link rel="import" href="../bower_components/paper-dropdown-menu/paper-dropdown-menu.html">
+<link rel="import" href="../bower_components/paper-menu/paper-menu.html">
+<link rel="import" href="../bower_components/paper-item/paper-item.html">
+<link rel="import" href="../bower_components/paper-button/paper-button.html">
+<!-- molecules -->
+<link rel="import" href="../bower_components/marked-element/marked-element.html">
+
+
+<dom-module id="partial-server">
+
+  <link rel="import" type="css" href="primary-style.css">
+
+  <template>
+
+    <!-- AJAX Requests -->
+    <iron-ajax auto id="GetServer"
+      url=""
+      handle-as="json"
+      on-response="_refreshServer"
+      withCredentials="true"></iron-ajax>
+
+    <iron-ajax id="RestartServer"
+      url=""
+      handle-as="json"
+      withCredentials="true"></iron-ajax>
+
+    <iron-ajax id="DeleteServer"
+      url=""
+      handle-as="json"
+      withCredentials="true"></iron-ajax>
+
+    <!-- UI -->
+    <div id="ns-header">
+      <div id="ns-header-status">
+        <template is='dom-if' if='[[server_data.running]]'>
+          <iron-icon id="ns-header-status-icon" icon="check"></iron-icon>
+          <weak id="ns-header-status-text">Running</weak>
+        </template>
+        <template is='dom-if' if='[[!server_data.running]]'>
+          <iron-icon id="ns-header-status-icon" class="accent-inverse" icon="error"></iron-icon>
+          <weak id="ns-header-status-text">Stopped</weak>
+        </template>
+      </div>
+
+      <div id="ns-header-buttons">
+        <div style="display: inline;">
+          <paper-icon-button icon="file-download" on-tap="downloadProfile"></paper-icon-button>
+          <paper-tooltip>Download profile</paper-tooltip>
+        </div>
+        <div style="display: inline;">
+          <paper-icon-button icon="autorenew" on-tap="restartServer"></paper-icon-button>
+          <paper-tooltip>Restart server</paper-tooltip>
+        </div>
+        <div style="display: inline;">
+          <paper-icon-button class="accent" icon="delete" on-tap="deleteServer"></paper-icon-button>
+          <paper-tooltip>Remove server</paper-tooltip>
+        </div>
+      </div>
+    </div>
+
+    <h1>{{server_data.name}}</h1>
+    <p class="centered"><weak>{{profile_num}}</weak></p>
+    <h2>Basic Information</h2>
+    <p>{{server_data.description}}</p>
+    <p>{{server_data.notice}}</p>
+
+    <h2>Instructions</h2>
+    <p><marked-element markdown="{{server_data.instructions}}"></marked-element></p>
+
+    <h2>Credits</h2>
+    <template is='dom-repeat' items='{{server_data.credits}}'>
+      <h3>{{item.title}}</h3>
+      <h4>{{item.author}}</h4>
+      <p><a href="{{item.license}}" target="_blank">Library License</a><br />
+      <a target="_blank" href="{{item.source}}">Library Source Code</a></p>
+    </template>
+
+  </template>
+
+  <script>
+    Polymer({
+      is: "partial-server",
+
+      properties: {
+        baseurl: {
+          type: String,
+          value: '',
+        },
+        server_data: {
+          type: Object,
+          value: {},
+        },
+        profile_num: {
+          type: String,
+          value: "Node Server ",
+        },
+        profile_url: {
+          type: String,
+          value: "",
+        },
+      },
+
+      attached: function() {
+        this.refresh();
+      },
+
+      refresh: function() {
+        document.querySelector("#GetServer").url = "/api/server/" + this.baseurl;
+        document.querySelector("#RestartServer").url = "/api/server/" + this.baseurl + "/restart";
+        document.querySelector("#DeleteServer").url = "/api/server/" + this.baseurl + "/delete";
+        document.querySelector("#GetServer").generateRequest();
+      },
+
+      _refreshServer: function() {
+        response = document.querySelector("#GetServer").lastResponse;
+
+        if (response && response.success) {
+          this.server_data = response.payload;
+          this.profile_num = "Node Server: " + this.server_data.profile_number + ' | Base URL: /ns/' + this.baseurl;
+          this.profile_url = "/api/server/" + this.baseurl + "/profile";
+        }
+      },
+
+      downloadProfile: function() {
+        window.location = this.profile_url;
+      },
+
+      restartServer: function() {
+        document.querySelector("#RestartServer").generateRequest();
+      },
+
+      deleteServer: function() {
+        document.querySelector("#DeleteServer").generateRequest();
+        location.reload();
+      },
+    });
+  </script>
+
+</dom-module>

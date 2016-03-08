@@ -1,0 +1,9 @@
+#!/bin/bash
+
+# clean_project
+# Perform cleanup tasks on Polyglot
+
+cd ..
+# remove pyc files and __pycache__ directories
+find . -name "*.pyc" -exec rm -rfv {} \;  # python 2
+find . -name "__pycache__" -exec rm -rfv {} \;  # python 3

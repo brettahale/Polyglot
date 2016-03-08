@@ -1,0 +1,96 @@
+<link rel="import" href="../bower_components/polymer/polymer.html">
+<!-- iron -->
+<link rel="import" href="../bower_components/iron-ajax/iron-ajax.html">
+<link rel="import" href="../bower_components/iron-form/iron-form.html">
+<!-- paper -->
+<link rel="import" href="../bower_components/paper-input/paper-input.html">
+<link rel="import" href="../bower_components/paper-dropdown-menu/paper-dropdown-menu.html">
+<link rel="import" href="../bower_components/paper-menu/paper-menu.html">
+<link rel="import" href="../bower_components/paper-item/paper-item.html">
+<link rel="import" href="../bower_components/paper-button/paper-button.html">
+
+
+<dom-module id="partial-addns">
+
+  <link rel="import" type="css" href="primary-style.css">
+
+  <template>
+
+    <!-- AJAX Requests -->
+    <iron-ajax id="ServersAvail"
+      url="/api/servers/available"
+      handle-as="json"
+      on-response="_refreshServersAvail"
+      withCredentials="true"></iron-ajax>
+
+    <!-- UI -->
+    <h1>Add Node Server</h1>
+    <p>Configure new Node Server for Polyglot. These settings cannot be changed later.</p>
+
+    <form is="iron-form" id="NSAdd" method="GET" action="/api/servers/add">
+      <p>
+        <paper-dropdown-menu noink label="Node Server Type" id="addns_type" selected-item="{{selected}}">
+          <paper-menu class="dropdown-content">
+            <template is="dom-repeat" items="{{server_types}}">
+              <paper-item value="{{item.platform}}">{{item.name}}</paper-item>
+            </template>
+          </paper-menu>
+        </paper-dropdown-menu>
+        <input is="iron-input" name="type" type="hidden" value$="[[selected.value]]">
+        <paper-input label="Name" name="name" id="addns_name"></paper-input>
+        <paper-input label="Node Server ID" name="nsid" id="addns_id" auto-validate pattern="[0-9]*" error-message="Numbers Only"></paper-input>
+      </p>
+
+      <div id="ns-header-buttons">
+        <paper-button tabindex="0" class="positive" form="NSAdd" on-tap="submitForm">Add</paper-button>
+      </div>
+    </form>
+  </template>
+
+  <script>
+    Polymer({
+      is: "partial-addns",
+
+      properties: {
+        server_types: {
+          type: Array,
+          value: [],
+        },
+      },
+
+      attached: function() {
+        this.refresh();
+      },
+
+      refresh: function() {
+        document.querySelector("#ServersAvail").generateRequest();
+      },
+
+      _refreshServersAvail: function() {
+        response = document.querySelector("#ServersAvail").lastResponse;
+
+        if (response && response.success) {
+          this.server_types = response.payload;
+        }
+      },
+
+      submitForm: function(ev) {
+        target = ev.target;
+        checks = 5;
+
+        // find correct panel
+        while (checks && !target.getAttribute('form')) {
+          target = target.parentElement;
+          checks--;
+        }
+
+        formName = target.getAttribute('form');
+        form = document.getElementById(formName);
+        if (form.validate()) {
+          form.submit();
+        }
+      },
+    });
+  </script>
+
+</dom-module>

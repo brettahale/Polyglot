@@ -1,0 +1,161 @@
+paper-icon-button {
+    margin: 0px 0px 0px 8px;
+    padding: 12px;
+}
+
+h1 {
+    font: 400 34px Roboto,arial,sans-serif;
+    color: #000;
+    text-align: center;
+    padding: 20px 0px 0px 0px;
+    margin: 0px;
+    color: #000000;
+    opacity: 1.0;
+}
+
+h2 {
+    font: 300 24px Roboto,arial,sans-serif;
+    margin: 20px;
+    color: #000000;
+    opacity: 0.95;
+    border-bottom: 1px solid #ccc;
+}
+
+h3 {
+    font: 400 20px Roboto,arial,sans-serif;
+    margin: 0;
+    padding-left: 20px;
+    padding-right: 20px;
+    color: #000000;
+    opacity: 0.87;
+}
+h4 {
+    font: 300 16px Roboto,arial,sans-serif;
+    margin: 0;
+    padding-left: 20px;
+    padding-right: 20px;
+    color: #000000;
+    opacity: 0.87;
+}
+
+p {
+    font: 200 16px Roboto,arial,sans-serif;
+    color: #000000;
+    opacity: 0.87;
+    padding: 0px 10%;
+}
+
+a {
+    font: 400 16px Roboto,arial,sans-serif;
+    text-decoration: underline;
+    opacity: 1.0;
+    color: #3F51B5;
+}
+
+strong {
+    color: #000000;
+    opacity: 1.0;
+    display: inline;
+}
+
+weak {
+    color: #000000;
+    opacity: 0.54;
+    display: inline;
+}
+
+form {
+    padding-left: 30px;
+    padding-right: 30px;
+    margin-top: 16px;
+    margin-bottom: 16px;
+}
+
+#ns-header {
+    height: 48px;
+    background-color: #ddd;
+    border-bottom: 1px solid #bbb;
+}
+
+#ns-header-buttons {
+    text-align: right;
+    float: right;
+}
+
+#ns-header-status {
+    text-align: left;
+    float: left;
+    height: 48px;
+}
+
+#ns-header-status-icon {
+    padding: 12px 0px 12px 12px;
+}
+
+#ns-header-status-text {
+    vertical-align: middle;
+    font: 400 14px Roboto,arial,sans-serif;
+}
+
+.right {
+  width:100%;
+  text-align: right;
+  margin: 0px;
+  padding: 0px;
+}
+
+.centered {
+  width: 100%;
+  text-align: center;
+  margin: 0px;
+  padding: 0px;
+}
+
+.accent {
+    background-color: #FF5722;
+    color: #FFF;
+}
+
+.accent-inverse {
+    color: #FF5722;
+}
+
+.alternate {
+    background-color: #4CAF50;
+    color: #FFF;
+}
+
+.alternate-inverse {
+    color: #4CAF50;
+}
+
+.primary {
+    background-color: #303F9F;
+    color: #FFF;
+}
+
+.primary-soft {
+    background-color: #3F51B5;
+    color: #FFF;
+}
+
+.primary-softer {
+    background-color: #E8EAF6;
+    color: #000;
+}
+
+paper-button.positive {
+  color: #3F51B5;
+  --paper-button-flat-focus-color: var(--paper-blue-50);
+}
+
+paper-button.negative {
+  color: #FF5722;
+  --paper-button-flat-focus-color: var(--paper-red-50);
+}
+
+paper-dropdown-menu {
+  --paper-dropdown-menu-button: {
+    padding: 0px;
+  }
+}

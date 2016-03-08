@@ -1,0 +1,93 @@
+<link rel="import" href="../bower_components/polymer/polymer.html">
+<!-- custom -->
+<link rel="import" href="partial-addns.html">
+<link rel="import" href="partial-settings.html">
+<link rel="import" href="partial-server.html">
+
+
+<dom-module id="main-contents">
+
+  <link rel="import" type="css" href="primary-style.css">
+
+  <template>
+
+    <!-- Settings View -->
+    <template is='dom-if' if='[[isSettingsMode]]'>
+      <partial-settings id="Settings"></partial-settings>
+    </template>
+
+    <!-- Add NS View -->
+    <template is='dom-if' if='[[isAddMode]]'>
+      <partial-addns id="AddNs"></partial-addns>
+    </template>
+
+    <!-- Node Server View -->
+    <template is='dom-if' if='[[isServerMode]]'>
+      <partial-server id="Server" baseurl="[[base_url]]"></partial-server>
+    </template>
+
+  </template>
+
+  <script>
+    Polymer({
+      is: "main-contents",
+
+      properties: {
+        base_url: {
+          type: String,
+          value: '__settings',
+          observer: 'baseUrlChanged',
+        },
+        isAddMode: {
+          type: Boolean,
+          value: false,
+        },
+        isSettingsMode: {
+          type: Boolean,
+          value: true,
+        },
+        isServerMode: {
+          type: Boolean,
+          value: false,
+        },
+      },
+
+      attached: function() {
+        this.refresh();
+      },
+
+      refresh: function() {
+        if (this.isSettingsMode) {
+          window.Settings.refresh();
+        } else if (this.isAddMode) {
+          window.AddNs.refresh();
+        } else {
+          window.Server.refresh();
+        }
+      },
+
+      baseUrlChanged: function(newVal) {
+        // compute mode
+        if (newVal == '__settings') {
+          this.isSettingsMode = true;
+          this.isAddMode = false;
+          this.isServerMode = false;
+        } else if (newVal == '__add') {
+          this.isSettingsMode = false;
+          this.isAddMode = true;
+          this.isServerMode = false;
+        } else {
+          this.isSettingsMode = false;
+          this.isAddMode = false;
+          this.isServerMode = true;
+
+          if (window.Server != undefined) {
+            window.Server.baseurl = newVal;
+          }
+        }
+      },
+    });
+  </script>
+
+
+</dom-module>

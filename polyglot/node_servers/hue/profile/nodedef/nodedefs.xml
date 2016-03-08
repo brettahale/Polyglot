@@ -1,0 +1,71 @@
+<nodeDefs>
+
+    <!-- Hub Node -->
+    <nodeDef id="HUB" nls="HHUB">
+        <editors />
+        <sts>
+            <st id="GV1" editor="HIP" /> <!-- IP Addr Field 1 -->
+            <st id="GV2" editor="HIP" /> <!-- IP Addr Field 2 -->
+            <st id="GV3" editor="HIP" /> <!-- IP Addr Field 3 -->
+            <st id="GV4" editor="HIP" /> <!-- IP Addr Field 4 -->
+            <st id="GV5" editor="HCONNECT" /> <!-- Hub is connected -->
+        </sts>
+        <cmds>
+            <sends />
+            <accepts>
+                <cmd id="SET_IP">
+                    <p id="GV1" editor="HIP" init="GV1" />
+                    <p id="GV2" editor="HIP" init="GV2" />
+                    <p id="GV3" editor="HIP" init="GV3" />
+                    <p id="GV4" editor="HIP" init="GV4" />
+                </cmd>
+                <cmd id="SET_IP_1">
+                    <p id="GV1" editor="HIP" init="GV1" />
+                </cmd>
+                <cmd id="SET_IP_2">
+                    <p id="GV2" editor="HIP" init="GV2" />
+                </cmd>
+                <cmd id="SET_IP_3">
+                    <p id="GV3" editor="HIP" init="GV3" />
+                </cmd>
+                <cmd id="SET_IP_4">
+                    <p id="GV4" editor="HIP" init="GV4" />
+                </cmd>
+                <cmd id="CONNECT">
+                </cmd>
+            </accepts>
+        </cmds>
+    </nodeDef>
+
+    <!-- Color Light -->
+    <nodeDef id="COLOR_LIGHT" nls="HCL">
+        <editors />
+        <sts>
+            <st id="GV1" editor="HCLXY" /> <!-- Color X -->
+            <st id="GV2" editor="HCLXY" /> <!-- Color Y -->
+            <st id="ST" editor="HCLST" />
+        </sts>
+        <cmds>
+            <sends />
+            <accepts>
+                <cmd id="DON">
+                    <p id="" editor="HCLST" optional="T" init="ST" />
+                </cmd>
+                <cmd id="DOF" />
+                <cmd id="SET_COLOR_RGB">
+                    <p id="R" editor="HCLRGB" />
+                    <p id="G" editor="HCLRGB" />
+                    <p id="B" editor="HCLRGB" />
+                </cmd>
+                <cmd id="SET_COLOR_XY">
+                    <p id="X" editor="HCLXY" init="GV1" />
+                    <p id="Y" editor="HCLXY" init="GV2" />
+                </cmd>
+                <cmd id="SET_COLOR">
+                    <p id="" editor="HCSEL" />
+                </cmd>
+            </accepts>
+        </cmds>
+    </nodeDef>
+
+</nodeDefs>

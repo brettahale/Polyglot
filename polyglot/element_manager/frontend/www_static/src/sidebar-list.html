@@ -1,0 +1,183 @@
+<link rel="import" href="../bower_components/polymer/polymer.html">
+<!-- iron -->
+<link rel="import" href="../bower_components/iron-icons/iron-icons.html">
+<link rel="import" href="../bower_components/iron-ajax/iron-ajax.html">
+<!-- paper -->
+<link rel="import" href="../bower_components/paper-menu/paper-menu.html">
+<link rel="import" href="../bower_components/paper-item/paper-item.html">
+<link rel="import" href="../bower_components/paper-item/paper-item-body.html">
+<link rel="import" href="../bower_components/paper-icon-button/paper-icon-button.html">
+<link rel="import" href="../bower_components/paper-tooltip/paper-tooltip.html">
+
+
+<dom-module id="sidebar-list">
+
+  <style>
+    paper-item {
+      height: 80px;
+      border-bottom: 1px solid #dedede;
+      background-color: #fafafa;
+    }
+
+    #logo-box {
+        background: #fafafa;
+        width: 100%;
+        text-align: center;
+    }
+
+    #logo {
+        height: 50px;
+        width: auto;
+        margin: 10px 0px;
+    }
+
+    .list {
+        padding: 0;
+    }
+
+    .alternate-inverse {
+        color: #4CAF50;
+    }
+
+    .accent-inverse {
+      color: #FF5722;
+    }
+
+    .toolbox {
+      width: 100%;
+      text-align: center;
+      margin: 10px 0px;
+    }
+
+    paper-icon-button.big {
+      margin-left: 0px;
+      width: 30px;
+      --paper-icon-button-ink-color: var(--paper-indigo-500);
+    }
+    paper-icon-button.big::shadow #icon {
+      width: 30px;
+      height: 30px;
+    }
+    paper-icon-button.big #icon {
+      width: 30px;
+      height: 30px;
+    }
+  </style>
+
+  <template>
+
+    <!-- AJAX Requests -->
+    <iron-ajax id="GetServers"
+      url="/api/servers/active"
+      handle-as="json"
+      on-response="_refreshServers"
+      withCredentials="true"></iron-ajax>
+
+    <paper-menu class="list">
+
+      <paper-item on-click="itemClicked" data-id="__add">
+        <iron-icon icon="add-circle" class="alternate-inverse"></iron-icon>
+        <div style="width: 5px;"></div>
+        <paper-item-body two-line>
+          <div>Add Node Server</div>
+        </paper-item-body>
+      </paper-item>
+
+      <template is="dom-repeat" items="{{node_servers}}">
+        <paper-item on-click="itemClicked" data-id$="{{item.id}}">
+          <iron-icon icon="{{computeIcon(item.running)}}" class$="{{computeIconClass(item.running)}}"></iron-icon>
+          <div style="width: 5px;"></div>
+          <paper-item-body two-line>
+            <div>{{item.name}}</div>
+            <div secondary>{{computeRunningLabel(item.running)}}</div>
+          </paper-item-body>
+        </paper-item>
+      </template>
+
+      <paper-item on-click="itemClicked" data-id="__settings">
+        <iron-icon icon="settings"></iron-icon>
+        <div style="width: 5px;"></div>
+        <paper-item-body two-line>
+          <div>Polyglot Settings</div>
+        </paper-item-body>
+      </paper-item>
+
+    </paper-menu>
+
+    <div class='toolbox'>
+      <paper-icon-button icon="description" class="big" on-tap="openLog"></paper-icon-button>
+      <paper-tooltip>View log</paper-tooltip>
+    </div>
+
+    <div id="logo-box">
+      <img src="../images/UDLogoOutlined_small.png" id="logo" />
+    </div>
+
+  </template>
+
+  <script>
+    Polymer({
+      is: "sidebar-list",
+
+      properties: {
+        node_servers: {
+          type: Array,
+          value: [],
+        },
+      },
+
+      attched: function() {
+        this.refresh();
+      },
+
+      refresh: function() {
+        document.querySelector("#GetServers").generateRequest();
+      },
+
+      _refreshServers: function() {
+        response = document.querySelector("#GetServers").lastResponse;
+
+        if (response && response.success) {
+          if (Object.prototype.toString.call(response.payload) === "[object Array]") {
+            this.node_servers = response.payload;
+          } else {
+            this.node_servers = [];
+          }
+        }
+      },
+
+      itemClicked: function(ev) {
+        target = ev.target;
+        checks = 5;
+
+        // find correct panel
+        while (checks && !target.getAttribute('data-id')) {
+          target = target.parentElement;
+          checks--;
+        }
+
+        // report selection to contents panel
+        window.contents.base_url = target.getAttribute('data-id');
+        window.drawerPanel.closeDrawer();
+      },
+
+      computeIcon: function(isRunning) {
+        return isRunning ? 'check' : 'error';
+      },
+
+      computeIconClass: function(isRunning) {
+        return isRunning ? '' : 'accent-inverse';
+      },
+
+      computeRunningLabel: function(isRunning) {
+        return isRunning ? 'Running' : 'Stopped'
+      },
+
+      openLog: function() {
+        window.open('/api/log.txt')
+      }
+
+    });
+  </script>
+
+</dom-module>

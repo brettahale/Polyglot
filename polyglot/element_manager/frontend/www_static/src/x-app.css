@@ -1,0 +1,37 @@
+body {
+    line-height: 1.5;
+    font: 200 16px Roboto,arial,sans-serif;
+}
+
+:host {
+  display: block;
+}
+
+.main-panel {
+  background-color: #eee;
+}
+
+.main-panel[mode=cover] .content {
+  padding: 0 64px 0 4px;
+}
+
+.main-panel {
+  --paper-header-panel-cover-container: {
+    left: 64px;
+  };
+}
+
+paper-toolbar {
+  background-color: #1A237E;
+}
+
+paper-material {
+  min-height: 500px;
+  background-color: #fff;
+  padding-bottom: 16px;
+}
+
+.main-panel[mode=cover] paper-material {
+  max-width: 640px;
+  margin: 64px auto;
+}
