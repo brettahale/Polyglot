@@ -79,6 +79,7 @@ class Node(object):
         self.address = address
         self.added = manifest.get('added', False)
         self.name = manifest.get('name', name)
+        self.primary = primary
 
         drivers = manifest.get('drivers', {})
         for key, value in self._drivers.items():
@@ -177,10 +178,9 @@ class Node(object):
 
         :returns boolean: Indicates success or failure of node addition
         """
-        if self.primary is True:
-            primary = self.address;
-        else:
-            primary = primary.address;
+        primary_addr = self.address
+        if self.primary is not True:
+            primary_addr = self.primary.address;
         self.parent.poly.add_node(
             self.address, self.node_def_id, primary_addr, self.name
         )
@@ -471,7 +471,7 @@ class SimpleNodeServer(NodeServer):
         :param str optional request_id: Status request id
         :returns polyglot.nodeserver_api.Node
         """
-        nodes[node.address] = node
+        self.nodes[node.address] = node
         return node
 
     def get_node(self,address):
@@ -550,9 +550,8 @@ class SimpleNodeServer(NodeServer):
         """
         all_nodes = list(self.nodes.keys())
         if len(all_nodes) > 0:
-            primary = all_nodes[0]
             for node in self.nodes.values():
-                node.add_node(primary)
+                node.add_node()
         return True
 
     def on_added(self, node_address, node_def_id, primary_node_address, name):
