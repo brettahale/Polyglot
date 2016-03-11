@@ -37,7 +37,13 @@ the current user has read + write permissions.
 In the future, su access to polyglot will be disabled and an init script will
 be created to run the server.
 
+Init script: To start on boot. Edit the file polyglot.server and modify with 
+root directory of the repository and user to run as. Copy polyglot.service to 
+/lib/systemd/system/ then issue the commands:
+    systemctl enable polyglot
+    systemctl start polyglot
+
 [todo] Test make install
 [todo] Test running installed version
-[todo] Create init script
+[todo] Add init script to make install
 [todo] Disable su to polyglot user
