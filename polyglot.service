@@ -1,0 +1,13 @@
+[Unit]
+Description=polyglot
+After=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=/home/pi/development/Polyglot
+ExecStart=/usr/bin/python -m polyglot -v
+Restart=always
+User=pi
+
+[Install]
+WantedBy=multi-user.target
