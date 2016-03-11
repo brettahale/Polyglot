@@ -58,6 +58,9 @@ class Node(object):
     :param str address: The address of the node in the ISY without the node
                         server ID prefix
     :param str name: The name of the node
+    :param primary: The primary node for the device this node belongs to, 
+    :               or True if it's the primary.
+    :type primary: polyglot.nodeserver_api.Node or True if this node is the primary.
     :param manifest: The node manifest saved by the node server
     :type manifest: dict or None
 
@@ -66,7 +69,7 @@ class Node(object):
     .. autoattribute:: _commands
     """
 
-    def __init__(self, parent, address, name, manifest=None):
+    def __init__(self, parent, address, name, primary=True, manifest=None):
         """ update driver values from manifest """
         self._drivers = copy.deepcopy(self._drivers)
 
@@ -81,13 +84,7 @@ class Node(object):
         for key, value in self._drivers.items():
             self._drivers[key][0] = drivers.get(key, value[0])
 
-        if new_node:
-            all_nodes = list(self.parent.nodes.keys())
-            if len(all_nodes) > 0:
-                primary = all_nodes[0]
-            else:
-                primary = address
-            self.add_node(primary)
+        self.add_node()
 
     def run_cmd(self, command, **kwargs):
         """
@@ -174,13 +171,16 @@ class Node(object):
         self.report_driver()
         return True
 
-    def add_node(self, primary_addr):
+    def add_node(self):
         """
         Adds node to the ISY
 
-        :param str primary_addr: The node server's primary node address
         :returns boolean: Indicates success or failure of node addition
         """
+        if self.primary is True:
+            primary = self.address;
+        else:
+            primary = primary.address;
         self.parent.poly.add_node(
             self.address, self.node_def_id, primary_addr, self.name
         )
@@ -457,12 +457,44 @@ class SimpleNodeServer(NodeServer):
     """
 
     nodes = OrderedDict()
+
     """
-    Nodes registered with this node server. The first node will be the
-    primary node and cannot be removed. Additional nodes can be registered with
-    the server by adding them to this dictionary. The keys are the node IDs
-    while the values are instances of :class:`polyglot.nodeserver_api.Node`.
+    Nodes registered with this node server.  Call add_node to add your nodes.
     """
+
+    def add_node(self,node):
+        """
+        Add node to this node server.
+
+        :param node: The node add
+        :type node polyglot.nodeserver_api.Node
+        :param str optional request_id: Status request id
+        :returns polyglot.nodeserver_api.Node
+        """
+        nodes[node.address] = node
+        return node
+
+    def get_node(self,address):
+        """
+        Get a node by it's address.
+
+        :param str address: The node address
+        :returns Node on success, otherwise False.
+        """
+        if address in self.nodes:
+            return self.nodes[address]
+        return False
+
+    def exist_node(self,address):
+        """
+        Check if a node exists by it's address.
+
+        :param str address: The node address
+        :returns boolean
+        """
+        if address in self.nodes:
+            return True
+        return False
 
     def update_config(self):
         """
@@ -471,7 +503,7 @@ class SimpleNodeServer(NodeServer):
         """
         output = OrderedDict()
         for node_addr, node in self.nodes.items():
-            output[node_addr] = node.manifest
+            output[node.address] = node.manifest
         self.config['manifest'] = output
         self.poly.send_config(self.config)
 

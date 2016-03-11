@@ -22,7 +22,7 @@ class HueNodeServer(SimpleNodeServer):
         """ Initial node setup. """
         # define nodes for settings
         manifest = self.config.get('manifest', {})
-        self.nodes['hub'] = HubSettings(self, 'hub', 'Hue Hub', manifest)
+        self.add_node(HubSettings(self, 'hub', 'Hue Hub', manifest))
         self.connect()
         self.update_config()
 
@@ -30,7 +30,7 @@ class HueNodeServer(SimpleNodeServer):
         """ Connect to Phillips Hue Hub """
         # pylint: disable=broad-except
         # get hub settings
-        hub = self.nodes['hub']
+        hub = self.get_node('hub')
         ip_addr = '{}.{}.{}.{}'.format(
             hub.get_driver('GV1')[0], hub.get_driver('GV2')[0],
             hub.get_driver('GV3')[0], hub.get_driver('GV4')[0])
@@ -72,16 +72,18 @@ class HueNodeServer(SimpleNodeServer):
         for lamp_id, data in lights.items():
             address = id_2_addr(data['uniqueid'])
             name = data['name']
-            if address not in self.nodes:
-                self.nodes[address] = HueColorLight(
-                    self, address, name, lamp_id, manifest)
+            lnode = self.get_node(address)
+            if not lnode:
+                lnode = self.add_node(HueColorLight(self, address, 
+                                                    name, lamp_id, 
+                                                    manifest))
             (color_x, color_y) = [round(val, 4)
                                   for val in data['state']['xy']]
             brightness = round(data['state']['bri'] / 255. * 100., 4)
             brightness = brightness if data['state']['on'] else 0
-            self.nodes[address].set_driver('GV1', color_x)
-            self.nodes[address].set_driver('GV2', color_y)
-            self.nodes[address].set_driver('ST', brightness)
+            lnode.set_driver('GV1', color_x)
+            lnode.set_driver('GV2', color_y)
+            lnode.set_driver('ST', brightness)
 
         return True
 
