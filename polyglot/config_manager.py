@@ -4,6 +4,7 @@ import base64
 from collections import defaultdict
 import copy
 import json
+import shutil
 import logging
 import os
 import stat
@@ -23,6 +24,7 @@ class ConfigManager(defaultdict):
         super(ConfigManager, self).__init__(dict)
         self._dir = config_dir
         self._file = os.path.join(self._dir, 'configuration.json')
+        self._filetmp = os.path.join(self._dir, 'configuration.json.tmp')
         self._writing = False
         self.read()
 
@@ -52,16 +54,30 @@ class ConfigManager(defaultdict):
 
     def update(self, *args, **kwargs):
         """ Update the configuration with values in dictionary """
+        existing_config = copy.deepcopy(dict(self))
         super(ConfigManager, self).update(*args, **kwargs)
-        self.write()
+        updated_config = copy.deepcopy(dict(self))
+        if self.sort_keys(existing_config) == self.sort_keys(updated_config):
+            _LOGGER.debug('Config files match no need to write to config file.')
+        else:
+            _LOGGER.debug('Config file changes detected. writing to config file.')
+            self.write()
 
+    def sort_keys(self, obj):
+        if isinstance(obj, dict):
+            return sorted((k, self.sort_keys(v)) for k, v in obj.items())
+        if isinstance(obj, list):
+            return sorted(self.sort_keys(x) for x in obj)
+        else:
+            return obj
+            
     def read(self):
         """ Reads configuration file """
         if os.path.isfile(self._file):
             encoded = json.load(open(self._file, 'r'))
             decoded = self.decode(encoded)
-            self.update(decoded)
             _LOGGER.debug('Read configuration file')
+            self.update(decoded)
 
     def write(self):
         """ Writes configuration file """
@@ -72,14 +88,20 @@ class ConfigManager(defaultdict):
                 break
             time.sleep(1)
         else:
-            _LOGGER.error('Could not write to configuration file. It is busy.')
+            _LOGGER.info('Could not write to configuration file. It is busy.')
             return
 
         # dump JSON to config file and unlock
         encoded = self.encode()
-        json.dump(encoded, open(self._file, 'w'), sort_keys=True, indent=4,
+        json.dump(encoded, open(self._filetmp, 'w'), sort_keys=True, indent=4,
                   separators=(',', ': '))
-        os.chmod(self._file, stat.S_IRUSR | stat.S_IWUSR)
+        os.chmod(self._filetmp, stat.S_IRUSR | stat.S_IWUSR)
+        try:
+            shutil.move(self._filetmp, self._file)
+            _LOGGER.info('Config file succesfully updated.')
+        except shutil.Error as e:
+            _LOGGER.debug('Failed to move temp config file to original error: ' + str(e))
+            
         self._writing = False
         _LOGGER.debug('Wrote configuration file')
 
