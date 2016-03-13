@@ -88,7 +88,7 @@ class ConfigManager(defaultdict):
                 break
             time.sleep(1)
         else:
-            _LOGGER.info('Could not write to configuration file. It is busy.')
+            _LOGGER.error('Could not write to configuration file. It is busy.')
             return
 
         # dump JSON to config file and unlock
@@ -98,9 +98,9 @@ class ConfigManager(defaultdict):
         os.chmod(self._filetmp, stat.S_IRUSR | stat.S_IWUSR)
         try:
             shutil.move(self._filetmp, self._file)
-            _LOGGER.info('Config file succesfully updated.')
+            _LOGGER.debug('Config file succesfully updated.')
         except shutil.Error as e:
-            _LOGGER.debug('Failed to move temp config file to original error: ' + str(e))
+            _LOGGER.error('Failed to move temp config file to original error: ' + str(e))
             
         self._writing = False
         _LOGGER.debug('Wrote configuration file')
