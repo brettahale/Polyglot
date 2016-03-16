@@ -25,7 +25,7 @@ import time
 
 _POLYGLOT_CONNECTION = None
 OUTPUT_DELAY = 0
-
+#_LOGGER = logging.getLogger(__name__)
 
 def auto_request_report(fun):
     """
@@ -69,13 +69,13 @@ class Node(object):
     def __init__(self, parent, address, name, manifest=None):
         """ update driver values from manifest """
         self._drivers = copy.deepcopy(self._drivers)
-
         manifest = manifest.get(address, {}) if manifest else {}
         new_node = manifest == {}
         self.parent = parent
         self.address = address
         self.added = manifest.get('added', False)
         self.name = manifest.get('name', name)
+        self._LOGGER = logging.getLogger(__name__)    
 
         drivers = manifest.get('drivers', {})
         for key, value in self._drivers.items():
@@ -87,6 +87,8 @@ class Node(object):
                 primary = all_nodes[0]
             else:
                 primary = address
+            if (int(len(primary)) > 14):
+                self._LOGGER.error("Node longer than 14 characters this will fail adding to the ISY: %s", primary)
             self.add_node(primary)
 
     def run_cmd(self, command, **kwargs):
@@ -181,6 +183,8 @@ class Node(object):
         :param str primary_addr: The node server's primary node address
         :returns boolean: Indicates success or failure of node addition
         """
+        #_LOGGER = logging.getLogger(__name__)
+        #_LOGGER.error("Add NODE !!!!!!!!")
         self.parent.poly.add_node(
             self.address, self.node_def_id, primary_addr, self.name
         )
