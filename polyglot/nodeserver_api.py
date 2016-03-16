@@ -25,7 +25,6 @@ import time
 
 _POLYGLOT_CONNECTION = None
 OUTPUT_DELAY = 0
-#_LOGGER = logging.getLogger(__name__)
 
 def auto_request_report(fun):
     """
@@ -183,8 +182,6 @@ class Node(object):
         :param str primary_addr: The node server's primary node address
         :returns boolean: Indicates success or failure of node addition
         """
-        #_LOGGER = logging.getLogger(__name__)
-        #_LOGGER.error("Add NODE !!!!!!!!")
         self.parent.poly.add_node(
             self.address, self.node_def_id, primary_addr, self.name
         )
