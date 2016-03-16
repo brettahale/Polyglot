@@ -3,6 +3,7 @@
 import logging
 from polyglot.element_manager import http
 from . import incoming
+import xml.etree.ElementTree as ET
 import requests
 try:
     from urllib import quote, urlencode  # Python 2.x
@@ -161,6 +162,35 @@ def report_request_status(ns_profnum, request_id, success):
                    ['report', 'request', 'status', request_id, status])
     request(url)
 
+def get_version():
+    """
+    Get the version of the ISY when requested by the nodeservers
+    """
+    url = '{}://{}:{}/rest/config'.format(HTTPS, ADDRESS, PORT)
+
+    try:
+        req = requests.get(url, auth=(USERNAME, PASSWORD),
+                           timeout=10, verify=False)    
+        tree = ET.fromstring(req.content)
+        tree.findall("/configuration/app_version")
+        _LOGGER.info("!!!!!!!!!!!!!!!!!!!!! %s", tree.text)
+        
+    except requests.ConnectionError:
+        _LOGGER.error('ISY Could not recieve response from device because ' +
+                      'of a network issue.')
+        return None
+
+    except requests.exceptions.Timeout:
+        _LOGGER.error('Timed out waiting for response from the ISY device.')
+        return None
+
+    # process request
+    if req.status_code == 200:
+        _LOGGER.debug('Got /rest/config valid response from ISY: %s', url)
+        return 
+    else:
+        _LOGGER.warning('Failed getting /rest/config from ISY: %s', url)
+        return
 
 def make_url(ns_profnum, path, path_args=None):
     '''
