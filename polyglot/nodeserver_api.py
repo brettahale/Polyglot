@@ -255,13 +255,17 @@ class NodeServer(object):
     The Polyglot Connection
 
     :type: polyglot.nodeserver_api.PolyglotConnector
+    :param shortpoll is the time between poll events (optional)
+    :param longpoll is the time between longpoll events (optional)
     """
 
-    def __init__(self, poly):
+    def __init__(self, poly, shortpoll=1, longpoll=30):
         # create/store properties
         self.poly = poly
         self.config = {}
         self.running = False
+        self.shortpoll = shortpoll
+        self.longpoll = longpoll
 
         # bind callbacks to events
         poly.listen('config', self.on_config)
@@ -430,11 +434,11 @@ class NodeServer(object):
         counter = 0
         try:
             while self.running:
-                time.sleep(1)
+                time.sleep(self.shortpoll)
                 self.poll()
-                counter += 1
+                counter += self.shortpoll
 
-                if counter >= 30:
+                if counter >= self.longpoll:
                     self.long_poll()
                     counter = 0
 
