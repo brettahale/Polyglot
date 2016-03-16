@@ -37,8 +37,9 @@ class Polyglot(object):
         """ Setup Polyglot to resume the last known state """
         _LOGGER.info('Starting Polyglot')
         self.elements.load()
-        self.nodeservers.load()
         self.update_config()
+        self.isy_version = self.config.get_isy_version()
+        self.nodeservers.load()
 
     def run(self):
         """ Run the Polyglot server """

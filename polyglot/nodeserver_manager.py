@@ -177,6 +177,7 @@ class NodeServer(object):
         cmd.append(nsexe)
 
         self.pglot = pglot
+        self.isy_version = self.pglot.isy_version
         self.config = config
         self._cmd = cmd
         self.platform = ns_platform
@@ -230,6 +231,7 @@ class NodeServer(object):
         # wait, then send config
         time.sleep(1)
         self.send_config()
+        self.send_version()
 
         _LOGGER.info('Started Node Server: %s:%s (%s)',
                      self.platform, self.name, self._proc.pid)
@@ -370,7 +372,10 @@ class NodeServer(object):
     # handle output
     def _mk_cmd(self, cmd_code, **kwargs):
         """ Enqueue a command for transmission to server. """
-        msg = json.dumps({cmd_code: kwargs})
+        if cmd_code == 'isyver':
+            msg = json.dumps({cmd_code: {'version': self.isy_version}})
+        else:
+            msg = json.dumps({cmd_code: kwargs})
         if self._inq:
             self._inq.put(msg, True, 5)
 
@@ -432,6 +437,9 @@ class NodeServer(object):
     def send_ping(self):
         """ Send Ping request to the Node Server. """
         self._mk_cmd('ping')
+
+    def send_version(self):
+        self._mk_cmd('isyver')
 
     def send_exit(self):
         """ Send exit command to the Node Server. """

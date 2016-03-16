@@ -30,6 +30,8 @@ def load(pglot, user_config):
     config = dict(DEFAULT_CONFIG)
     config.update(user_config)
     set_config(config)
+    get_version()    
+
 
     # register addresses with server
     http.register(incoming.HANDLERS, parent_dir='ns')
@@ -39,7 +41,6 @@ def load(pglot, user_config):
 
     _LOGGER.info('Loaded ISY element')
     
-    get_version()
 
 
 def unload():
@@ -176,10 +177,12 @@ def get_version():
     try:
         req = requests.get(url, auth=(USERNAME, PASSWORD),
                            timeout=10, verify=False)    
-        tree = ET.fromstring(req.content)
-        isy_version = tree.findall('app_version')[0].text
-        VERSION = isy_version
-        _LOGGER.info("ISY Returned Software version %s", isy_version)
+        try:                   
+            tree = ET.fromstring(req.content)
+            VERSION = tree.findall('app_version')[0].text
+        except ET.ParseError:
+            _LOGGER.error("No version information found on ISY.")
+        _LOGGER.info("ISY Returned Software version %s", VERSION)
         
     except requests.ConnectionError:
         _LOGGER.error('ISY Could not recieve response from device because ' +
@@ -193,7 +196,7 @@ def get_version():
     # process request
     if req.status_code == 200:
         _LOGGER.debug('Got /rest/config valid response from ISY: %s', url)
-        return isy_version
+        return VERSION
     else:
         _LOGGER.warning('Failed getting /rest/config from ISY: %s', url)
         return
