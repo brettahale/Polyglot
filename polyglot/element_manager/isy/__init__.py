@@ -11,13 +11,14 @@ except ImportError:
     from urllib.parse import quote, urlencode  # Python 3.x
 
 DEFAULT_CONFIG = {'address': '192.168.10.100', 'https': False,
-                  'password': 'admin', 'username': 'admin', 'port': 80}
+                  'password': 'admin', 'username': 'admin', 'port': 80, 'version':'4.2.3'}
 
 ADDRESS = None
 HTTPS = None
 PASSWORD = None
 PORT = None
 USERNAME = None
+VERSION = None
 _LOGGER = logging.getLogger(__name__)
 
 # [future] only accept incoming requests from the ISY
@@ -37,6 +38,8 @@ def load(pglot, user_config):
     incoming.PGLOT = pglot
 
     _LOGGER.info('Loaded ISY element')
+    
+    get_version()
 
 
 def unload():
@@ -47,7 +50,7 @@ def unload():
 def get_config():
     """ Returns the element's configuration. """
     return {'address': ADDRESS, 'https': HTTPS == 'https',
-            'password': PASSWORD, 'username': USERNAME, 'port': PORT}
+            'password': PASSWORD, 'username': USERNAME, 'port': PORT, 'version': VERSION}
 
 
 def set_config(config):
@@ -163,8 +166,10 @@ def report_request_status(ns_profnum, request_id, success):
     request(url)
 
 def get_version():
+    global VERSION
     """
     Get the version of the ISY when requested by the nodeservers
+    Set version information in config file for reference.
     """
     url = '{}://{}:{}/rest/config'.format(HTTPS, ADDRESS, PORT)
 
@@ -172,8 +177,9 @@ def get_version():
         req = requests.get(url, auth=(USERNAME, PASSWORD),
                            timeout=10, verify=False)    
         tree = ET.fromstring(req.content)
-        tree.findall("/configuration/app_version")
-        _LOGGER.info("!!!!!!!!!!!!!!!!!!!!! %s", tree.text)
+        isy_version = tree.findall('app_version')[0].text
+        VERSION = isy_version
+        _LOGGER.info("ISY Returned Software version %s", isy_version)
         
     except requests.ConnectionError:
         _LOGGER.error('ISY Could not recieve response from device because ' +
@@ -187,7 +193,7 @@ def get_version():
     # process request
     if req.status_code == 200:
         _LOGGER.debug('Got /rest/config valid response from ISY: %s', url)
-        return 
+        return isy_version
     else:
         _LOGGER.warning('Failed getting /rest/config from ISY: %s', url)
         return
