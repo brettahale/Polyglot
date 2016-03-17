@@ -57,6 +57,9 @@ class Node(object):
     :param str address: The address of the node in the ISY without the node
                         server ID prefix
     :param str name: The name of the node
+    :param primary: The primary node for the device this node belongs to, 
+    :               or True if it's the primary.
+    :type primary: polyglot.nodeserver_api.Node or True if this node is the primary.
     :param manifest: The node manifest saved by the node server
     :type manifest: dict or None
 
@@ -65,7 +68,7 @@ class Node(object):
     .. autoattribute:: _commands
     """
 
-    def __init__(self, parent, address, name, manifest=None):
+    def __init__(self, parent, address, name, primary=True, manifest=None):
         """ update driver values from manifest """
         self._drivers = copy.deepcopy(self._drivers)
         manifest = manifest.get(address, {}) if manifest else {}
@@ -75,20 +78,14 @@ class Node(object):
         self.added = manifest.get('added', False)
         self.name = manifest.get('name', name)
         self._LOGGER = logging.getLogger(__name__)    
+        self.primary = primary
 
         drivers = manifest.get('drivers', {})
         for key, value in self._drivers.items():
             self._drivers[key][0] = drivers.get(key, value[0])
 
-        if new_node:
-            all_nodes = list(self.parent.nodes.keys())
-            if len(all_nodes) > 0:
-                primary = all_nodes[0]
-            else:
-                primary = address
-            if (int(len(primary)) > 14):
-                self._LOGGER.error("Node longer than 14 characters this will fail adding to the ISY: %s", primary)
-            self.add_node(primary)
+        self.add_node()
+
 
     def run_cmd(self, command, **kwargs):
         """
@@ -175,13 +172,18 @@ class Node(object):
         self.report_driver()
         return True
 
-    def add_node(self, primary_addr):
+    def add_node(self):
         """
         Adds node to the ISY
 
-        :param str primary_addr: The node server's primary node address
         :returns boolean: Indicates success or failure of node addition
         """
+        if (int(len(self.address)) > 14):
+            self._LOGGER.error("Node longer than 14 characters this will fail adding to the ISY: %s", self.address)
+
+        primary_addr = self.address
+        if self.primary is not True:
+            primary_addr = self.primary.address;
         self.parent.poly.add_node(
             self.address, self.node_def_id, primary_addr, self.name
         )
@@ -462,12 +464,44 @@ class SimpleNodeServer(NodeServer):
     """
 
     nodes = OrderedDict()
+
     """
-    Nodes registered with this node server. The first node will be the
-    primary node and cannot be removed. Additional nodes can be registered with
-    the server by adding them to this dictionary. The keys are the node IDs
-    while the values are instances of :class:`polyglot.nodeserver_api.Node`.
+    Nodes registered with this node server.  Call add_node to add your nodes.
     """
+
+    def add_node(self,node):
+        """
+        Add node to this node server.
+
+        :param node: The node add
+        :type node polyglot.nodeserver_api.Node
+        :param str optional request_id: Status request id
+        :returns polyglot.nodeserver_api.Node
+        """
+        self.nodes[node.address] = node
+        return node
+
+    def get_node(self,address):
+        """
+        Get a node by it's address.
+
+        :param str address: The node address
+        :returns Node on success, otherwise False.
+        """
+        if address in self.nodes:
+            return self.nodes[address]
+        return False
+
+    def exist_node(self,address):
+        """
+        Check if a node exists by it's address.
+
+        :param str address: The node address
+        :returns boolean
+        """
+        if address in self.nodes:
+            return True
+        return False
 
     def update_config(self):
         """
@@ -476,7 +510,7 @@ class SimpleNodeServer(NodeServer):
         """
         output = OrderedDict()
         for node_addr, node in self.nodes.items():
-            output[node_addr] = node.manifest
+            output[node.address] = node.manifest
         self.config['manifest'] = output
         self.poly.send_config(self.config)
 
@@ -523,9 +557,8 @@ class SimpleNodeServer(NodeServer):
         """
         all_nodes = list(self.nodes.keys())
         if len(all_nodes) > 0:
-            primary = all_nodes[0]
             for node in self.nodes.values():
-                node.add_node(primary)
+                node.add_node()
         return True
 
     def on_added(self, node_address, node_def_id, primary_node_address, name):
