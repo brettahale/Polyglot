@@ -425,7 +425,7 @@ class NodeServer(object):
         """ Called every thirty seconds for less important polling. """
         # pylint: disable=no-self-use
         pass
-
+        
     def run(self):
         """
         Run the Node Server. Exit when triggered. Generally, this method should
@@ -649,7 +649,7 @@ class PolyglotConnector(object):
 
     commands = ['config', 'install', 'query', 'status', 'add_all', 'added',
                 'removed', 'renamed', 'enabled', 'disabled', 'cmd', 'ping',
-                'exit']
+                'exit', 'isyver']
     """ Commands that may be invoked by Polyglot """
 
     def __init__(self):
@@ -666,10 +666,12 @@ class PolyglotConnector(object):
         self._threads = {}
         self._started = time.time()
         self._got_config = False
+        self.isyver = ""
 
         # listen for important events
         self.listen('ping', self.pong)
         self.listen('config', self._recv_config)
+        self.listen('isyver', self.get_isyver)
 
         # setup logging - redirect warnings and errors to stderr
         fmt = '%(name)s: %(message)s'
@@ -831,6 +833,12 @@ class PolyglotConnector(object):
         # pylint: disable=unused-argument
         self._got_config = True
         return True
+        
+    def get_isyver(self, **kwargs):
+        """ Get the isyver command from nodeserver and makes it available to 
+              the nodeserver api """
+        self.isyver = kwargs['version']
+        return True        
 
     # create output
     def _mk_cmd(self, cmd_code, **kwargs):
@@ -982,7 +990,7 @@ class PolyglotConnector(object):
         # pylint: disable=unused-argument
         self._mk_cmd('pong')
         return True
-
+        
     def exit(self, *args, **kwargs):
         """
         Tells Polyglot that this Node Server is done.

@@ -63,6 +63,16 @@ class ConfigManager(defaultdict):
             _LOGGER.debug('Config file changes detected. writing to config file.')
             self.write()
 
+    def get_isy_version(self):
+        config = copy.deepcopy(dict(self))
+        try:
+            return self.get_from_config(config, ['elements', 'isy', 'version'])
+        except KeyError:
+            return
+
+    def get_from_config(self, config_dict, element):
+        return reduce(lambda d, k: d[k], element, config_dict)
+            
     def sort_keys(self, obj):
         if isinstance(obj, dict):
             return sorted((k, self.sort_keys(v)) for k, v in obj.items())
