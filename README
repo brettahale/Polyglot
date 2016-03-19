@@ -1,10 +1,10 @@
 Polyglot Server
 
-- jimboca: Make setup doesn't have a rule in the makefile
-	   	   sudo pip install tornado 
-           Doesn't work with python2: python -m polyglot -v
-	   Instead:  python polyglot/__main__.py  -v
-	   
+jimboca: Make setup doesn't have a rule in the makefile
+    sudo apt-get install python2.7-dev
+    sudo pip install tornado
+    sudo pip install netdisco
+    
 This is the source code for the Polyglot server that will allow the ISY 
 controller to communicate with third party devices.
 
