@@ -22,7 +22,7 @@ class HueNodeServer(SimpleNodeServer):
         """ Initial node setup. """
         # define nodes for settings
         manifest = self.config.get('manifest', {})
-        self.add_node(HubSettings(self, 'hub', 'Hue Hub', True, manifest))
+        HubSettings(self, 'hub', 'Hue Hub', True, manifest)
         self.connect()
         self.update_config()
 
@@ -74,9 +74,9 @@ class HueNodeServer(SimpleNodeServer):
             name = data['name']
             lnode = self.get_node(address)
             if not lnode:
-                lnode = self.add_node(HueColorLight(self, address, 
-                                                    name, lamp_id, 
-                                                    self, manifest))
+                lnode = HueColorLight(self, address, 
+                                      name, lamp_id, 
+                                      self, manifest)
             (color_x, color_y) = [round(val, 4)
                                   for val in data['state']['xy']]
             brightness = round(data['state']['bri'] / 255. * 100., 4)

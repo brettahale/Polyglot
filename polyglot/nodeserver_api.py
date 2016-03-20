@@ -22,6 +22,7 @@ from polyglot.utils import AsyncFileReader, Empty, LockQueue
 import sys
 import threading
 import time
+import traceback
 
 _POLYGLOT_CONNECTION = None
 OUTPUT_DELAY = 0
@@ -181,12 +182,7 @@ class Node(object):
         if (int(len(self.address)) > 14):
             self._LOGGER.error("Node longer than 14 characters this will fail adding to the ISY: %s", self.address)
 
-        primary_addr = self.address
-        if self.primary is not True:
-            primary_addr = self.primary.address;
-        self.parent.poly.add_node(
-            self.address, self.node_def_id, primary_addr, self.name
-        )
+        self.parent.add_node(self)
         self.report_driver()
         return True
 
@@ -416,6 +412,18 @@ class NodeServer(object):
         self.running = False
         return True
 
+    def add_node(self, node):
+        #address, id, primary, name):
+        """
+        Add this node to the polyglot
+
+        :returns bool: True on success
+        """
+        primary_addr = node.address
+        if node.primary is not True:
+            primary_addr = node.primary.address;
+        self.poly.add_node(node.address, node.node_def_id, primary_addr, node.name)
+
     def poll(self):
         """ Called every second to allow for updating nodes. """
         # pylint: disable=no-self-use
@@ -466,20 +474,21 @@ class SimpleNodeServer(NodeServer):
     nodes = OrderedDict()
 
     """
-    Nodes registered with this node server.  Call add_node to add your nodes.
+    Nodes registered with this node server.  All nodes are automatically added.
     """
 
-    def add_node(self,node):
+    def add_node(self, node):
         """
-        Add node to this node server.
+        Add node to they Polyglot and this node server.
 
         :param node: The node add
         :type node polyglot.nodeserver_api.Node
         :param str optional request_id: Status request id
         :returns polyglot.nodeserver_api.Node
         """
+        super(SimpleNodeServer, self).add_node(node)
+        # And store it in our list
         self.nodes[node.address] = node
-        return node
 
     def get_node(self,address):
         """
@@ -820,7 +829,7 @@ class PolyglotConnector(object):
                     err_msg = repr(err).replace('\n', '')
                     fun_name = fun.__name__
                     self.send_error('Error handling {} in function {}: {}'
-                                    .format(cmd_code, fun_name, err_msg))
+                                    .format(cmd_code, fun_name, err_msg) + traceback.format_exc())
             else:
                 if not success[-1]:
                     fun_name = fun.__name__
