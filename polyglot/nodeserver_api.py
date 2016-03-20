@@ -423,8 +423,10 @@ class NodeServer(object):
 
         :returns bool: True on success
         """
+        # By default the primary_address is it's own address
         primary_addr = node.address
         if node.primary is not True:
+            # Unless a Node was passed in as the primary.
             primary_addr = node.primary.address;
         self.poly.add_node(node.address, node.node_def_id, primary_addr, node.name)
 

@@ -79,8 +79,8 @@ class HubSettings(Node):
 class HueColorLight(Node):
     """ Node representing Hue Color Light """
 
-    def __init__(self, parent, address, name, lamp_id, manifest=None):
-        super(HueColorLight, self).__init__(parent, address, name, parent, manifest)
+    def __init__(self, parent, address, name, lamp_id, primary, manifest=None):
+        super(HueColorLight, self).__init__(parent, address, name, primary, manifest)
         self.lamp_id = int(lamp_id)
 
     def query(self):
