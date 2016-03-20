@@ -68,7 +68,7 @@ class Kodi(Node):
     """ Node representing Kodi/XBMC """
 
     def __init__(self, parent, address, name, ip_addr, manifest=None):
-        super(Kodi, self).__init__(parent, address, name, manifest)
+        super(Kodi, self).__init__(parent, address, name, parent, manifest)
         self.ip_addr = None
         self.server = None
         self.set_ip(ip_addr)

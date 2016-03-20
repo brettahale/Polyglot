@@ -76,7 +76,7 @@ class HueNodeServer(SimpleNodeServer):
             if not lnode:
                 lnode = HueColorLight(self, address, 
                                       name, lamp_id, 
-                                      self, manifest)
+                                      manifest)
             (color_x, color_y) = [round(val, 4)
                                   for val in data['state']['xy']]
             brightness = round(data['state']['bri'] / 255. * 100., 4)

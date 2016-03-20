@@ -20,7 +20,7 @@ class KodiNodeServer(SimpleNodeServer):
         """ Initial node setup. """
         # define nodes for settings
         manifest = self.config.get('manifest', {})
-        self.add_node(KodiDiscovery(self, 'disco', 'Kodi Discovery', True, manifest))
+        KodiDiscovery(self, 'disco', 'Kodi Discovery', True, manifest)
         self.nodes['disco'].discover()
         self.update_config()
 
@@ -31,7 +31,7 @@ class KodiNodeServer(SimpleNodeServer):
         knode = self.get_node(isy_addr)
         if not lnode:
             manifest = self.config.get('manifest', {})
-            self.add_node = Kodi(self, isy_addr, name, ip_addr, self, manifest)
+            Kodi(self, isy_addr, name, ip_addr, self, manifest)
 
         else:
             self.nodes[isy_addr].set_ip(ip_addr)
