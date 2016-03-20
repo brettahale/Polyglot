@@ -74,6 +74,8 @@ class Node(object):
         self._drivers = copy.deepcopy(self._drivers)
         manifest = manifest.get(address, {}) if manifest else {}
         new_node = manifest == {}
+        if not hasattr(parent,'_is_node_server'):
+            raise RuntimeError("Node '%s' parent '%s' is not a NodeServer?" % (name, parent))
         self.parent = parent
         self.address = address
         self.added = manifest.get('added', False)
@@ -181,7 +183,8 @@ class Node(object):
         """
         if (int(len(self.address)) > 14):
             self._LOGGER.error("Node longer than 14 characters this will fail adding to the ISY: %s", self.address)
-
+        # Add this node to he node server
+        self._LOGGER.info("Node '%s' parent='%s'" % (self.name,self.parent))
         self.parent.add_node(self)
         self.report_driver()
         return True
@@ -264,6 +267,7 @@ class NodeServer(object):
         self.running = False
         self.shortpoll = shortpoll
         self.longpoll = longpoll
+        self._is_node_server = True
 
         # bind callbacks to events
         poly.listen('config', self.on_config)
