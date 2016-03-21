@@ -29,7 +29,7 @@ class Polyglot(object):
         self.elements = ElementManager(self)
         self.nodeservers = NodeServerManager(self)
         self.running = False
-
+        self.isy_version = self.config.get_isy_version()
         # handle SIGTERMs
         signal.signal(signal.SIGTERM, self.stop)
 
@@ -37,9 +37,7 @@ class Polyglot(object):
         """ Setup Polyglot to resume the last known state """
         _LOGGER.info('Starting Polyglot')
         self.elements.load()
-        self.update_config()
-        self.isy_version = self.config.get_isy_version()
-        self.nodeservers.load()
+        self.nodeservers.load()        
 
     def run(self):
         """ Run the Polyglot server """
