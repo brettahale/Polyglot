@@ -268,6 +268,7 @@ class NodeServer(object):
         self.shortpoll = shortpoll
         self.longpoll = longpoll
         self._is_node_server = True
+        self._LOGGER = poly._LOGGER
 
         # bind callbacks to events
         poly.listen('config', self.on_config)
@@ -696,7 +697,8 @@ class PolyglotConnector(object):
         handler = logging.StreamHandler(sys.stderr)
         handler.setLevel(logging.WARNING)
         handler.setFormatter(logging.Formatter(fmt))
-        logging.getLogger('').addHandler(handler)
+        self._LOGGER = logging.getLogger('')
+        self._LOGGER.addHandler(handler)
 
         # store connection globally in module
         _POLYGLOT_CONNECTION = self
