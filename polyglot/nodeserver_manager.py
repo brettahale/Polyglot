@@ -232,6 +232,8 @@ class NodeServer(object):
         time.sleep(1)
         self.send_config()
         self.send_version()
+        self.send_sandbox()
+        self.send_name()
 
         _LOGGER.info('Started Node Server: %s:%s (%s)',
                      self.platform, self.name, self._proc.pid)
@@ -374,6 +376,10 @@ class NodeServer(object):
         """ Enqueue a command for transmission to server. """
         if cmd_code == 'isyver':
             msg = json.dumps({cmd_code: {'version': self.isy_version}})
+        elif cmd_code == 'sandbox':
+            msg = json.dumps({cmd_code: {'sandbox': self.sandbox}})
+        elif cmd_code == 'name':
+            msg = json.dumps({cmd_code: {'name': self.name}})
         else:
             msg = json.dumps({cmd_code: kwargs})
         if self._inq:
@@ -440,6 +446,12 @@ class NodeServer(object):
 
     def send_version(self):
         self._mk_cmd('isyver')
+
+    def send_sandbox(self):
+        self._mk_cmd('sandbox')
+
+    def send_name(self):
+        self._mk_cmd('name')
 
     def send_exit(self):
         """ Send exit command to the Node Server. """

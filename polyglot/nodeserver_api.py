@@ -668,7 +668,7 @@ class PolyglotConnector(object):
 
     commands = ['config', 'install', 'query', 'status', 'add_all', 'added',
                 'removed', 'renamed', 'enabled', 'disabled', 'cmd', 'ping',
-                'exit', 'isyver']
+                'exit', 'isyver', 'sandbox', 'name']
     """ Commands that may be invoked by Polyglot """
 
     def __init__(self):
@@ -685,12 +685,16 @@ class PolyglotConnector(object):
         self._threads = {}
         self._started = time.time()
         self._got_config = False
-        self.isyver = ""
+        self.isyver = False
+        self.sandbox = False
+        self.name = False
 
         # listen for important events
         self.listen('ping', self.pong)
         self.listen('config', self._recv_config)
         self.listen('isyver', self.get_isyver)
+        self.listen('sandbox', self.get_sandbox)
+        self.listen('name', self.get_name)
 
         # setup logging - redirect warnings and errors to stderr
         fmt = '%(name)s: %(message)s'
@@ -858,6 +862,18 @@ class PolyglotConnector(object):
         """ Get the isyver command from nodeserver and makes it available to 
               the nodeserver api """
         self.isyver = kwargs['version']
+        return True        
+
+    def get_sandbox(self, **kwargs):
+        """ Get the sandbox from nodeserver and makes it available to 
+              the nodeserver api """
+        self.sandbox = kwargs['sandbox']
+        return True        
+
+    def get_name(self, **kwargs):
+        """ Get the nodeserver name and makes it available to 
+              the nodeserver api """
+        self.name = kwargs['name']
         return True        
 
     # create output
