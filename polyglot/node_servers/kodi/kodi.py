@@ -28,7 +28,7 @@ class KodiNodeServer(SimpleNodeServer):
         ''' register new or old kodi instance '''
         isy_addr = id_2_addr(udn)
 
-        knode = self.get_node(isy_addr)
+        lnode = self.get_node(isy_addr)
         if not lnode:
             manifest = self.config.get('manifest', {})
             Kodi(self, isy_addr, name, ip_addr, self, manifest)
