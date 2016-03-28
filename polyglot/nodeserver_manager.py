@@ -187,7 +187,12 @@ class NodeServer(object):
         self.path = os.path.dirname(nsexe)
         self.name = nsname
         self.sandbox = sandbox
-
+        """ This is the new 'API Version' Please increment if you update the API """ 
+        self.apiver = '1.0.1'
+        self.params = {'isyver': self.isy_version,
+            'sandbox': self.sandbox,
+            'name': self.name,
+            'apiver': self.apiver}
         self._proc = None
         self._inq = None
         self._lastping = None
@@ -231,9 +236,7 @@ class NodeServer(object):
         # wait, then send config
         time.sleep(1)
         self.send_config()
-        self.send_version()
-        self.send_sandbox()
-        self.send_name()
+        self.send_params()
 
         _LOGGER.info('Started Node Server: %s:%s (%s)',
                      self.platform, self.name, self._proc.pid)
@@ -374,20 +377,17 @@ class NodeServer(object):
     # handle output
     def _mk_cmd(self, cmd_code, **kwargs):
         """ Enqueue a command for transmission to server. """
-        if cmd_code == 'isyver':
-            msg = json.dumps({cmd_code: {'version': self.isy_version}})
-        elif cmd_code == 'sandbox':
-            msg = json.dumps({cmd_code: {'sandbox': self.sandbox}})
-        elif cmd_code == 'name':
-            msg = json.dumps({cmd_code: {'name': self.name}})
-        else:
-            msg = json.dumps({cmd_code: kwargs})
+        msg = json.dumps({cmd_code: kwargs})
         if self._inq:
             self._inq.put(msg, True, 5)
 
     def send_config(self):
         """ Send configuration to Node Server. """
         self._mk_cmd('config', **self.config)
+
+    def send_params(self):
+        """ Send parameters to Node Server. """
+        self._mk_cmd('params', **self.params)        
 
     def send_install(self, profile_number=None):
         """ Send install command to Node Server. """
@@ -443,15 +443,6 @@ class NodeServer(object):
     def send_ping(self):
         """ Send Ping request to the Node Server. """
         self._mk_cmd('ping')
-
-    def send_version(self):
-        self._mk_cmd('isyver')
-
-    def send_sandbox(self):
-        self._mk_cmd('sandbox')
-
-    def send_name(self):
-        self._mk_cmd('name')
 
     def send_exit(self):
         """ Send exit command to the Node Server. """
