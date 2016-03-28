@@ -78,7 +78,7 @@ class HueNodeServer(SimpleNodeServer):
                                       name, lamp_id, 
                                       self.get_node('hub'), manifest)
             (color_x, color_y) = [round(val, 4)
-                                  for val in data['state']['xy']]
+                                  for val in data['state'].get('xy',[0.0,0.0])]
             brightness = round(data['state']['bri'] / 255. * 100., 4)
             brightness = brightness if data['state']['on'] else 0
             lnode.set_driver('GV1', color_x)
@@ -99,7 +99,7 @@ class HueNodeServer(SimpleNodeServer):
             address = id_2_addr(data['uniqueid'])
             if address == lkp_address:
                 (color_x, color_y) = [round(val, 4)
-                                      for val in data['state']['xy']]
+                                      for val in data['state'].get('xy',[0.0,0.0])]
                 brightness = round(data['state']['bri'] / 255. * 100., 4)
                 brightness = brightness if data['state']['on'] else 0
                 return (color_x, color_y, brightness)
