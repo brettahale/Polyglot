@@ -668,7 +668,7 @@ class PolyglotConnector(object):
 
     commands = ['config', 'install', 'query', 'status', 'add_all', 'added',
                 'removed', 'renamed', 'enabled', 'disabled', 'cmd', 'ping',
-                'exit', 'isyver', 'sandbox', 'name']
+                'exit', 'params']
     """ Commands that may be invoked by Polyglot """
 
     def __init__(self):
@@ -685,16 +685,16 @@ class PolyglotConnector(object):
         self._threads = {}
         self._started = time.time()
         self._got_config = False
+        self.params = False
         self.isyver = False
         self.sandbox = False
         self.name = False
+        self.apiver = False
 
         # listen for important events
         self.listen('ping', self.pong)
         self.listen('config', self._recv_config)
-        self.listen('isyver', self.get_isyver)
-        self.listen('sandbox', self.get_sandbox)
-        self.listen('name', self.get_name)
+        self.listen('params', self.get_params)
 
         # setup logging - redirect warnings and errors to stderr
         fmt = '%(name)s: %(message)s'
@@ -857,24 +857,17 @@ class PolyglotConnector(object):
         # pylint: disable=unused-argument
         self._got_config = True
         return True
-        
-    def get_isyver(self, **kwargs):
-        """ Get the isyver command from nodeserver and makes it available to 
-              the nodeserver api """
-        self.isyver = kwargs['version']
-        return True        
 
-    def get_sandbox(self, **kwargs):
-        """ Get the sandbox from nodeserver and makes it available to 
-              the nodeserver api """
-        self.sandbox = kwargs['sandbox']
-        return True        
-
-    def get_name(self, **kwargs):
-        """ Get the nodeserver name and makes it available to 
-              the nodeserver api """
-        self.name = kwargs['name']
-        return True        
+    def get_params(self, **kwargs):
+       """ Get the params from nodeserver and makes them available to 
+       the nodeserver api """
+       self.isyver = kwargs['isyver']
+       self.sandbox = kwargs['sandbox']
+       self.name = kwargs['name']
+       self.pgver = kwargs['pgver']
+       self.pgapiver = kwargs['pgapiver']
+       self.nsapiver = kwargs['nsapiver']
+       return True          
 
     # create output
     def _mk_cmd(self, cmd_code, **kwargs):
