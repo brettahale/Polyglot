@@ -864,7 +864,9 @@ class PolyglotConnector(object):
        self.isyver = kwargs['isyver']
        self.sandbox = kwargs['sandbox']
        self.name = kwargs['name']
-       self.apiver = kwargs['apiver']
+       self.pgver = kwargs['pgver']
+       self.pgapiver = kwargs['pgapiver']
+       self.nsapiver = kwargs['nsapiver']
        return True          
 
     # create output

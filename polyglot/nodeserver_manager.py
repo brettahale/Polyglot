@@ -19,7 +19,9 @@ _LOGGER = logging.getLogger(__name__)
 ELEMENT = 'core'
 SERVER_TYPES = {'python': [sys.executable]}
 NS_QUIT_WAIT_TIME = 5
-
+PGVER = '1.0.1'
+PGAPIVER = '1'
+NSAPIVER = '1'
 
 class NodeServerManager(object):
     """
@@ -188,11 +190,15 @@ class NodeServer(object):
         self.name = nsname
         self.sandbox = sandbox
         """ This is the new 'API Version' Please increment if you update the API """ 
-        self.apiver = '1.0.1'
+        self.pgver =  PGVER
+        self.pgapiver = PGAPIVER
+        self.nsapiver = NSAPIVER
         self.params = {'isyver': self.isy_version,
             'sandbox': self.sandbox,
             'name': self.name,
-            'apiver': self.apiver}
+            'pgver': self.pgver,
+            'pgapiver': self.pgapiver,
+            'nsapiver': self.nsapiver}
         self._proc = None
         self._inq = None
         self._lastping = None
