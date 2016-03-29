@@ -880,7 +880,7 @@ class PolyglotConnector(object):
        # making a new file at midnight and keeping 30 backups
        handler = logging.handlers.TimedRotatingFileHandler(log_filename, when="midnight", backupCount=30)
        # Format each log message like this
-       formatter = logging.Formatter('%(asctime)s %(levelname)-8s %(name) %(message)s')
+       formatter = logging.Formatter('%(asctime)s %(levelname)-8s %(name)s %(message)s')
        # Attach the formatter to the handler
        handler.setFormatter(formatter)
        # Attach the handler to the logger
