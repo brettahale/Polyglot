@@ -18,6 +18,7 @@ import copy
 from functools import wraps
 import json
 import logging
+import logging.handlers
 from polyglot.utils import AsyncFileReader, Empty, LockQueue
 import sys
 import threading
@@ -80,7 +81,7 @@ class Node(object):
         self.address = address
         self.added = manifest.get('added', False)
         self.name = manifest.get('name', name)
-        self._LOGGER = logging.getLogger(__name__)    
+        self.LOGGER = self.parent.poly.LOGGER
         self.primary = primary
 
         drivers = manifest.get('drivers', {})
@@ -182,9 +183,9 @@ class Node(object):
         :returns boolean: Indicates success or failure of node addition
         """
         if (int(len(self.address)) > 14):
-            self._LOGGER.error("Node longer than 14 characters this will fail adding to the ISY: %s", self.address)
+            self.LOGGER.error("Node longer than 14 characters this will fail adding to the ISY: %s", self.address)
         # Add this node to he node server
-        self._LOGGER.info("Node '%s' parent='%s'" % (self.name,self.parent))
+        self.LOGGER.info("Node '%s' parent='%s'" % (self.name,self.parent))
         self.parent.add_node(self)
         self.report_driver()
         return True
@@ -268,7 +269,6 @@ class NodeServer(object):
         self.shortpoll = shortpoll
         self.longpoll = longpoll
         self._is_node_server = True
-        self._LOGGER = poly._LOGGER
 
         # bind callbacks to events
         poly.listen('config', self.on_config)
@@ -486,7 +486,6 @@ class SimpleNodeServer(NodeServer):
     """
     Nodes registered with this node server.  All nodes are automatically added.
     """
-
     def add_node(self, node):
         """
         Add node to they Polyglot and this node server.
@@ -669,6 +668,7 @@ class PolyglotConnector(object):
     commands = ['config', 'install', 'query', 'status', 'add_all', 'added',
                 'removed', 'renamed', 'enabled', 'disabled', 'cmd', 'ping',
                 'exit', 'params']
+    LOGGER = None                
     """ Commands that may be invoked by Polyglot """
 
     def __init__(self):
@@ -691,6 +691,7 @@ class PolyglotConnector(object):
         self.name = False
         self.apiver = False
 
+
         # listen for important events
         self.listen('ping', self.pong)
         self.listen('config', self._recv_config)
@@ -701,8 +702,6 @@ class PolyglotConnector(object):
         handler = logging.StreamHandler(sys.stderr)
         handler.setLevel(logging.WARNING)
         handler.setFormatter(logging.Formatter(fmt))
-        self._LOGGER = logging.getLogger('')
-        self._LOGGER.addHandler(handler)
 
         # store connection globally in module
         _POLYGLOT_CONNECTION = self
@@ -766,6 +765,7 @@ class PolyglotConnector(object):
         """ Blocks the thread until the configuration is received """
         while not self._got_config:
             time.sleep(1)
+        self.LOGGER = self.setup_log(self.sandbox, self.name)
 
     # manage output
     def _send_out(self):
@@ -867,8 +867,26 @@ class PolyglotConnector(object):
        self.pgver = kwargs['pgver']
        self.pgapiver = kwargs['pgapiver']
        self.nsapiver = kwargs['nsapiver']
-       return True          
+       return True           
 
+    def setup_log(self, sandbox, name):
+       # Setup logger for individual nodeservers. These log to /config/<node server name> 
+       log_filename = sandbox + "/" + name + ".log"
+       # Could be e.g. "DEBUG" or "WARNING" or "INFO"
+       log_level = logging.DEBUG  
+       logger = logging.getLogger(name)
+       logger.setLevel(log_level)
+       # Make a handler that writes to a file, 
+       # making a new file at midnight and keeping 30 backups
+       handler = logging.handlers.TimedRotatingFileHandler(log_filename, when="midnight", backupCount=30)
+       # Format each log message like this
+       formatter = logging.Formatter('%(asctime)s %(levelname)-8s %(name)-10s %(message)s')
+       # Attach the formatter to the handler
+       handler.setFormatter(formatter)
+       # Attach the handler to the logger
+       logger.addHandler(handler)
+       return logger        
+       
     # create output
     def _mk_cmd(self, cmd_code, **kwargs):
         """

@@ -241,8 +241,8 @@ class NodeServer(object):
 
         # wait, then send config
         time.sleep(1)
+        self.send_params()        
         self.send_config()
-        self.send_params()
 
         _LOGGER.info('Started Node Server: %s:%s (%s)',
                      self.platform, self.name, self._proc.pid)
