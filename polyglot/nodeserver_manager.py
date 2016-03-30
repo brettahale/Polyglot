@@ -7,6 +7,7 @@ import logging
 import os
 from polyglot import SOURCE_DIR
 from polyglot.utils import AsyncFileReader, Queue, Empty, MyProcessLookupError
+from polyglot.version import PGVERSION
 import polyglot.nodeserver_helpers as helpers
 import random
 import string
@@ -19,9 +20,15 @@ _LOGGER = logging.getLogger(__name__)
 ELEMENT = 'core'
 SERVER_TYPES = {'python': [sys.executable]}
 NS_QUIT_WAIT_TIME = 5
-PGVER = '1.0.1'
+
+# Increment this version number each time a breaking change is made or a
+# major new message (feature) is added to the API between the node server
+# manager (implemented by this source file) and its clients.
+# This allows the client an opportunity to adjust its behavior to suit the
+# installed version of Polyglot -- keep in mind that the client node server
+# is independent of Polyglot, and may not even be implemented in Python --
+# and thus has no other way to know about the Polyglot server itself.
 PGAPIVER = '1'
-NSAPIVER = '1'
 
 class NodeServerManager(object):
     """
@@ -190,15 +197,13 @@ class NodeServer(object):
         self.name = nsname
         self.sandbox = sandbox
         """ This is the new 'API Version' Please increment if you update the API """ 
-        self.pgver =  PGVER
+        self.pgver =  PGVERSION
         self.pgapiver = PGAPIVER
-        self.nsapiver = NSAPIVER
         self.params = {'isyver': self.isy_version,
             'sandbox': self.sandbox,
             'name': self.name,
             'pgver': self.pgver,
-            'pgapiver': self.pgapiver,
-            'nsapiver': self.nsapiver}
+            'pgapiver': self.pgapiver}
         self._proc = None
         self._inq = None
         self._lastping = None

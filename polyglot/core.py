@@ -8,6 +8,7 @@ import time
 from polyglot.config_manager import ConfigManager
 from polyglot.element_manager import ElementManager
 from polyglot.nodeserver_manager import NodeServerManager
+from polyglot.version import PGVERSION
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -22,7 +23,7 @@ class Polyglot(object):
     """
 
     def __init__(self, config_dir):
-        _LOGGER.info('Creating Polyglot')
+        _LOGGER.info('Creating Polyglot, version %s', PGVERSION)
         sys.modules['pglot'] = self
         # initialize components
         self.config = ConfigManager(config_dir)

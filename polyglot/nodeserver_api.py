@@ -25,6 +25,15 @@ import threading
 import time
 import traceback
 
+# Increment this version number each time a breaking change is made to
+# anything that the nodeserver API exposes to a node server.  This makes
+# it possible for the author of a node server to write code that can
+# support multiple possibly-incompatible Polyglot servers.  This is
+# important because node servers will often be distributed independently
+# of Polyglot, and the authors of the node servers may have little to
+# no control over what version of Polyglot the end user is running.
+NS_API_VERSION = 1
+
 _POLYGLOT_CONNECTION = None
 OUTPUT_DELAY = 0
 
@@ -866,7 +875,6 @@ class PolyglotConnector(object):
        self.name = kwargs['name']
        self.pgver = kwargs['pgver']
        self.pgapiver = kwargs['pgapiver']
-       self.nsapiver = kwargs['nsapiver']
        return True           
 
     def setup_log(self, sandbox, name):
