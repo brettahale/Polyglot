@@ -1,54 +1,86 @@
-Polyglot Server
+# There are two ways to run polyglot. The choice is yours. 
+# Version 0.0.1
+Inital Unstable Release. April 1st. 2016
 
-Note: Make setup doesn't have a rule in the makefile
-    sudo apt-get install python2.7-dev
-    sudo pip install tornado
-    sudo pip install netdisco
-    
-This is the source code for the Polyglot server that will allow the ISY 
-controller to communicate with third party devices.
+These methods are for linux debian x86 or raspbian on a rpi. 
 
-To download development dependencies, run:
-    sudo make setup
+Get the system pre-requisites
+    apt-get install python-git python-pip python3-pip libjpeg-dev
 
-When running for development, create /etc/polyglot and give the dev user 
-permission for read + write.
-
-To run the pure Python version for development, type:
+# To run the Python module NON-compiled version
+Clone the repository to a directory under the user you wish to run Polyglot. This will not run as root.
+eg. /home/pi/ the following line will create a directory called Polyglot so no need to do that already,
+    git clone https://github.com/UniversalDevicesInc/Polyglot.git
+Move yourself into the Polyglot directory
+    cd Polyglot
+Install the Python required modules this does require root as we want to install them globally
+for Python to access.
+    sudo pip install -r requirements.txt
+Run Polyglot! Use -v for verbose or -vv for extra verbose logging. -c allows you to specifiy a config directory
     python -m polyglot -v
 
-To compile the C code version of this application, use make.
-    make build
-The C code version will be placed in the build directory. The compiled
-version may be run with the same python command from the build directory.
-    python -m polyglot -v
+# To run the COMPILED version (aka all-in-one)
+We will need to create a home for Polyglot
+    mkdir Polyglot && cd $_
 
-To install the C code version of this application, again, use make. This will
-also take care of the aforementioned dependencies.
-    make build
-    sudo make install
+We still need the python pre-requisites:
+	sudo pip install -r https://github.com/UniversalDevicesInc/Polyglot/raw/unstable-release/requirements.txt
 
-This installs polyglot globally and creates a user called polyglot that may run
-the application. Other users are not permitted to access the config directory.
-This is done for basic security reasons as passwords will likely be sored 
-there. To run the application as the polyglot user:
-    sudo su polyglot
-    polyglot
-To run the application as the current user:
-    polyglot -c CONFIG_DIR
-Where CONFIG_DIR is a full path to a custom created config directory to which
-the current user has read + write permissions.
+Download the polyglot binary for your system. One of these:
 
-In the future, su access to polyglot will be disabled and an init script will
-be created to run the server.
+For ARM (Raspberry Pi's)
+    https://github.com/UniversalDevicesInc/Polyglot/raw/unstable-release/bin/polyglot.linux-arm7l.pyz
 
-Init script: To start on boot. Edit the file polyglot.server and modify with 
-root directory of the repository and user to run as. Copy polyglot.service to 
-/lib/systemd/system/ then issue the commands:
-    systemctl enable polyglot
-    systemctl start polyglot
+For x86 Linux flavors (Built with Debian sid):
+	https://github.com/UniversalDevicesInc/Polyglot/raw/unstable-release/bin/polyglot.linux.x86_64.pyz
 
-[todo] Test make install
-[todo] Test running installed version
-[todo] Add init script to make install
-[todo] Disable su to polyglot user
+For MAC (Coming soon)
+	<placeholder>
+
+Make the file executable. Use the filename you download this example is the ARM version.
+    chmod 755 polyglot.linux-arm7l.pyz
+
+Run Polyglot! Use -v for verbose or -vv for extra verbose logging. -c allows you to specifiy a config directory
+    ./polyglot.linux-arm7l.pyz -v
+
+# Now What?
+Now that Polyglot is running. Head to:
+    http://<your server ip>:8080
+
+Login with admin/admin and configure your ISY and Polyglot settings.
+	
+# Extras
+	
+Init script: To start on boot. 
+
+If you are running the module you already have the polyglot.server file in your Polyglot root folder.
+If not then get it like so:
+	wget https://github.com/UniversalDevicesInc/Polyglot/raw/unstable-release/polyglot.service
+
+Edit the file polyglot.server file with your favorite editor.
+Modify WorkingDirectory to be your root Polyglot directory. eg. /home/pi/Polyglot
+Modify ExecStart to be how you start it. Full path needed. 
+For pure Python(Non-compiled):
+    ExecStart=/usr/bin/python -m polyglot -v
+For the compiled binary:
+    ExecStart=/home/pi/Polyglot/polyglot.linux-arm7l.pyz -v
+
+Change the user to the user account that will run polyglot (NOT ROOT)
+    User=pi
+	
+Copy polyglot.service to /lib/systemd/system/ 
+	cp /home/pi/Polyglot/polyglot.service /lib/systemd/system/
+
+Enable systemctl (Make sure polyglot isn't already running):
+    sudo systemctl enable polyglot
+    sudo systemctl start polyglot
+	
+Log files are found under config/polyglot.log. To watch the live action:
+    tail -fn 50 /home/pi/Polyglot/config/polyglot.log
+
+# Adding Poly's 
+Next if you need to get any NON built-in Polyglots (Like any of Einstein.42 or Jimbo's)
+Assuming you are in the Polyglot directory mentioned above, eg. /home/pi/Polyglot/
+cd config/node_servers
+# You will create the specific Poly's here under sub folders.
+# Follow the instructions for your Poly for further details. 
