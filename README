@@ -13,6 +13,10 @@ eg. /home/pi/ the following line will create a directory called Polyglot so no n
     git clone https://github.com/UniversalDevicesInc/Polyglot.git
 Move yourself into the Polyglot directory
     cd Polyglot
+
+Checkout the release build:
+    git checkout unstable-release
+
 Install the Python required modules this does require root as we want to install them globally
 for Python to access.
     sudo pip install -r requirements.txt
