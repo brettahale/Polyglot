@@ -1,4 +1,4 @@
-""" Node classes used by the Hue Node Server. """
+""" Node classes used by the Kodi Node Server. """
 
 import re
 from polyglot.nodeserver_api import Node
@@ -67,8 +67,8 @@ class KodiDiscovery(Node):
 class Kodi(Node):
     """ Node representing Kodi/XBMC """
 
-    def __init__(self, parent, address, name, ip_addr, manifest=None):
-        super(Kodi, self).__init__(parent, address, name, parent, manifest)
+    def __init__(self, parent, address, name, ip_addr, primary, manifest=None):
+        super(Kodi, self).__init__(parent, address, name, primary, manifest)
         self.ip_addr = None
         self.server = None
         self.set_ip(ip_addr)
