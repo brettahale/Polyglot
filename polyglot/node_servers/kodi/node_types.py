@@ -8,10 +8,18 @@ from netdisco.discovery import NetworkDiscovery
 import jsonrpc_requests
 import xml
 
-KODI_STATUS = {(None, None): 1, (False, None): 2,
-               (True, 'video'): 3, (False, 'video'): 4,
-               (True, 'music'): 5, (False, 'music'): 6,
-               (True, 'pictures'): 7, (False, 'pictures'): 8}
+KODI_STATUS = {(None,   None):       1,
+               (False,  None):       2,
+               (True,  'video'):     3,
+               (False, 'video'):     4,
+               (True,  'music'):     5,
+               (True,  'audio'):     5,
+               (False, 'music'):     6,
+               (False, 'audio'):     6,
+               (True,  'picture'):   7,
+               (True,  'pictures'):  7,
+               (False, 'picture'):   8,
+               (False, 'pictures'):  8}
 
 
 def myint(value):
@@ -100,6 +108,7 @@ class Kodi(Node):
             player = None
 
         # Lookup status ID
+        # [TODO] MJW: This is fragile! Replace with pattern matching instead.
         status = KODI_STATUS[(playing, player)]
         self.set_driver('ST', status, report=not force_report)
         if force_report:
