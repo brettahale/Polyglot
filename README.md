@@ -10,13 +10,13 @@ Get the system pre-requisites:
 ## To run the Python module NON-compiled version
 Clone the repository to a directory under the user you wish to run Polyglot. This will not run as root.
 eg. /home/pi/ the following line will create a directory called Polyglot so no need to do that.  
-```git clone https://github.com/UniversalDevicesInc/Polyglot.git```
+```git clone https://github.com/UniversalDevicesInc/Polyglot.git```  
 Move yourself into the Polyglot directory  
 ```cd Polyglot```
 
 Install the Python required modules this does require root as we want to install them globally
 for Python to access.  
-```sudo pip install -r requirements.txt```
+```sudo pip install -r requirements.txt```  
 Run Polyglot! Use -v for verbose or -vv for extra verbose logging. -c allows you to specifiy a config directory  
 ```python -m polyglot -v```
 
@@ -46,7 +46,7 @@ Run Polyglot! Use -v for verbose or -vv for extra verbose logging. -c allows you
 
 ## Now What?
 Now that Polyglot is running. Head to:  
-> http://<your server ip>:8080
+> http://your_server_ip:8080
 
 Login with admin/admin and configure your ISY and Polyglot settings.
 	
@@ -60,15 +60,15 @@ If not then get it like so:
 
 Edit the file polyglot.server with your favorite editor.  
 Modify WorkingDirectory to be your root Polyglot directory. eg. /home/pi/Polyglot  
-> WorkingDirectory=/home/pi/Polyglot
+``` WorkingDirectory=/home/pi/Polyglot  ```  
 Modify ExecStart to be how you start it. Full path needed.  
 For pure Python(Non-compiled):  
-> ExecStart=/usr/bin/python -m polyglot -v
+```ExecStart=/usr/bin/python -m polyglot -v```  
 For the compiled binary:  
-> ExecStart=/home/pi/Polyglot/polyglot.linux-arm7l.pyz -v
+```ExecStart=/home/pi/Polyglot/polyglot.linux-arm7l.pyz -v```
 
 Change the user to the user account that will run polyglot (NOT ROOT)  
-> User=pi
+```User=pi```
 	
 Copy polyglot.service to /lib/systemd/system/ You need sudo as /lib/systemd/system is a system directory.  
 ```sudo cp /home/pi/Polyglot/polyglot.service /lib/systemd/system/```
