@@ -5,27 +5,27 @@ Initial Unstable Release. April 1st. 2016
 These methods are for linux debian x86 or raspbian on a rpi. 
 
 Get the system pre-requisites:  
-```apt-get install python-git python-pip python3-pip libjpeg-dev```
+`apt-get install python-git python-pip python3-pip libjpeg-dev`
 
 ## To run the Python module NON-compiled version
 Clone the repository to a directory under the user you wish to run Polyglot. This will not run as root.
 eg. /home/pi/ the following line will create a directory called Polyglot so no need to do that.  
-```git clone https://github.com/UniversalDevicesInc/Polyglot.git```  
+`git clone https://github.com/UniversalDevicesInc/Polyglot.git`  
 Move yourself into the Polyglot directory  
-```cd Polyglot```
+`cd Polyglot`
 
 Install the Python required modules this does require root as we want to install them globally
 for Python to access.  
-```sudo pip install -r requirements.txt```  
+`sudo pip install -r requirements.txt`  
 Run Polyglot! Use -v for verbose or -vv for extra verbose logging. -c allows you to specifiy a config directory  
-```python -m polyglot -v```
+`python -m polyglot -v`
 
 ## To run the COMPILED version (aka all-in-one)
 We will need to create a home for Polyglot  
-```mkdir Polyglot && cd $_```
+`mkdir Polyglot && cd $_`
 
 We still need the python pre-requisites:  
-```sudo pip install -r https://github.com/UniversalDevicesInc/Polyglot/raw/unstable-release/requirements.txt```
+`sudo pip install -r https://github.com/UniversalDevicesInc/Polyglot/raw/unstable-release/requirements.txt`
 
 Download the polyglot binary for your system. One of these:
 
@@ -39,14 +39,14 @@ For MAC (Built on Yosemite)
 > https://github.com/UniversalDevicesInc/Polyglot/raw/unstable-release/bin/polyglot.osx.x86_64.pyz
 
 Make the file executable. Use the filename you download this example is the ARM version.  
-```chmod 755 polyglot.linux-arm7l.pyz```
+`chmod 755 polyglot.linux-arm7l.pyz`
 
 Run Polyglot! Use -v for verbose or -vv for extra verbose logging. -c allows you to specifiy a config directory  
-```./polyglot.linux-arm7l.pyz -v```
+`./polyglot.linux-arm7l.pyz -v`
 
 ## Now What?
 Now that Polyglot is running. Head to:  
-> http://your_server_ip:8080
+`http://your_server_ip:8080`
 
 Login with admin/admin and configure your ISY and Polyglot settings.
 	
@@ -56,10 +56,10 @@ Init script: To start on boot.
 
 If you are running the module you already have the polyglot.server file in your Polyglot root folder.  
 If not then get it like so:  
-```wget https://github.com/UniversalDevicesInc/Polyglot/raw/unstable-release/polyglot.service```
+`wget https://github.com/UniversalDevicesInc/Polyglot/raw/unstable-release/polyglot.service`
 
 Edit the file polyglot.server with your favorite editor.  
-Modify WorkingDirectory to be your root Polyglot directory. eg. \/home\/pi/Polyglot  
+Modify WorkingDirectory to be your root Polyglot directory. eg. /home/pi/Polyglot  
 `WorkingDirectory=/home/pi/Polyglot`  
 Modify ExecStart to be how you start it. Full path needed.  
 For pure Python(Non-compiled):  
