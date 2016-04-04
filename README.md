@@ -59,16 +59,16 @@ If not then get it like so:
 ```wget https://github.com/UniversalDevicesInc/Polyglot/raw/unstable-release/polyglot.service```
 
 Edit the file polyglot.server with your favorite editor.  
-Modify WorkingDirectory to be your root Polyglot directory. eg. /home/pi/Polyglot  
-``` WorkingDirectory=/home/pi/Polyglot  ```  
+Modify WorkingDirectory to be your root Polyglot directory. eg. \/home\/pi/Polyglot  
+`WorkingDirectory=/home/pi/Polyglot`  
 Modify ExecStart to be how you start it. Full path needed.  
 For pure Python(Non-compiled):  
-```ExecStart=/usr/bin/python -m polyglot -v```  
+`ExecStart=/usr/bin/python -m polyglot -v`  
 For the compiled binary:  
-```ExecStart=/home/pi/Polyglot/polyglot.linux-arm7l.pyz -v```
+`ExecStart=/home/pi/Polyglot/polyglot.linux-arm7l.pyz -v`  
 
 Change the user to the user account that will run polyglot (NOT ROOT)  
-```User=pi```
+`User=pi`  
 	
 Copy polyglot.service to /lib/systemd/system/ You need sudo as /lib/systemd/system is a system directory.  
 ```sudo cp /home/pi/Polyglot/polyglot.service /lib/systemd/system/```
@@ -83,6 +83,6 @@ Log files are found under config/polyglot.log. To watch the live action:
 # Adding Poly's  
 Next if you need to get any NON built-in Polyglots (Like any of Einstein.42 or Jimbo's)  
 Assuming you are in the Polyglot directory mentioned above, eg. /home/pi/Polyglot/  
-```cd config/node_servers```
+```cd config/node_servers```  
 You will create the specific Poly's here under sub folders.
 Follow the instructions for your Poly for further details. 
