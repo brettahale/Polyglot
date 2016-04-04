@@ -30,7 +30,7 @@ We still need the python pre-requisites:
 Download the polyglot binary for your system. One of these:
 
 For ARM (Raspberry Pi's)  
-> https://github.com/UniversalDevicesInc/Polyglot/raw/unstable-release/bin/polyglot.linux-arm7l.pyz
+> https://github.com/UniversalDevicesInc/Polyglot/raw/unstable-release/bin/polyglot.linux-armv7l.pyz
 
 For x86 Linux flavors (Built with Debian sid):  
 > https://github.com/UniversalDevicesInc/Polyglot/raw/unstable-release/bin/polyglot.linux.x86_64.pyz
