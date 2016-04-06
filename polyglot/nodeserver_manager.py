@@ -205,6 +205,7 @@ class NodeServer(object):
             'pgapiver': self.pgapiver}
         self._proc = None
         self._inq = None
+        self._rqq = None
         self._lastping = None
         self._lastpong = None
 
@@ -229,6 +230,7 @@ class NodeServer(object):
 
         self._proc = proc
         self._inq = Queue()
+        self._rqq = Queue(maxsize=4096)
         self._lastping = None
         self._lastpong = None
 
@@ -238,6 +240,8 @@ class NodeServer(object):
                                                   self._recv_out)
         self._threads['stderr'] = AsyncFileReader(self._proc.stderr,
                                                   self._recv_err)
+        self._threads['requests'] = threading.Thread(target=self._request_handler)
+        self._threads['requests'].daemon = True
         self._threads['stdin'] = threading.Thread(target=self._send_in)
         self._threads['stdin'].daemon = True
         for _, thread in self._threads.items():
@@ -332,6 +336,7 @@ class NodeServer(object):
                     _LOGGER.error(
                         'Node Server %s has stopped responding.', self.name)
                     self._inq = None
+                    self._rqq = None
                     self._proc.kill()
             else:
                 try:
@@ -343,6 +348,7 @@ class NodeServer(object):
                     _LOGGER.error(
                         'Node Server %s has exited unexpectedly.', self.name)
                     self._inq = None
+                    self._rqq = None
                     self._proc.kill()
                 else:
                     # line wrote successfully
@@ -350,10 +356,42 @@ class NodeServer(object):
                     if self._inq:
                         self._inq.task_done()
 
+    def _request_handler(self):
+        """
+        Read and process network requests for a node server
+        """
+        while True and self._rqq:
+
+            msg = self._rqq.get(True)
+
+            # parse message
+            command = list(msg.keys())[0]
+            arguments = msg[command]
+
+            ts = time.time()
+            _LOGGER.info('%8s [%d] (%5.2f) _request_handler: command=%s',
+                         self.name,
+                         (0 if self._rqq is None else self._rqq.qsize()),
+                         0.0, command)
+
+            fun = self._handlers.get(command)
+            if fun:
+                fun(self.profile_number, **arguments)
+
+            # Signal that this is handled
+            if self._rqq:
+                self._rqq.task_done()
+
+            _LOGGER.info('%8s [%d] (%5.2f) _request_handler: completed.',
+                         self.name,
+                         (0 if self._rqq is None else self._rqq.qsize()),
+                         (time.time() - ts))
+
     def _recv_out(self, line):
         """ Process node server output. """
         l = (line[:57] + '...') if len(line) > 60 else line
-        _LOGGER.info('%8s (%5.2f) STDOUT: %s', self.name,
+        _LOGGER.info('%8s [%d] (%5.2f) STDOUT: %s', self.name,
+                     (0 if self._rqq is None else self._rqq.qsize()),
                      0.0, l)
         ts = time.time()
         # parse message
@@ -377,14 +415,16 @@ class NodeServer(object):
             # node server is done. Kill it. Clean up is automatic.
             self._proc.kill()
             self._inq = None
+            self._rqq = None
         else:
             fun = self._handlers.get(command)
-            if fun:
-                fun(self.profile_number, **arguments)
+            if fun and self._rqq:
+                self._rqq.put(message, True, 30)
             else:
                 _LOGGER.error('Node Server %s delivered bad command %s',
                               self.name, command)
-        _LOGGER.info('%8s (%5.2f)   Done: %s', self.name,
+        _LOGGER.info('%8s [%d] (%5.2f)   Done: %s', self.name,
+                     (0 if self._rqq is None else self._rqq.qsize()),
                      (time.time() - ts), l)
 
     def _recv_err(self, line):
