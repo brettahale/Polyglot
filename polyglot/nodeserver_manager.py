@@ -196,7 +196,6 @@ class NodeServer(object):
         self.path = os.path.dirname(nsexe)
         self.name = nsname
         self.sandbox = sandbox
-        """ This is the new 'API Version' Please increment if you update the API """ 
         self.pgver =  PGVERSION
         self.pgapiver = PGAPIVER
         self.params = {'isyver': self.isy_version,
@@ -303,12 +302,14 @@ class NodeServer(object):
         elif time.time() - self._lastping >= 30:
             # last ping has expired (more than 30 seconds old)
             if self._lastpong and self._lastpong > self._lastping:
-                # pong was recieved
+                # pong was received
                 self.send_ping()
                 self._lastping = time.time()
                 return True
             else:
-                # pong was not recieved
+                # pong was not received
+                _LOGGER.info('Node Server %s: time since last pong: %5.2f',
+                             self.name, (time.time() - self._lastpong))
                 return False
 
         else:
@@ -367,7 +368,7 @@ class NodeServer(object):
             self.pglot.update_config()
         elif command == 'install':
             # install node server on isy
-            # [future] impliment when documentation is available
+            # [future] implement when documentation is available
             raise NotImplementedError('Install command is not yet supported.')
         elif command == 'exit':
             # node server is done. Kill it. Clean up is automatic.
