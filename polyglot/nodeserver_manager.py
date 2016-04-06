@@ -352,7 +352,10 @@ class NodeServer(object):
 
     def _recv_out(self, line):
         """ Process node server output. """
-        _LOGGER.debug('%s STDOUT: %s', self.name, line)
+        l = (line[:57] + '...') if len(line) > 60 else line
+        _LOGGER.info('%8s (%5.2f) STDOUT: %s', self.name,
+                     0.0, l)
+        ts = time.time()
         # parse message
         message = json.loads(line)
         command = list(message.keys())[0]
@@ -381,6 +384,8 @@ class NodeServer(object):
             else:
                 _LOGGER.error('Node Server %s delivered bad command %s',
                               self.name, command)
+        _LOGGER.info('%8s (%5.2f)   Done: %s', self.name,
+                     (time.time() - ts), l)
 
     def _recv_err(self, line):
         """ Process error stream from node server. """
