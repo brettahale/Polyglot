@@ -163,7 +163,7 @@ def report_request_status(ns_profnum, request_id, success):
     '''
     status = 'success' if success else 'fail'
     url = make_url(ns_profnum,
-                   ['report', 'request', 'status', request_id, status])
+                   ['report', 'request', request_id, status])
     request(url)
 
 def get_version():
