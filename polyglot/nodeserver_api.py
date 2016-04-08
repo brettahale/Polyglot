@@ -648,6 +648,8 @@ class SimpleNodeServer(NodeServer):
         if node_address in self.nodes:
             return self.nodes[node_address].run_cmd(
                 command, value=value, uom=uom, **kwargs)
+        self.poly.send_error('ERROR: on_cmd: node {} does not support command {}'
+                             .format(node_address, command))
         return False
 
     def on_exit(self, *args, **kwargs):
