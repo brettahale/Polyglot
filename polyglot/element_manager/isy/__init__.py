@@ -161,7 +161,7 @@ def report_request_status(ns_profnum, request_id, success):
     :param request_id: The request ID from the controller.
     :param result: Boolean indicating the success of the command.
     '''
-    status = 'success' if success else 'fail'
+    status = 'success' if success else 'failed'
     url = make_url(ns_profnum,
                    ['report', 'request', request_id, status])
     request(url)
