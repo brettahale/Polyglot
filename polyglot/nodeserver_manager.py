@@ -216,6 +216,7 @@ class NodeServer(object):
                           'add': isy.node_add,
                           'change': isy.node_change,
                           'remove': isy.node_remove,
+                          'restcall': self.restcall,
                           'request': isy.report_request_status}
 
         self.start()
@@ -512,6 +513,20 @@ class NodeServer(object):
         except MyProcessLookupError:
             pass
 
+    def restcall(self, ns_profnum, api, seq):
+        """ Perform a REST API call to the ISY, return response. """
+
+        if api is not None:
+            _LOGGER.info('%8s: REST API call: %s', self.name, api)
+            result = self.pglot.elements.isy.restcall(api)
+            self._mk_cmd('restresult', seq=seq,
+                         text=result['text'],
+                         status_code=result['status_code'],
+                         error_text=result['error_text'],
+                         elapsed=result['elapsed'])
+
+        else:
+            _LOGGER.error('%8s: malformed restcall', self.name)
 
 def random_string(length):
     """ Generate a random string of uppercase, lowercase, and digits """
