@@ -12,7 +12,11 @@ except ImportError:
     from urllib.parse import quote, urlencode  # Python 3.x
 
 DEFAULT_CONFIG = {'address': '192.168.10.100', 'https': False,
-                  'password': 'admin', 'username': 'admin', 'port': 80, 'version':'4.2.3'}
+                  'password': 'admin', 'username': 'admin',
+                  'port': 80, 'version':'4.2.3'}
+
+# [future] This single global should probably be owned by each nodeserver
+SESSION = None
 
 ADDRESS = None
 HTTPS = None
@@ -52,13 +56,14 @@ def unload():
 def get_config():
     """ Returns the element's configuration. """
     return {'address': ADDRESS, 'https': HTTPS == 'https',
-            'password': PASSWORD, 'username': USERNAME, 'port': PORT, 'version': VERSION}
+            'password': PASSWORD, 'username': USERNAME,
+            'port': PORT, 'version': VERSION}
 
 
 def set_config(config):
     """ Updates the current configuration. """
     # pylint: disable=global-statement
-    global ADDRESS, HTTPS, PASSWORD, PORT, USERNAME
+    global ADDRESS, HTTPS, PASSWORD, PORT, USERNAME, SESSION
 
     # pull config settings
     ADDRESS = config['address']
@@ -66,6 +71,9 @@ def set_config(config):
     PASSWORD = config['password']
     PORT = config['port']
     USERNAME = config['username']
+
+    # Invalidate the current global Session object
+    SESSION = None
 
 
 def add_node_prefix(ns_profnum, nid):
@@ -230,13 +238,21 @@ def base_request(url):
 
     :param url: URL to request.
     '''
+    global SESSION
     _LOGGER.debug('ISY: Request: %s', url)
+
+    # get, check, and possibly update the session (thread-safe)
+    s = SESSION
+    if s is None:
+        s = requests.Session()
+        s.auth = (USERNAME, PASSWORD)
+        SESSION = s
+        _LOGGER.debug('ISY: created new Session object.')
 
     # make request
     ts = time.time()
     try:
-        req = requests.get(url, auth=(USERNAME, PASSWORD),
-                           timeout=30, verify=False)
+        req = s.get(url, timeout=30, verify=False)
 
     except requests.ConnectionError:
         elapsed = (time.time() - ts)
