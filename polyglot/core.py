@@ -64,7 +64,7 @@ class Polyglot(object):
         if not self.running:
             _LOGGER.info('Not saving configuration (shutting down or not yet running)')
             return
-        _LOGGER.info('Saving Configuration')
+        _LOGGER.debug('Saving Configuration')
         config = {'nodeservers': self.nodeservers.config,
                   'elements': self.elements.config}
         self.config.update(config)
