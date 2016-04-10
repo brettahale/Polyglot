@@ -49,11 +49,16 @@ class KodiDiscovery(Node):
 
         for client in dlna_clients:
             try:
-                response = requests.get(client)
+                response = requests.get(client, timeout=30)
 
             except requests.exceptions.ConnectionError:
                 self.parent.poly.send_error(
                     'Error fetching DLNA data for: {}'.format(client))
+                continue
+
+            except requests.Timeout:
+                self.parent.poly.send_error(
+                    'Timeout fetching DLNA data for: {}'.format(client))
                 continue
 
             try:
