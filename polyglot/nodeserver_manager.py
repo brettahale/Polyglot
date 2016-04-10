@@ -518,7 +518,7 @@ class NodeServer(object):
 
         if api is not None:
             _LOGGER.debug('%8s: REST API call: %s', self.name, api)
-            result = self.pglot.elements.isy.restcall(api)
+            result = self.pglot.elements.isy.restcall(self.profile_number, api)
             self._mk_cmd('restresult', seq=seq,
                          text=result['text'],
                          status_code=result['status_code'],

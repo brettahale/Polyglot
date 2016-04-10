@@ -181,7 +181,7 @@ def get_version():
     Get the version of the ISY when requested by the nodeservers
     Set version information in config file for reference.
     """
-    req = restcall('config')
+    req = restcall(0, 'config')
     if req['text'] is not None:
         try:                   
             tree = ET.fromstring(req['text'])
@@ -195,6 +195,7 @@ def make_url(ns_profnum, path, path_args=None):
     '''
     Create a URL from the given path.
 
+    :param ns_profnum: Node Server ID
     :param path: List or subdirectories in path.
     :param path_args: Dictionary of arguments to add to the path.
     '''
@@ -218,10 +219,11 @@ def request(url):
     req = base_request(url)
     return (req['status_code'] == 200)
 
-def restcall(api):
+def restcall(ns_profnum, api):
     '''
     Requests a REST API from the ISY. Returns response.
 
+    :param ns_profnum: Node Server ID
     :param api: API to request.
     '''
 
