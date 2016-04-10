@@ -53,14 +53,17 @@ class Polyglot(object):
     def stop(self, *args):
         """ Stops the Polyglot server """
         # pylint: disable=unused-argument
+        self.update_config()
         self.running = False
         _LOGGER.info('Stopping Polyglot')
         self.nodeservers.unload()
         self.elements.unload()
-        self.update_config()
 
     def update_config(self):
         """ Signal Polyglot to fetch updated configuration. """
+        if not self.running:
+            _LOGGER.info('Not saving Configuration (due to shutdown)')
+            return
         _LOGGER.info('Saving Configuration')
         config = {'nodeservers': self.nodeservers.config,
                   'elements': self.elements.config}
