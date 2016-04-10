@@ -313,8 +313,8 @@ class NodeServer(object):
                 return True
             else:
                 # pong was not received
-                _LOGGER.info('Node Server %s: time since last pong: %5.2f',
-                             self.name, (time.time() - self._lastpong))
+                _LOGGER.warning('Node Server %s: time since last pong: %5.2f',
+                                self.name, (time.time() - self._lastpong))
                 return False
 
         else:
@@ -370,10 +370,10 @@ class NodeServer(object):
             arguments = msg[command]
 
             ts = time.time()
-            _LOGGER.info('%8s [%d] (%5.2f) _request_handler: command=%s',
-                         self.name,
-                         (0 if self._rqq is None else self._rqq.qsize()),
-                         0.0, command)
+            _LOGGER.debug('%8s [%d] (%5.2f) _request_handler: command=%s',
+                          self.name,
+                          (0 if self._rqq is None else self._rqq.qsize()),
+                          0.0, command)
 
             fun = self._handlers.get(command)
             if fun:
@@ -383,17 +383,17 @@ class NodeServer(object):
             if self._rqq:
                 self._rqq.task_done()
 
-            _LOGGER.info('%8s [%d] (%5.2f) _request_handler: completed.',
-                         self.name,
-                         (0 if self._rqq is None else self._rqq.qsize()),
-                         (time.time() - ts))
+            _LOGGER.debug('%8s [%d] (%5.2f) _request_handler: completed.',
+                          self.name,
+                          (0 if self._rqq is None else self._rqq.qsize()),
+                          (time.time() - ts))
 
     def _recv_out(self, line):
         """ Process node server output. """
         l = (line[:57] + '...') if len(line) > 60 else line
-        _LOGGER.info('%8s [%d] (%5.2f) STDOUT: %s', self.name,
-                     (0 if self._rqq is None else self._rqq.qsize()),
-                     0.0, l)
+        _LOGGER.debug('%8s [%d] (%5.2f) STDOUT: %s', self.name,
+                      (0 if self._rqq is None else self._rqq.qsize()),
+                      0.0, l)
         ts = time.time()
         # parse message
         message = json.loads(line)
@@ -424,9 +424,9 @@ class NodeServer(object):
             else:
                 _LOGGER.error('Node Server %s delivered bad command %s',
                               self.name, command)
-        _LOGGER.info('%8s [%d] (%5.2f)   Done: %s', self.name,
-                     (0 if self._rqq is None else self._rqq.qsize()),
-                     (time.time() - ts), l)
+        _LOGGER.debug('%8s [%d] (%5.2f)   Done: %s', self.name,
+                      (0 if self._rqq is None else self._rqq.qsize()),
+                      (time.time() - ts), l)
 
     def _recv_err(self, line):
         """ Process error stream from node server. """
@@ -517,7 +517,7 @@ class NodeServer(object):
         """ Perform a REST API call to the ISY, return response. """
 
         if api is not None:
-            _LOGGER.info('%8s: REST API call: %s', self.name, api)
+            _LOGGER.debug('%8s: REST API call: %s', self.name, api)
             result = self.pglot.elements.isy.restcall(api)
             self._mk_cmd('restresult', seq=seq,
                          text=result['text'],
