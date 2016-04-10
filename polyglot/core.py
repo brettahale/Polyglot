@@ -62,7 +62,7 @@ class Polyglot(object):
     def update_config(self):
         """ Signal Polyglot to fetch updated configuration. """
         if not self.running:
-            _LOGGER.info('Not saving Configuration (due to shutdown)')
+            _LOGGER.info('Not saving configuration (shutting down or not yet running)')
             return
         _LOGGER.info('Saving Configuration')
         config = {'nodeservers': self.nodeservers.config,
