@@ -430,7 +430,14 @@ class NodeServer(object):
 
     def _recv_err(self, line):
         """ Process error stream from node server. """
-        _LOGGER.error('%s: %s', self.name, line)
+        if line.startswith('**INFO: '):
+            _LOGGER.info('%s: %s', self.name, line)
+        elif line.startswith('**DEBUG: '):
+            _LOGGER.debug('%s: %s', self.name, line)
+        elif line.startswith('**WARNING: '):
+            _LOGGER.warning('%s: %s', self.name, line)
+        else:
+            _LOGGER.error('%s: %s', self.name, line)
 
     # handle output
     def _mk_cmd(self, cmd_code, **kwargs):
