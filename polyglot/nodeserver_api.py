@@ -514,11 +514,8 @@ class SimpleNodeServer(NodeServer):
         :type node: polyglot.nodeserver_api.Node
         :returns boolean: Indicates success or failure of node addition
         """
-        st = super(SimpleNodeServer, self).add_node(node)
-        if st:
-            # And store it in our list
-            self.nodes[node.address] = node
-        return st
+        super(SimpleNodeServer, self).add_node(node)
+        self.nodes[node.address] = node
 
     def get_node(self,address):
         """
