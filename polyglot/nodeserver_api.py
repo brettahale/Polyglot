@@ -296,7 +296,8 @@ class NodeServer(object):
 
     def setup(self):
         """
-        Setup the node server.  All node servers must override this method and call it thru super.
+        Setup the node server.  All node servers must override this method and 
+        call it thru super.
         Currently it only sets up the reference for the logger.
         """
         self.logger = self.poly.logger

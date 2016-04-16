@@ -409,6 +409,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">running</span> <span class="o">=</span> <span class="bp">False</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">shortpoll</span> <span class="o">=</span> <span class="n">shortpoll</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">longpoll</span> <span class="o">=</span> <span class="n">longpoll</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span> <span class="o">=</span> <span class="bp">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_is_node_server</span> <span class="o">=</span> <span class="bp">True</span>
 
         <span class="c1"># bind callbacks to events</span>
@@ -425,6 +426,14 @@
         <span class="n">poly</span><span class="o">.</span><span class="n">listen</span><span class="p">(</span><span class="s1">&#39;cmd&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">on_cmd</span><span class="p">)</span>
         <span class="n">poly</span><span class="o">.</span><span class="n">listen</span><span class="p">(</span><span class="s1">&#39;exit&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">on_exit</span><span class="p">)</span>
 
+<div class="viewcode-block" id="NodeServer.setup"><a class="viewcode-back" href="../../nsdev.html#polyglot.nodeserver_api.NodeServer.setup">[docs]</a>    <span class="k">def</span> <span class="nf">setup</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Setup the node server.  All node servers must override this method and </span>
+<span class="sd">        call it thru super.</span>
+<span class="sd">        Currently it only sets up the reference for the logger.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">poly</span><span class="o">.</span><span class="n">logger</span>
+        </div>
 <div class="viewcode-block" id="NodeServer.on_config"><a class="viewcode-back" href="../../nsdev.html#polyglot.nodeserver_api.NodeServer.on_config">[docs]</a>    <span class="k">def</span> <span class="nf">on_config</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">data</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Received configuration data from Polyglot</span>
@@ -638,11 +647,8 @@
 <span class="sd">        :type node: polyglot.nodeserver_api.Node</span>
 <span class="sd">        :returns boolean: Indicates success or failure of node addition</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">st</span> <span class="o">=</span> <span class="nb">super</span><span class="p">(</span><span class="n">SimpleNodeServer</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">add_node</span><span class="p">(</span><span class="n">node</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">st</span><span class="p">:</span>
-            <span class="c1"># And store it in our list</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="n">node</span><span class="o">.</span><span class="n">address</span><span class="p">]</span> <span class="o">=</span> <span class="n">node</span>
-        <span class="k">return</span> <span class="n">st</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">SimpleNodeServer</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">add_node</span><span class="p">(</span><span class="n">node</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="n">node</span><span class="o">.</span><span class="n">address</span><span class="p">]</span> <span class="o">=</span> <span class="n">node</span>
 </div>
 <div class="viewcode-block" id="SimpleNodeServer.get_node"><a class="viewcode-back" href="../../nsdev.html#polyglot.nodeserver_api.SimpleNodeServer.get_node">[docs]</a>    <span class="k">def</span> <span class="nf">get_node</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">address</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
