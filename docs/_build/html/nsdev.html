@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Node Server Development &mdash; Polyglot alpha documentation</title>
+  <title>Node Server Development &mdash; Polyglot 0.0.2 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="Polyglot alpha documentation" href="index.html"/>
+    <link rel="top" title="Polyglot 0.0.2 documentation" href="index.html"/>
         <link rel="next" title="Python Node Server Example" href="nsexample.html"/>
         <link rel="prev" title="Usage" href="usage.html"/> 
 
@@ -60,7 +60,7 @@
             
             
               <div class="version">
-                alpha
+                0.0.2
               </div>
             
           
@@ -188,7 +188,7 @@ file that informs Polyglot of how the node server is executed as well as
 other important details about the node server. The file contains a dictionary
 formatted object with specific fields. A sample <em>server.json</em> is included
 below. It has been extracted from the Philips Hue node server.</p>
-<div class="highlight-json"><div class="highlight"><pre><span class="p">{</span>
+<div class="highlight-json"><div class="highlight"><pre><span></span><span class="p">{</span>
     <span class="nt">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;Phillips Hue&quot;</span><span class="p">,</span>
     <span class="nt">&quot;docs&quot;</span><span class="p">:</span> <span class="s2">&quot;https://www.universal-devices.com/&quot;</span><span class="p">,</span>
     <span class="nt">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;python&quot;</span><span class="p">,</span>
@@ -242,7 +242,7 @@ frontend and an error will be logged.</p>
 assist in Node Server development. It may be easily imported as shown below. In
 the future, more libraries may be made available and more languages may be
 supported.</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">polyglot</span> <span class="kn">import</span> <span class="n">nodeserver_api</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">polyglot</span> <span class="kn">import</span> <span class="n">nodeserver_api</span>
 </pre></div>
 </div>
 <p>The provided Node Server Library exposes all of the <a class="reference external" href="http://www.universal-devices.com/developers/wsdk/5.0.0/ISY-WS-SDK-Node-Server.pdf">ISY controller&#8217;s Node
@@ -285,7 +285,7 @@ attributes should be overwritten to define the drivers and commands relevant to
 the node.</p>
 <dl class="class">
 <dt id="polyglot.nodeserver_api.Node">
-<em class="property">class </em><code class="descclassname">polyglot.nodeserver_api.</code><code class="descname">Node</code><span class="sig-paren">(</span><em>parent</em>, <em>address</em>, <em>name</em>, <em>manifest=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polyglot/nodeserver_api.html#Node"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polyglot.nodeserver_api.Node" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">polyglot.nodeserver_api.</code><code class="descname">Node</code><span class="sig-paren">(</span><em>parent</em>, <em>address</em>, <em>name</em>, <em>primary=True</em>, <em>manifest=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polyglot/nodeserver_api.html#Node"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polyglot.nodeserver_api.Node" title="Permalink to this definition">¶</a></dt>
 <dd><p>Abstract class for representing a node in a node server.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -296,12 +296,16 @@ the node.</p>
 <li><strong>address</strong> (<em>str</em>) &#8211; The address of the node in the ISY without the node
 server ID prefix</li>
 <li><strong>name</strong> (<em>str</em>) &#8211; The name of the node</li>
-<li><strong>manifest</strong> (<em>dict or None</em>) &#8211; The node manifest saved by the node server</li>
+<li><strong>primary</strong> &#8211; The primary node for the device this node belongs to,</li>
 </ul>
 </td>
 </tr>
 </tbody>
 </table>
+<p>:               or True if it&#8217;s the primary.
+:type primary: polyglot.nodeserver_api.Node or True if this node is the primary.
+:param manifest: The node manifest saved by the node server
+:type manifest: dict or None</p>
 <dl class="attribute">
 <dt id="polyglot.nodeserver_api.Node._drivers">
 <code class="descname">_drivers</code><em class="property"> = {}</em><a class="headerlink" href="#polyglot.nodeserver_api.Node._drivers" title="Permalink to this definition">¶</a></dt>
@@ -310,10 +314,10 @@ key&#8217;s are the driver names as defined by the ISY documentation. Each list
 contains three values: the initial value, the UOM identifier, and a
 function that will properly format the value before assignment.</p>
 <p><em>Insteon Dimmer Example:</em></p>
-<div class="highlight-python"><div class="highlight"><pre><span class="n">_drivers</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="s">&#39;ST&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">51</span><span class="p">,</span> <span class="nb">int</span><span class="p">],</span>
-    <span class="s">&#39;OL&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">100</span><span class="p">,</span> <span class="mi">51</span><span class="p">,</span> <span class="nb">int</span><span class="p">],</span>
-    <span class="s">&#39;RR&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">32</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">_drivers</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;ST&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">51</span><span class="p">,</span> <span class="nb">int</span><span class="p">],</span>
+    <span class="s1">&#39;OL&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">100</span><span class="p">,</span> <span class="mi">51</span><span class="p">,</span> <span class="nb">int</span><span class="p">],</span>
+    <span class="s1">&#39;RR&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">32</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span>
 <span class="p">}</span>
 </pre></div>
 </div>
@@ -330,16 +334,14 @@ a boolean indicating the success or failure of the command.</p>
 
 <dl class="method">
 <dt id="polyglot.nodeserver_api.Node.add_node">
-<code class="descname">add_node</code><span class="sig-paren">(</span><em>primary_addr</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polyglot/nodeserver_api.html#Node.add_node"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polyglot.nodeserver_api.Node.add_node" title="Permalink to this definition">¶</a></dt>
+<code class="descname">add_node</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/polyglot/nodeserver_api.html#Node.add_node"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polyglot.nodeserver_api.Node.add_node" title="Permalink to this definition">¶</a></dt>
 <dd><p>Adds node to the ISY</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>primary_addr</strong> (<em>str</em>) &#8211; The node server&#8217;s primary node address</td>
-</tr>
-<tr class="field-even field"><th class="field-name" colspan="2">Returns boolean:</th></tr>
-<tr class="field-even field"><td>&nbsp;</td><td class="field-body">Indicates success or failure of node addition</td>
+<tr class="field-odd field"><th class="field-name" colspan="2">Returns boolean:</th></tr>
+<tr class="field-odd field"><td>&nbsp;</td><td class="field-body">Indicates success or failure of node addition</td>
 </tr>
 </tbody>
 </table>
@@ -483,26 +485,26 @@ to the following. This creates the connection, connect to Polyglot, and then
 waits for the Node Server&#8217;s configuration to be received. The configuration
 will be the first command received from Polyglot and will never be sent again
 after the first transmission.:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="n">poly</span> <span class="o">=</span> <span class="n">PolyglotConnector</span><span class="p">()</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">poly</span> <span class="o">=</span> <span class="n">PolyglotConnector</span><span class="p">()</span>
 <span class="n">poly</span><span class="o">.</span><span class="n">connect</span><span class="p">()</span>
 <span class="n">poly</span><span class="o">.</span><span class="n">wait_for_config</span><span class="p">()</span>
 </pre></div>
 </div>
 <p>Then, commands can be sent upstream to Polyglot or to the ISY by using the
 connector&#8217;s methods.:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="n">poly</span><span class="o">.</span><span class="n">send_error</span><span class="p">(</span><span class="s">&#39;This is an error message. It will be in Polyglot</span><span class="se">\&#39;</span><span class="s">s log.&#39;</span><span class="p">)</span>
-<span class="n">poly</span><span class="o">.</span><span class="n">add_node</span><span class="p">(</span><span class="s">&#39;node_id_1&#39;</span><span class="p">,</span> <span class="s">&#39;NODE_DEFINITION&#39;</span><span class="p">,</span> <span class="s">&#39;node_id_0&#39;</span><span class="p">,</span> <span class="s">&#39;New Node&#39;</span><span class="p">)</span>
-<span class="n">poly</span><span class="o">.</span><span class="n">report_status</span><span class="p">(</span><span class="s">&#39;node_id_1&#39;</span><span class="p">,</span> <span class="s">&#39;ST&#39;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="mi">55</span><span class="p">,</span> <span class="n">uom</span><span class="o">=</span><span class="mi">51</span><span class="p">)</span>
-<span class="n">poly</span><span class="o">.</span><span class="n">remove_node</span><span class="p">(</span><span class="s">&#39;node_id_1&#39;</span><span class="p">)</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">poly</span><span class="o">.</span><span class="n">send_error</span><span class="p">(</span><span class="s1">&#39;This is an error message. It will be in Polyglot</span><span class="se">\&#39;</span><span class="s1">s log.&#39;</span><span class="p">)</span>
+<span class="n">poly</span><span class="o">.</span><span class="n">add_node</span><span class="p">(</span><span class="s1">&#39;node_id_1&#39;</span><span class="p">,</span> <span class="s1">&#39;NODE_DEFINITION&#39;</span><span class="p">,</span> <span class="s1">&#39;node_id_0&#39;</span><span class="p">,</span> <span class="s1">&#39;New Node&#39;</span><span class="p">)</span>
+<span class="n">poly</span><span class="o">.</span><span class="n">report_status</span><span class="p">(</span><span class="s1">&#39;node_id_1&#39;</span><span class="p">,</span> <span class="s1">&#39;ST&#39;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="mi">55</span><span class="p">,</span> <span class="n">uom</span><span class="o">=</span><span class="mi">51</span><span class="p">)</span>
+<span class="n">poly</span><span class="o">.</span><span class="n">remove_node</span><span class="p">(</span><span class="s1">&#39;node_id_1&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>To respond to commands received from Polyglot and the ISY, handlers must be
 registered for events. The handlers arguments will be the parameters specified
 in the API for that event. This will look something like the following.:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="k">def</span> <span class="nf">status_handler</span><span class="p">(</span><span class="n">node_address</span><span class="p">,</span> <span class="n">request_id</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;Status Event Handler Called&#39;</span><span class="p">)</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">status_handler</span><span class="p">(</span><span class="n">node_address</span><span class="p">,</span> <span class="n">request_id</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;Status Event Handler Called&#39;</span><span class="p">)</span>
 
-<span class="n">poly</span><span class="o">.</span><span class="n">listen</span><span class="p">(</span><span class="s">&#39;status&#39;</span><span class="p">,</span> <span class="n">status_handler</span><span class="p">)</span>
+<span class="n">poly</span><span class="o">.</span><span class="n">listen</span><span class="p">(</span><span class="s1">&#39;status&#39;</span><span class="p">,</span> <span class="n">status_handler</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>Now, when the ISY requests a status update from Polyglot, this function will be
@@ -567,7 +569,7 @@ node</li>
 
 <dl class="attribute">
 <dt id="polyglot.nodeserver_api.PolyglotConnector.commands">
-<code class="descname">commands</code><em class="property"> = ['config', 'install', 'query', 'status', 'add_all', 'added', 'removed', 'renamed', 'enabled', 'disabled', 'cmd', 'ping', 'exit']</em><a class="headerlink" href="#polyglot.nodeserver_api.PolyglotConnector.commands" title="Permalink to this definition">¶</a></dt>
+<code class="descname">commands</code><em class="property"> = ['config', 'install', 'query', 'status', 'add_all', 'added', 'removed', 'renamed', 'enabled', 'disabled', 'cmd', 'ping', 'exit', 'params']</em><a class="headerlink" href="#polyglot.nodeserver_api.PolyglotConnector.commands" title="Permalink to this definition">¶</a></dt>
 <dd><p>Commands that may be invoked by Polyglot</p>
 </dd></dl>
 
@@ -605,6 +607,13 @@ connection with Polyglot.</p>
 </dd></dl>
 
 <dl class="method">
+<dt id="polyglot.nodeserver_api.PolyglotConnector.get_params">
+<code class="descname">get_params</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polyglot/nodeserver_api.html#PolyglotConnector.get_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polyglot.nodeserver_api.PolyglotConnector.get_params" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the params from nodeserver and makes them available to 
+the nodeserver api</p>
+</dd></dl>
+
+<dl class="method">
 <dt id="polyglot.nodeserver_api.PolyglotConnector.install">
 <code class="descname">install</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polyglot/nodeserver_api.html#PolyglotConnector.install"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polyglot.nodeserver_api.PolyglotConnector.install" title="Permalink to this definition">¶</a></dt>
 <dd><p>Abstract method to install the node server in the ISY. This has not
@@ -636,6 +645,16 @@ defined in <cite>commands</cite>. Handlers must be callable.</p>
 </tr>
 </tbody>
 </table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="polyglot.nodeserver_api.PolyglotConnector.logger">
+<code class="descname">logger</code><em class="property"> = None</em><a class="headerlink" href="#polyglot.nodeserver_api.PolyglotConnector.logger" title="Permalink to this definition">¶</a></dt>
+<dd><p>logger is initialized after the node server wait_for_config completes
+by the setup_log method and the log file is located in the node servers
+sandbox.
+Once wait_for_config is complete, you can call
+<cite>poly.logger.info(&#8216;This variable is set to %s&#8217;, variable)</cite></p>
 </dd></dl>
 
 <dl class="method">
@@ -794,7 +813,7 @@ current temperature, light level, etc.)</p>
 <h3>Node Server Classes<a class="headerlink" href="#node-server-classes" title="Permalink to this headline">¶</a></h3>
 <dl class="class">
 <dt id="polyglot.nodeserver_api.NodeServer">
-<em class="property">class </em><code class="descclassname">polyglot.nodeserver_api.</code><code class="descname">NodeServer</code><span class="sig-paren">(</span><em>poly</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polyglot/nodeserver_api.html#NodeServer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polyglot.nodeserver_api.NodeServer" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">polyglot.nodeserver_api.</code><code class="descname">NodeServer</code><span class="sig-paren">(</span><em>poly</em>, <em>shortpoll=1</em>, <em>longpoll=30</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polyglot/nodeserver_api.html#NodeServer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polyglot.nodeserver_api.NodeServer" title="Permalink to this definition">¶</a></dt>
 <dd><p>It is generally desireable to not be required to bind to each event. For
 this reason, the NodeServer abstract class is available. This class should
 be abstracted. It binds appropriate handlers to the API events and contains
@@ -804,14 +823,33 @@ server.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>poly</strong> (<a class="reference internal" href="#polyglot.nodeserver_api.PolyglotConnector" title="polyglot.nodeserver_api.PolyglotConnector"><em>polyglot.nodeserver_api.PolyglotConnector</em></a>) &#8211; The connected Polyglot connection</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>poly</strong> (<a class="reference internal" href="#polyglot.nodeserver_api.PolyglotConnector" title="polyglot.nodeserver_api.PolyglotConnector"><em>polyglot.nodeserver_api.PolyglotConnector</em></a>) &#8211; The connected Polyglot connection</li>
+<li><strong>optional shortpoll</strong> (<em>int</em>) &#8211; The seconds between poll events</li>
+<li><strong>optional longpoll</strong> (<em>int</em>) &#8211; The second between longpoll events</li>
+</ul>
+</td>
 </tr>
 </tbody>
 </table>
 <dl class="method">
+<dt id="polyglot.nodeserver_api.NodeServer.add_node">
+<code class="descname">add_node</code><span class="sig-paren">(</span><em>node</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polyglot/nodeserver_api.html#NodeServer.add_node"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polyglot.nodeserver_api.NodeServer.add_node" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add this node to the polyglot</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns bool:</th><td class="field-body">True on success</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
 <dt id="polyglot.nodeserver_api.NodeServer.long_poll">
 <code class="descname">long_poll</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/polyglot/nodeserver_api.html#NodeServer.long_poll"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polyglot.nodeserver_api.NodeServer.long_poll" title="Permalink to this definition">¶</a></dt>
-<dd><p>Called every thirty seconds for less important polling.</p>
+<dd><p>Called every longpoll seconds for less important polling.</p>
 </dd></dl>
 
 <dl class="method">
@@ -1040,7 +1078,7 @@ not need to be orwritten.</p>
 <dl class="method">
 <dt id="polyglot.nodeserver_api.NodeServer.poll">
 <code class="descname">poll</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/polyglot/nodeserver_api.html#NodeServer.poll"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polyglot.nodeserver_api.NodeServer.poll" title="Permalink to this definition">¶</a></dt>
-<dd><p>Called every second to allow for updating nodes.</p>
+<dd><p>Called every shortpoll seconds to allow for updating nodes.</p>
 </dd></dl>
 
 <dl class="attribute">
@@ -1064,11 +1102,19 @@ not need to be orwritten.</p>
 not be overwritten.</p>
 </dd></dl>
 
+<dl class="method">
+<dt id="polyglot.nodeserver_api.NodeServer.setup">
+<code class="descname">setup</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/polyglot/nodeserver_api.html#NodeServer.setup"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polyglot.nodeserver_api.NodeServer.setup" title="Permalink to this definition">¶</a></dt>
+<dd><p>Setup the node server.  All node servers must override this method and 
+call it thru super.
+Currently it only sets up the reference for the logger.</p>
+</dd></dl>
+
 </dd></dl>
 
 <dl class="class">
 <dt id="polyglot.nodeserver_api.SimpleNodeServer">
-<em class="property">class </em><code class="descclassname">polyglot.nodeserver_api.</code><code class="descname">SimpleNodeServer</code><span class="sig-paren">(</span><em>poly</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polyglot/nodeserver_api.html#SimpleNodeServer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polyglot.nodeserver_api.SimpleNodeServer" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">polyglot.nodeserver_api.</code><code class="descname">SimpleNodeServer</code><span class="sig-paren">(</span><em>poly</em>, <em>shortpoll=1</em>, <em>longpoll=30</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polyglot/nodeserver_api.html#SimpleNodeServer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polyglot.nodeserver_api.SimpleNodeServer" title="Permalink to this definition">¶</a></dt>
 <dd><p>Simple Node Server with basic functionality built-in. This class inherits
 from <a class="reference internal" href="#polyglot.nodeserver_api.NodeServer" title="polyglot.nodeserver_api.NodeServer"><code class="xref py py-class docutils literal"><span class="pre">polyglot.nodeserver_api.NodeServer</span></code></a> and is the best starting
 point when developing a new node server. This class impliments the idea of
@@ -1076,13 +1122,64 @@ manifests which are dictionaries that contain the relevant information
 about all of the nodes. The manifest gets sent to Polyglot to be saved as
 part of the configuration. This allows the node server to automatically
 recall its last known values when it is restarted.</p>
+<dl class="method">
+<dt id="polyglot.nodeserver_api.SimpleNodeServer.add_node">
+<code class="descname">add_node</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polyglot/nodeserver_api.html#SimpleNodeServer.add_node"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polyglot.nodeserver_api.SimpleNodeServer.add_node" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add node to the Polyglot and the nodes dictionary.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>node</strong> (<a class="reference internal" href="#polyglot.nodeserver_api.Node" title="polyglot.nodeserver_api.Node"><em>polyglot.nodeserver_api.Node</em></a>) &#8211; The node to add</td>
+</tr>
+<tr class="field-even field"><th class="field-name" colspan="2">Returns boolean:</th></tr>
+<tr class="field-even field"><td>&nbsp;</td><td class="field-body">Indicates success or failure of node addition</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="polyglot.nodeserver_api.SimpleNodeServer.exist_node">
+<code class="descname">exist_node</code><span class="sig-paren">(</span><em>address</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polyglot/nodeserver_api.html#SimpleNodeServer.exist_node"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polyglot.nodeserver_api.SimpleNodeServer.exist_node" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check if a node exists by it&#8217;s address.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>address</strong> (<em>str</em>) &#8211; The node address</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns bool:</th><td class="field-body">True if the node exists</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="polyglot.nodeserver_api.SimpleNodeServer.get_node">
+<code class="descname">get_node</code><span class="sig-paren">(</span><em>address</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polyglot/nodeserver_api.html#SimpleNodeServer.get_node"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polyglot.nodeserver_api.SimpleNodeServer.get_node" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get a node by it&#8217;s address.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>address</strong> (<em>str</em>) &#8211; The node address</td>
+</tr>
+<tr class="field-even field"><th class="field-name" colspan="2">Returns polyglot.nodeserver_api.Node:</th></tr>
+<tr class="field-even field"><td>&nbsp;</td><td class="field-body">If found, otherwise False</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
 <dl class="attribute">
 <dt id="polyglot.nodeserver_api.SimpleNodeServer.nodes">
 <code class="descname">nodes</code><em class="property"> = OrderedDict()</em><a class="headerlink" href="#polyglot.nodeserver_api.SimpleNodeServer.nodes" title="Permalink to this definition">¶</a></dt>
-<dd><p>Nodes registered with this node server. The first node will be the
-primary node and cannot be removed. Additional nodes can be registered with
-the server by adding them to this dictionary. The keys are the node IDs
-while the values are instances of <a class="reference internal" href="#polyglot.nodeserver_api.Node" title="polyglot.nodeserver_api.Node"><code class="xref py py-class docutils literal"><span class="pre">polyglot.nodeserver_api.Node</span></code></a>.</p>
+<dd><p>Nodes registered with this node server.  All nodes are automatically added
+by the add_node method.  The keys are the node IDs while the values are
+instances of <a class="reference internal" href="#polyglot.nodeserver_api.Node" title="polyglot.nodeserver_api.Node"><code class="xref py py-class docutils literal"><span class="pre">polyglot.nodeserver_api.Node</span></code></a>. Classes inheriting
+can access this directly, but the prefered method is by using get_node or
+exist_node methods.</p>
 </dd></dl>
 
 <dl class="method">
@@ -1313,7 +1410,7 @@ be sent to the ISY. This decorator is implimented in the SimpleNodeServer.</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'alpha',
+            VERSION:'0.0.2',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true
