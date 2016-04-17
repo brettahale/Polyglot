@@ -39,17 +39,26 @@ class KodiDiscovery(Node):
         super(KodiDiscovery, self).__init__(*args, **kwargs)
         self._netdisco = NetworkDiscovery()
 
+    def _st(self, **kwargs):
+        # No status to return for this node...
+        return True
+
     def discover(self, **_):
         """ Discover Kodi on Network """
         dlna_clients = self._netdisco.get_info('DLNA')
 
         for client in dlna_clients:
             try:
-                response = requests.get(client)
+                response = requests.get(client, timeout=30)
 
             except requests.exceptions.ConnectionError:
                 self.parent.poly.send_error(
                     'Error fetching DLNA data for: {}'.format(client))
+                continue
+
+            except requests.Timeout:
+                self.parent.poly.send_error(
+                    'Timeout fetching DLNA data for: {}'.format(client))
                 continue
 
             try:
@@ -68,7 +77,8 @@ class KodiDiscovery(Node):
 
         return True
 
-    _commands = {"NETDISCO": discover}
+    _commands = {'NETDISCO': discover,
+                 'ST' : _st}
     node_def_id = 'KODIDISCO'
 
 
@@ -172,6 +182,10 @@ class Kodi(Node):
         """ send next to kodi """
         return self._prev_next('next')
 
+    def _st(self, **_):
+        self.query()
+        return True
+
     _drivers = {'ST': [0, 25, myint]}
     """ Driver Details:
         ST: 1 - Off
@@ -182,5 +196,5 @@ class Kodi(Node):
             6 - Paused Music
     """
     _commands = {'PLAY': _play, 'PAUSE': _pause, 'STOP': _stop, 'PREV': _prev,
-                 'NEXT': _next}
+                 'NEXT': _next, 'ST': _st}
     node_def_id = 'KODI'

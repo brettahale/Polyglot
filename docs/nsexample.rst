@@ -153,16 +153,17 @@ Once all the nodes are defined, the node server class can be created.
 
         def setup(self):
             """ Initial node setup. """
+            super(SimpleNodeServer, self).setup()
             # define nodes for settings
             manifest = self.config.get('manifest', {})
-            self.nodes['hub'] = HubSettings(self, 'hub', 'Hue Hub', manifest)
+            HubSettings(self, 'hub', 'Hue Hub', manifest)
             self.connect()
             self.update_config()
 
         def connect(self):
             """ Connect to Phillips Hue Hub """
             # get hub settings
-            hub = self.nodes['hub']
+            hub = self.get_node('hub')
             ip_addr = '{}.{}.{}.{}'.format(
                 hub.get_driver('GV1')[0], hub.get_driver('GV2')[0],
                 hub.get_driver('GV3')[0], hub.get_driver('GV4')[0])
@@ -179,19 +180,22 @@ Once all the nodes are defined, the node server class can be created.
                 address = id_2_addr(data['uniqueid'])
                 name = data['name']
 
-                if address not in self.nodes:
+                lnode = self.get_node(address)
+                if not lnode:
                     # Add the light to the Node Server if it doesn't already
-                    # exist. This automatically adds the light to the ISY.
-                    self.nodes[address] = HueColorLight(
-                        self, address, name, lamp_id, manifest)
+                    # exist. Sets the primary to the 'hub' Node.
+		    # This automatically adds the light to the ISY.
+                    lnode = HueColorLight(self, address, 
+                                         name, lamp_id, 
+                                          self.get_node('hub'), manifest)
 
                 (color_x, color_y) = [round(val, 4)
                                       for val in data['state']['xy']]
                 brightness = round(data['state']['bri'] / 255. * 100., 4)
                 brightness = brightness if data['state']['on'] else 0
-                self.nodes[address].set_driver('GV1', color_x)
-                self.nodes[address].set_driver('GV2', color_y)
-                self.nodes[address].set_driver('ST', brightness)
+                lnode.set_driver('GV1', color_x)
+                lnode.set_driver('GV2', color_y)
+                lnode.set_driver('ST', brightness)
 
             return True
 

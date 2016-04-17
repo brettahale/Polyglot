@@ -37,7 +37,7 @@ class AsyncFileReader(threading.Thread):
         self._handler = handler
 
     def run(self):
-        '''The body of the tread: read lines and put them on the queue.'''
+        '''The body of the thread: read lines and put them on the queue.'''
         for line in iter(self._fd.readline, ''):
             self._handler(line.replace('\n', ''))
 
