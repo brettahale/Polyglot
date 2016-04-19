@@ -60,7 +60,7 @@ class ConfigManager(defaultdict):
         if self.sort_keys(existing_config) == self.sort_keys(updated_config):
             _LOGGER.debug('Config files match no need to write to config file.')
         else:
-            _LOGGER.debug('Config file changes detected. writing to config file.')
+            _LOGGER.info('Config file changes detected, updating config file.')
             self.write()
 
     def get_isy_version(self):

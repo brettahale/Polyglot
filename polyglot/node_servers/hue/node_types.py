@@ -57,6 +57,11 @@ class HubSettings(Node):
         # pylint: disable=unused-argument
         return self.parent.connect()
 
+    def _st(self, **kwargs):
+        """ handle status command """
+        # pylint: disable=unused-argument
+        return self.report_driver()
+
     _drivers = {'GV1': [0, 56, int], 'GV2': [0, 56, int],
                 'GV3': [0, 56, int], 'GV4': [0, 56, int],
                 'GV5': [0, 2, int]}
@@ -72,6 +77,7 @@ class HubSettings(Node):
                  'SET_IP_2': partial(_set_ip, field="GV2.uom56"),
                  'SET_IP_3': partial(_set_ip, field="GV3.uom56"),
                  'SET_IP_4': partial(_set_ip, field="GV4.uom56"),
+                 'ST' : _st,
                  'CONNECT': _connect}
     node_def_id = 'HUB'
 
@@ -94,6 +100,20 @@ class HueColorLight(Node):
             return True
         else:
             return False
+
+    def _st(self, **kwargs):
+        """ handle status command """
+        # pylint: disable=unused-argument
+        # Query the Hue bulb's status
+        updates = self.parent.query_node(self.address)
+        # If anything has changed, update the in-memory state
+        if updates:
+            self.set_driver('GV1', updates[0], report=False)
+            self.set_driver('GV2', updates[1], report=False)
+            self.set_driver('ST', updates[2], report=False)
+        # This is the status (ST) command - always report
+        self.report_driver()
+        return True
 
     def _set_brightness(self, value=None, **kwargs):
         """ set node brightness """
@@ -160,6 +180,7 @@ class HueColorLight(Node):
     ST: Status / Brightness
     """
     _commands = {'DON': _on, 'DOF': _off,
+                 'ST' : _st,
                  'SET_COLOR_RGB': _set_color_rgb,
                  'SET_COLOR_XY': _set_color_xy,
                  'SET_COLOR': _set_color}

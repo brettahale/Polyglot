@@ -1,4 +1,0 @@
-Polyglot Development
-====================
-
-Developing Polyglot

@@ -90,7 +90,7 @@ class Node(object):
         self.address = address
         self.added = manifest.get('added', False)
         self.name = manifest.get('name', name)
-        self.LOGGER = self.parent.poly.LOGGER
+        self.logger = self.parent.poly.logger
         self.primary = primary
 
         drivers = manifest.get('drivers', {})
@@ -192,9 +192,9 @@ class Node(object):
         :returns boolean: Indicates success or failure of node addition
         """
         if (int(len(self.address)) > 14):
-            self.LOGGER.error("Node longer than 14 characters this will fail adding to the ISY: %s", self.address)
+            self.logger.error("Node longer than 14 characters this will fail adding to the ISY: %s", self.address)
         # Add this node to he node server
-        self.LOGGER.info("Node '%s' parent='%s'" % (self.name,self.parent))
+        self.logger.info("Node '%s' parent='%s'" % (self.name,self.parent))
         self.parent.add_node(self)
         self.report_driver()
         return True
@@ -258,6 +258,8 @@ class NodeServer(object):
 
     :param poly: The connected Polyglot connection
     :type poly: polyglot.nodeserver_api.PolyglotConnector
+    :param int optional shortpoll: The seconds between poll events
+    :param int optional longpoll: The second between longpoll events
     """
     # pylint: disable=unused-argument
 
@@ -266,8 +268,6 @@ class NodeServer(object):
     The Polyglot Connection
 
     :type: polyglot.nodeserver_api.PolyglotConnector
-    :param shortpoll is the time between poll events (optional)
-    :param longpoll is the time between longpoll events (optional)
     """
 
     def __init__(self, poly, shortpoll=1, longpoll=30):
@@ -277,6 +277,7 @@ class NodeServer(object):
         self.running = False
         self.shortpoll = shortpoll
         self.longpoll = longpoll
+        self.logger = None
         self._is_node_server = True
 
         # bind callbacks to events
@@ -293,6 +294,14 @@ class NodeServer(object):
         poly.listen('cmd', self.on_cmd)
         poly.listen('exit', self.on_exit)
 
+    def setup(self):
+        """
+        Setup the node server.  All node servers must override this method and 
+        call it thru super.
+        Currently it only sets up the reference for the logger.
+        """
+        self.logger = self.poly.logger
+        
     def on_config(self, **data):
         """
         Received configuration data from Polyglot
@@ -427,7 +436,6 @@ class NodeServer(object):
         return True
 
     def add_node(self, node):
-        #address, id, primary, name):
         """
         Add this node to the polyglot
 
@@ -444,12 +452,12 @@ class NodeServer(object):
         self.poly.add_node(node.address, node.node_def_id, primary_addr, node.name)
 
     def poll(self):
-        """ Called every second to allow for updating nodes. """
+        """ Called every shortpoll seconds to allow for updating nodes. """
         # pylint: disable=no-self-use
         pass
 
     def long_poll(self):
-        """ Called every thirty seconds for less important polling. """
+        """ Called every longpoll seconds for less important polling. """
         # pylint: disable=no-self-use
         pass
         
@@ -491,21 +499,23 @@ class SimpleNodeServer(NodeServer):
     """
 
     nodes = OrderedDict()
-
     """
-    Nodes registered with this node server.  All nodes are automatically added.
+    Nodes registered with this node server.  All nodes are automatically added
+    by the add_node method.  The keys are the node IDs while the values are 
+    instances of :class:`polyglot.nodeserver_api.Node`. Classes inheriting
+    can access this directly, but the prefered method is by using get_node or
+    exist_node methods.
     """
+    @auto_request_report
     def add_node(self, node):
         """
-        Add node to they Polyglot and this node server.
+        Add node to the Polyglot and the nodes dictionary.
 
-        :param node: The node add
-        :type node polyglot.nodeserver_api.Node
-        :param str optional request_id: Status request id
-        :returns polyglot.nodeserver_api.Node
+        :param node: The node to add
+        :type node: polyglot.nodeserver_api.Node
+        :returns boolean: Indicates success or failure of node addition
         """
         super(SimpleNodeServer, self).add_node(node)
-        # And store it in our list
         self.nodes[node.address] = node
 
     def get_node(self,address):
@@ -513,7 +523,7 @@ class SimpleNodeServer(NodeServer):
         Get a node by it's address.
 
         :param str address: The node address
-        :returns Node on success, otherwise False.
+        :returns polyglot.nodeserver_api.Node: If found, otherwise False
         """
         if address in self.nodes:
             return self.nodes[address]
@@ -524,7 +534,7 @@ class SimpleNodeServer(NodeServer):
         Check if a node exists by it's address.
 
         :param str address: The node address
-        :returns boolean
+        :returns bool: True if the node exists
         """
         if address in self.nodes:
             return True
@@ -648,6 +658,8 @@ class SimpleNodeServer(NodeServer):
         if node_address in self.nodes:
             return self.nodes[node_address].run_cmd(
                 command, value=value, uom=uom, **kwargs)
+        self.poly.send_error('ERROR: on_cmd: node {} does not support command {}'
+                             .format(node_address, command))
         return False
 
     def on_exit(self, *args, **kwargs):
@@ -671,15 +683,24 @@ class PolyglotConnector(object):
     IO.
 
     :raises: RuntimeError
+
+    .. decorated
     """
     # pylint: disable=too-many-instance-attributes
 
     commands = ['config', 'install', 'query', 'status', 'add_all', 'added',
                 'removed', 'renamed', 'enabled', 'disabled', 'cmd', 'ping',
                 'exit', 'params']
-    LOGGER = None                
     """ Commands that may be invoked by Polyglot """
-
+    logger = None                
+    """ 
+    logger is initialized after the node server wait_for_config completes
+    by the setup_log method and the log file is located in the node servers
+    sandbox.
+    Once wait_for_config is complete, you can call
+    `poly.logger.info('This variable is set to %s', variable)`
+    """
+       
     def __init__(self):
         # make singleton
         # pylint: disable=global-statement
@@ -774,7 +795,7 @@ class PolyglotConnector(object):
         """ Blocks the thread until the configuration is received """
         while not self._got_config:
             time.sleep(1)
-        self.LOGGER = self.setup_log(self.sandbox, self.name)
+        self.logger = self.setup_log(self.sandbox, self.name)
 
     # manage output
     def _send_out(self):
@@ -879,14 +900,14 @@ class PolyglotConnector(object):
 
     def setup_log(self, sandbox, name):
        # Setup logger for individual nodeservers. These log to /config/<node server name> 
-       log_filename = sandbox + "/" + name + ".log"
+       self.log_filename = sandbox + "/" + name + ".log"
        # Could be e.g. "DEBUG" or "WARNING" or "INFO"
        log_level = logging.DEBUG  
        logger = logging.getLogger(name)
        logger.setLevel(log_level)
        # Make a handler that writes to a file, 
        # making a new file at midnight and keeping 30 backups
-       handler = logging.handlers.TimedRotatingFileHandler(log_filename, when="midnight", backupCount=30)
+       handler = logging.handlers.TimedRotatingFileHandler(self.log_filename, when="midnight", backupCount=30)
        # Format each log message like this
        formatter = logging.Formatter('%(asctime)s %(levelname)-8s %(name)s %(message)s')
        # Attach the formatter to the handler
