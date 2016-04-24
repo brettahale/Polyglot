@@ -192,9 +192,17 @@ class Node(object):
         :returns boolean: Indicates success or failure of node addition
         """
         if (int(len(self.address)) > 14):
-            self.logger.error("Node longer than 14 characters this will fail adding to the ISY: %s", self.address)
-        # Add this node to he node server
-        self.logger.info("Node '%s' parent='%s'" % (self.name,self.parent))
+            if self.logger:
+                self.logger.error(
+                    "Node name too long (>14, will fail when adding to the ISY): %s",
+                    self.address)
+            # Ensure this error also appears in the main Polyglot log
+            self.parent.poly.send_error(
+                "Node name too long (>14, will fail when adding to the ISY): {}"
+                .format(self.address))
+        # Add this node to the node server
+        if self.logger:
+            self.logger.debug("Node '%s': parent='%s'" % (self.name,self.parent))
         self.parent.add_node(self)
         self.report_driver()
         return True
