@@ -665,7 +665,7 @@ class SimpleNodeServer(NodeServer):
         """
         if node_address in self.nodes:
             return self.nodes[node_address].run_cmd(
-                command, value=value, uom=uom, **kwargs)
+                command, value=value, cmd=command, uom=uom, **kwargs)
         self.poly.send_error('ERROR: on_cmd: node {} does not exist for command {}'
                              .format(node_address, command))
         return False
