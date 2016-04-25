@@ -698,7 +698,7 @@ class PolyglotConnector(object):
 
     commands = ['config', 'install', 'query', 'status', 'add_all', 'added',
                 'removed', 'renamed', 'enabled', 'disabled', 'cmd', 'ping',
-                'exit', 'params']
+                'exit', 'params', 'result']
     """ Commands that may be invoked by Polyglot """
     logger = None                
     """ 
