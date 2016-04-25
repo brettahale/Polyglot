@@ -897,32 +897,35 @@ class PolyglotConnector(object):
         return True
 
     def get_params(self, **kwargs):
-       """ Get the params from nodeserver and makes them available to 
-       the nodeserver api """
-       self.isyver = kwargs['isyver']
-       self.sandbox = kwargs['sandbox']
-       self.name = kwargs['name']
-       self.pgver = kwargs['pgver']
-       self.pgapiver = kwargs['pgapiver']
-       return True           
+        """ Get the params from nodeserver and makes them available to
+        the nodeserver api """
+        self.isyver = kwargs['isyver']
+        self.sandbox = kwargs['sandbox']
+        self.name = kwargs['name']
+        self.pgver = kwargs['pgver']
+        self.pgapiver = kwargs['pgapiver']
+        return True
 
     def setup_log(self, sandbox, name):
-       # Setup logger for individual nodeservers. These log to /config/<node server name> 
-       self.log_filename = sandbox + "/" + name + ".log"
-       # Could be e.g. "DEBUG" or "WARNING" or "INFO"
-       log_level = logging.DEBUG  
-       logger = logging.getLogger(name)
-       logger.setLevel(log_level)
-       # Make a handler that writes to a file, 
-       # making a new file at midnight and keeping 30 backups
-       handler = logging.handlers.TimedRotatingFileHandler(self.log_filename, when="midnight", backupCount=30)
-       # Format each log message like this
-       formatter = logging.Formatter('%(asctime)s %(levelname)-8s %(name)s %(message)s')
-       # Attach the formatter to the handler
-       handler.setFormatter(formatter)
-       # Attach the handler to the logger
-       logger.addHandler(handler)
-       return logger        
+        # Setup logger for individual nodeservers, log to
+        # /config/<nodeserver-name>
+        self.log_filename = sandbox + "/" + name + ".log"
+        # Could be "DEBUG", "WARNING", or "INFO"
+        log_level = logging.DEBUG
+        logger = logging.getLogger(name)
+        logger.setLevel(log_level)
+        # Make a handler that writes to a file,
+        # making a new file at midnight, and keeping 30 backups
+        handler = logging.handlers.TimedRotatingFileHandler(
+            self.log_filename, when="midnight", backupCount=30)
+        # Format each log message like this
+        formatter = logging.Formatter(
+            '%(asctime)s %(levelname)-8s %(name)s %(message)s')
+        # Attach the formatter to the handler
+        handler.setFormatter(formatter)
+        # Attach the handler to the logger
+        logger.addHandler(handler)
+        return logger
        
     # create output
     def _mk_cmd(self, cmd_code, **kwargs):
