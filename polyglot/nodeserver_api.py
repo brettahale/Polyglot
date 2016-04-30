@@ -968,7 +968,8 @@ class PolyglotConnector(object):
         # [future] implement when documentation is available
         raise NotImplementedError('install function has not been implemented')
 
-    def report_status(self, node_address, driver_control, value, uom):
+    def report_status(self, node_address, driver_control, value, uom,
+                      timeout=None, seq=None):
         """
         Updates the ISY with the current value of a driver control (e.g. the
         current temperature, light level, etc.)
@@ -981,12 +982,17 @@ class PolyglotConnector(object):
         :type value: str, float, or int
         :param uom: Unit of measure of the status value
         :type uom: int or str
+        :param timeout: (optional) timeout (seconds) for REST call to ISY
+        :type timeout: str, float, or int
+        :param seq: (optional) set to unique id if result callback desired
+        :type seq: str or int
         """
         self._mk_cmd('status', node_address=node_address,
-                     driver_control=driver_control, value=value, uom=uom)
+                     driver_control=driver_control, value=value, uom=uom,
+                     timeout=timeout, seq=seq)
 
     def report_command(self, node_address, command, value=None, uom=None,
-                       **kwargs):
+                       timeout=None, seq=None, **kwargs):
         """
         Sends a command to the ISY that may be used in programs and/or scenes.
         A common use of this is a physical switch that somebody turns on or
@@ -999,6 +1005,10 @@ class PolyglotConnector(object):
         :type value: str, int, or float
         :param uom: Optional units of measurement of value
         :type uom: int or str
+        :param timeout: (optional) timeout (seconds) for REST call to ISY
+        :type timeout: str, float, or int
+        :param seq: (optional) set to unique id if result callback desired
+        :type seq: str or int
         :param optional <pN>.<uomN>: Nth Parameter name (e.g. 'level') . Unit
                                      of measure of the Nth parameter
                                      (e.g. 'seconds', 'uom58')
@@ -1008,9 +1018,14 @@ class PolyglotConnector(object):
             kwargs['value'] = value
         if uom is not None:
             kwargs['uom'] = uom
+        if timeout is not None:
+            kwargs['timeout'] = timeout
+        if seq is not None:
+            kwargs['seq'] = seq
         self._mk_cmd('command', **kwargs)
 
-    def add_node(self, node_address, node_def_id, primary, name):
+    def add_node(self, node_address, node_def_id, primary, name,
+                 timeout=None, seq=None):
         """
         Adds a node to the ISY. To make this node the primary, set primary to
         the same value as node_address.
@@ -1022,12 +1037,21 @@ class PolyglotConnector(object):
         :param str primary: The primary node for the device this node
                             belongs to
         :param str name: The name of the node
+        :param timeout: (optional) timeout (seconds) for REST call to ISY
+        :type timeout: str, float, or int
+        :param seq: (optional) set to unique id if result callback desired
+        :type seq: str or int
         """
         args = {'node_address': node_address, 'node_def_id': node_def_id,
                 'primary': primary, 'name': name}
+        if timeout is not None:
+            args['timeout'] = timeout
+        if seq is not None:
+            args['seq'] = seq
         self._mk_cmd('add', **args)
 
-    def change_node(self, node_address, node_def_id):
+    def change_node(self, node_address, node_def_id,
+                    timeout=None, seq=None):
         """
         Changes the node definition to use for an existing node. An example of
         this is may be to change a thermostat node from Fahrenheit to Celsius.
@@ -1036,21 +1060,33 @@ class PolyglotConnector(object):
                                  'dimmer_1')
         :param str node_def_id: The id of the node definition to use for this
                                 node
+        :param timeout: (optional) timeout (seconds) for REST call to ISY
+        :type timeout: str, float, or int
+        :param seq: (optional) set to unique id if result callback desired
+        :type seq: str or int
         """
         self._mk_cmd('change', node_address=node_address,
-                     node_def_id=node_def_id)
+                     node_def_id=node_def_id,
+                     timeout=timeout, seq=seq)
 
-    def remove_node(self, node_address):
+    def remove_node(self, node_address, timeout=None, seq=None):
+
         """
         Removes a node from the ISY. A node cannot be removed if it is the
         primary node for at least one other node.
 
         :param str node_address: The full address of the node (e.g.
                                  'dimmer_1')
+        :param timeout: (optional) timeout (seconds) for REST call to ISY
+        :type timeout: str, float, or int
+        :param seq: (optional) set to unique id if result callback desired
+        :type seq: str or int
         """
-        self._mk_cmd('remove', node_address=node_address)
+        self._mk_cmd('remove', node_address=node_address,
+                     timeout=timeout, seq=seq)
 
-    def report_request_status(self, request_id, success):
+    def report_request_status(self, request_id, success,
+                              timeout=None, seq=None):
         """
         When the ISY sends a request to the node server, the request may
         contain a 'requestId' field. This indicates to the node server that
@@ -1066,8 +1102,28 @@ class PolyglotConnector(object):
         :param str request_id: The request ID the ISY supplied on a request to
                                the node server.
         :param bool success: Indicates if the request was sucessful
+        :param timeout: (optional) timeout (seconds) for REST call to ISY
+        :type timeout: str, float, or int
+        :param seq: (optional) set to unique id if result callback desired
+        :type seq: str or int
         """
-        self._mk_cmd('request', request_id=request_id, success=success)
+        self._mk_cmd('request', request_id=request_id, success=success,
+                     timeout=timeout, seq=seq)
+
+
+    def restcall(self, api, timeout=None, seq=None):
+
+        """
+        Calls a RESTful api on the ISY.  The api is the portion of
+        the url after the "https://isy/rest/" prefix.
+
+        :param str api: The url for the api to call
+        :param timeout: (optional) timeout (seconds) for REST call to ISY
+        :type timeout: str, float, or int
+        :param seq: (optional) set to unique id if result callback desired
+        :type seq: str or int
+        """
+        self._mk_cmd('restcall', api=api, timeout=timeout, seq=seq)
 
     def pong(self, *args, **kwargs):
         """

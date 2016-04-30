@@ -216,7 +216,7 @@ class NodeServer(object):
                           'add': isy.node_add,
                           'change': isy.node_change,
                           'remove': isy.node_remove,
-                          'restcall': self.restcall,
+                          'restcall': isy.restcall,
                           'request': isy.report_request_status}
 
         self.start()
@@ -369,15 +369,18 @@ class NodeServer(object):
             command = list(msg.keys())[0]
             arguments = msg[command]
 
+            seq = arguments.get('seq', None)
             ts = time.time()
-            _LOGGER.debug('%8s [%d] (%5.2f) _request_handler: command=%s',
+            _LOGGER.debug('%8s [%d] (%5.2f) _request_handler: command=%s seq=%s',
                           self.name,
                           (0 if self._rqq is None else self._rqq.qsize()),
-                          0.0, command)
+                          0.0, command, ('' if seq is None else seq))
 
             fun = self._handlers.get(command)
             if fun:
-                fun(self.profile_number, **arguments)
+                result = fun(self.profile_number, **arguments)
+                if seq and result:
+                    self._mk_cmd('result', **result)
 
             # Signal that this is handled
             if self._rqq:
@@ -519,21 +522,6 @@ class NodeServer(object):
             self._proc.kill()
         except MyProcessLookupError:
             pass
-
-    def restcall(self, ns_profnum, api, seq):
-        """ Perform a REST API call to the ISY, return response. """
-
-        if api is not None:
-            _LOGGER.debug('%8s: REST API call: %s', self.name, api)
-            result = self.pglot.elements.isy.restcall(self.profile_number, api)
-            self._mk_cmd('restresult', seq=seq,
-                         text=result['text'],
-                         status_code=result['status_code'],
-                         error_text=result['error_text'],
-                         elapsed=result['elapsed'])
-
-        else:
-            _LOGGER.error('%8s: malformed restcall', self.name)
 
 def random_string(length):
     """ Generate a random string of uppercase, lowercase, and digits """
