@@ -553,7 +553,7 @@ class SimpleNodeServer(NodeServer):
         Updates the configuration with new node manifests and sends
         the configuration to Polyglot to be saved.
         """
-        output = OrderedDict()
+        output = self.config.get('manifest', OrderedDict())
         for node_addr, node in self.nodes.items():
             output[node.address] = node.manifest
         self.config['manifest'] = output
