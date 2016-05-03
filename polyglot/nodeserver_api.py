@@ -548,12 +548,17 @@ class SimpleNodeServer(NodeServer):
             return True
         return False
 
-    def update_config(self):
+    def update_config(self, replace_manifest=False):
         """
         Updates the configuration with new node manifests and sends
         the configuration to Polyglot to be saved.
+
+        :param boolean replace_manifest: replace or merge existing manifest
         """
-        output = self.config.get('manifest', OrderedDict())
+        if replace_manifest:
+            output = OrderedDict()
+        else:
+            output = self.config.get('manifest', OrderedDict())
         for node_addr, node in self.nodes.items():
             output[node.address] = node.manifest
         self.config['manifest'] = output
