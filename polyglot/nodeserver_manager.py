@@ -198,11 +198,12 @@ class NodeServer(object):
         self.sandbox = sandbox
         self.pgver =  PGVERSION
         self.pgapiver = PGAPIVER
-        self.params = {'isyver': self.isy_version,
-            'sandbox': self.sandbox,
-            'name': self.name,
-            'pgver': self.pgver,
-            'pgapiver': self.pgapiver}
+        self.params = {'isyver':   self.isy_version,
+                       'sandbox':  self.sandbox,
+                       'name':     self.name,
+                       'pgver':    self.pgver,
+                       'pgapiver': self.pgapiver,
+                       'profile':  self.profile_number}
         self._proc = None
         self._inq = None
         self._rqq = None
