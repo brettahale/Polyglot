@@ -287,6 +287,9 @@ class NodeServer(object):
         self.longpoll = longpoll
         self.logger = None
         self._is_node_server = True
+        self._seq = 1000
+        self._seq_lock = threading.Lock()
+        self._seq_cb = {}
 
         # bind callbacks to events
         poly.listen('config', self.on_config)
@@ -301,6 +304,7 @@ class NodeServer(object):
         poly.listen('disabled', self.on_disabled)
         poly.listen('cmd', self.on_cmd)
         poly.listen('exit', self.on_exit)
+        poly.listen('result', self.on_result)
 
     def setup(self):
         """
@@ -443,7 +447,39 @@ class NodeServer(object):
         self.running = False
         return True
 
-    def add_node(self, node):
+    def on_result(self, seq, status_code, elapsed, text=None):
+        """
+        Handles a result message, which contains the result from a REST API
+        call to the ISY.  The result message is uniquely identified by the
+        seq id, and will always contain at least the numeric status.
+        """
+        #self.poly.send_error(
+        #    '**DEBUG: on_result seq={} status_code={} elapsed={}'.
+        #    format(seq, status_code, elapsed))
+        if seq not in self._seq_cb:
+            self.poly.send_error(
+                '**ERROR: on_result: missing callback for seq={}'.format(seq))
+            return False
+        func, args = self._seq_cb.pop(seq)
+        return func(seq=seq, status_code=status_code, elapsed=elapsed, text=text, **args)
+
+    def register_result_cb(self, func, **kwargs):
+        """
+        Registers a callback function to handle a result.
+        Returns the unique sequence ID to be passed to the function whose
+        result is to be handled by the registered callback.
+
+        """
+        self._seq_lock.acquire()
+        try:
+            self._seq += 1
+            s = self._seq
+        finally:
+            self._seq_lock.release()
+        self._seq_cb[s] = [func, kwargs]
+        return s
+
+    def add_node(self, node, callback=None, timeout=None, **kwargs):
         """
         Add this node to the polyglot
 
@@ -455,9 +491,28 @@ class NodeServer(object):
         if node.primary is not True:
             # A primary node must be it's own primary because ISY only supports one level deep.
             if not node.primary.primary is True:
-                raise RuntimeError("Node '%s' primary '%s' must be a primary!" % (node.name, node.primary.name))
-            primary_addr = node.primary.address;
-        self.poly.add_node(node.address, node.node_def_id, primary_addr, node.name)
+                raise RuntimeError("Node '%s' primary '%s' must be a primary!"
+                                   % (node.name, node.primary.name))
+            primary_addr = node.primary.address
+        seq = None
+        if callback:
+            seq = self.register_result_cb(callback, **kwargs)
+            #self.poly.send_error('**INFO: add_node callback registered: seq={}'.format(seq))
+        self.poly.add_node(node.address, node.node_def_id, primary_addr,
+                           node.name, timeout, seq)
+        return True
+
+    def restcall(self, api, callback=None, timeout=None, **kwargs):
+        """
+        Sends an asynchronous REST API call to the ISY.
+        Returns the unique seq id (that can be used to match up the result
+        later on after the REST call completes).
+        """
+        if callback:
+            seq = self.register_result_cb(callback, **kwargs)
+            #self.poly.send_error('**INFO: restcall callback registered: seq={}'.format(seq))
+        self.poly.restcall(api, timeout, seq)
+        return seq
 
     def poll(self):
         """ Called every shortpoll seconds to allow for updating nodes. """
@@ -506,6 +561,8 @@ class SimpleNodeServer(NodeServer):
     .. decorated
     """
 
+    _rest_response = {}
+
     nodes = OrderedDict()
     """
     Nodes registered with this node server.  All nodes are automatically added
@@ -523,8 +580,40 @@ class SimpleNodeServer(NodeServer):
         :type node: polyglot.nodeserver_api.Node
         :returns boolean: Indicates success or failure of node addition
         """
-        super(SimpleNodeServer, self).add_node(node)
-        self.nodes[node.address] = node
+        na = node.address
+        if na not in self.nodes:
+            self.nodes[na] = node
+        if not self.nodes[na].added:
+            super(SimpleNodeServer, self).add_node(node, self._add_node_cb,
+                                                   None, na=na)
+        return True
+
+    def restcall(self, api, timeout=None):
+        return super(SimpleNodeServer, self).restcall(
+            api, self._save_rest_response, timeout)
+
+    def get_rest_response(self, seq):
+        return self._rest_response.pop(seq, None)
+
+#    def _save_rest_response(self, seq, status_code, elapsed, text, **kwargs):
+    def _save_rest_response(self, **kwargs):
+        seq = kwargs['seq']
+        #self.poly.send_error('**DEBUG: restresponse: seq={}, status_code={}'.format(seq, kwargs['status_code']))
+        self._rest_response[seq] = kwargs
+        return True
+
+    def _add_node_cb(self, na, status_code, **kwargs):
+        if int(status_code) == 200:
+            if na in self.nodes:
+                self.nodes[na].added = True
+                #self.poly.send_error('**DEBUG: _add_node_cb: node {} added'.format(na))
+                return True
+            #self.poly.send_error('**ERROR: _add_node_cb: node {} does not exist'.format(na))
+        else:
+            self.poly.send_error(
+                '**ERROR: node {}: node add REST call to ISY failed: {}'
+                .format(na, status_code))
+        return False
 
     def get_node(self,address):
         """
@@ -733,7 +822,7 @@ class PolyglotConnector(object):
         self.sandbox = False
         self.name = False
         self.apiver = False
-
+        self.profile = None
 
         # listen for important events
         self.listen('ping', self.pong)
@@ -909,6 +998,7 @@ class PolyglotConnector(object):
         self.name = kwargs['name']
         self.pgver = kwargs['pgver']
         self.pgapiver = kwargs['pgapiver']
+        self.profile = kwargs['profile']
         return True
 
     def setup_log(self, sandbox, name):
