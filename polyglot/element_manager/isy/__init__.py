@@ -219,7 +219,8 @@ def make_url(ns_profnum, path, path_args=None):
     url += '/'.join([quote(str(item)) for item in path if item is not None])
 
     if path_args is not None:
-        url += '?{}'.format(urlencode(path_args))
+        if len(path_args) > 0:
+            url += '?{}'.format(urlencode(path_args))
 
     return url
 
