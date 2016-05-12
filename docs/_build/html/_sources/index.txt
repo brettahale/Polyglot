@@ -29,3 +29,4 @@ additional help, please reference the `UDI Forum
    nsdev
    nsexample
    nsapi
+   module

@@ -85,6 +85,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../nsdev.html">Node Server Development</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../nsexample.html">Python Node Server Example</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../nsapi.html">Polyglot Node Server API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../module.html">Polyglot Methods and Classes</a></li>
 </ul>
 
             
@@ -169,7 +170,7 @@
 <span class="n">_POLYGLOT_CONNECTION</span> <span class="o">=</span> <span class="bp">None</span>
 <span class="n">OUTPUT_DELAY</span> <span class="o">=</span> <span class="mi">0</span>
 
-<div class="viewcode-block" id="auto_request_report"><a class="viewcode-back" href="../../nsdev.html#polyglot.nodeserver_api.auto_request_report">[docs]</a><span class="k">def</span> <span class="nf">auto_request_report</span><span class="p">(</span><span class="n">fun</span><span class="p">):</span>
+<div class="viewcode-block" id="auto_request_report"><a class="viewcode-back" href="../../module.html#polyglot.nodeserver_api.auto_request_report">[docs]</a><span class="k">def</span> <span class="nf">auto_request_report</span><span class="p">(</span><span class="n">fun</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Python decorator to automate request reporting. Decorated functions must</span>
 <span class="sd">    return a boolean value indicating their success or failure. It the</span>
@@ -191,7 +192,7 @@
     <span class="k">return</span> <span class="n">auto_request_report_wrapper</span>
 
 </div>
-<div class="viewcode-block" id="Node"><a class="viewcode-back" href="../../nsdev.html#polyglot.nodeserver_api.Node">[docs]</a><span class="k">class</span> <span class="nc">Node</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<div class="viewcode-block" id="Node"><a class="viewcode-back" href="../../module.html#polyglot.nodeserver_api.Node">[docs]</a><span class="k">class</span> <span class="nc">Node</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Abstract class for representing a node in a node server.</span>
 
@@ -232,7 +233,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">add_node</span><span class="p">()</span>
 
 
-<div class="viewcode-block" id="Node.run_cmd"><a class="viewcode-back" href="../../nsdev.html#polyglot.nodeserver_api.Node.run_cmd">[docs]</a>    <span class="k">def</span> <span class="nf">run_cmd</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">command</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<div class="viewcode-block" id="Node.run_cmd"><a class="viewcode-back" href="../../module.html#polyglot.nodeserver_api.Node.run_cmd">[docs]</a>    <span class="k">def</span> <span class="nf">run_cmd</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">command</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Runs one of the node&#39;s commands.</span>
 
@@ -248,7 +249,7 @@
             <span class="k">return</span> <span class="n">success</span>
         <span class="k">return</span> <span class="bp">False</span>
 </div>
-<div class="viewcode-block" id="Node.set_driver"><a class="viewcode-back" href="../../nsdev.html#polyglot.nodeserver_api.Node.set_driver">[docs]</a>    <span class="k">def</span> <span class="nf">set_driver</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">driver</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">uom</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">report</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+<div class="viewcode-block" id="Node.set_driver"><a class="viewcode-back" href="../../module.html#polyglot.nodeserver_api.Node.set_driver">[docs]</a>    <span class="k">def</span> <span class="nf">set_driver</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">driver</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">uom</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">report</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Updates the value of one of the node&#39;s drivers. This will pass the</span>
 <span class="sd">        given value through the driver&#39;s formatter before assignment.</span>
@@ -274,7 +275,7 @@
             <span class="k">return</span> <span class="bp">True</span>
         <span class="k">return</span> <span class="bp">False</span>
 </div>
-<div class="viewcode-block" id="Node.report_driver"><a class="viewcode-back" href="../../nsdev.html#polyglot.nodeserver_api.Node.report_driver">[docs]</a>    <span class="k">def</span> <span class="nf">report_driver</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">driver</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+<div class="viewcode-block" id="Node.report_driver"><a class="viewcode-back" href="../../module.html#polyglot.nodeserver_api.Node.report_driver">[docs]</a>    <span class="k">def</span> <span class="nf">report_driver</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">driver</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Reports a driver&#39;s current value to ISY</span>
 
@@ -294,7 +295,7 @@
                 <span class="bp">self</span><span class="o">.</span><span class="n">_drivers</span><span class="p">[</span><span class="n">driver</span><span class="p">][</span><span class="mi">1</span><span class="p">])</span>
         <span class="k">return</span> <span class="bp">True</span>
 </div>
-<div class="viewcode-block" id="Node.get_driver"><a class="viewcode-back" href="../../nsdev.html#polyglot.nodeserver_api.Node.get_driver">[docs]</a>    <span class="k">def</span> <span class="nf">get_driver</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">driver</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+<div class="viewcode-block" id="Node.get_driver"><a class="viewcode-back" href="../../module.html#polyglot.nodeserver_api.Node.get_driver">[docs]</a>    <span class="k">def</span> <span class="nf">get_driver</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">driver</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Gets a driver&#39;s value</span>
 
@@ -307,7 +308,7 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_drivers</span>
 </div>
-<div class="viewcode-block" id="Node.query"><a class="viewcode-back" href="../../nsdev.html#polyglot.nodeserver_api.Node.query">[docs]</a>    <span class="k">def</span> <span class="nf">query</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="Node.query"><a class="viewcode-back" href="../../module.html#polyglot.nodeserver_api.Node.query">[docs]</a>    <span class="k">def</span> <span class="nf">query</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Abstractly queries the node. This method should generally be</span>
 <span class="sd">        overwritten in development.</span>
@@ -317,7 +318,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">report_driver</span><span class="p">()</span>
         <span class="k">return</span> <span class="bp">True</span>
 </div>
-<div class="viewcode-block" id="Node.add_node"><a class="viewcode-back" href="../../nsdev.html#polyglot.nodeserver_api.Node.add_node">[docs]</a>    <span class="k">def</span> <span class="nf">add_node</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="Node.add_node"><a class="viewcode-back" href="../../module.html#polyglot.nodeserver_api.Node.add_node">[docs]</a>    <span class="k">def</span> <span class="nf">add_node</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Adds node to the ISY</span>
 
@@ -388,7 +389,7 @@
     <span class="sd">&quot;&quot;&quot; The node&#39;s definition ID defined in the node server&#39;s profile &quot;&quot;&quot;</span>
 
 </div>
-<div class="viewcode-block" id="NodeServer"><a class="viewcode-back" href="../../nsdev.html#polyglot.nodeserver_api.NodeServer">[docs]</a><span class="k">class</span> <span class="nc">NodeServer</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<div class="viewcode-block" id="NodeServer"><a class="viewcode-back" href="../../module.html#polyglot.nodeserver_api.NodeServer">[docs]</a><span class="k">class</span> <span class="nc">NodeServer</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    It is generally desireable to not be required to bind to each event. For</span>
 <span class="sd">    this reason, the NodeServer abstract class is available. This class should</span>
@@ -438,7 +439,7 @@
         <span class="n">poly</span><span class="o">.</span><span class="n">listen</span><span class="p">(</span><span class="s1">&#39;exit&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">on_exit</span><span class="p">)</span>
         <span class="n">poly</span><span class="o">.</span><span class="n">listen</span><span class="p">(</span><span class="s1">&#39;result&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">on_result</span><span class="p">)</span>
 
-<div class="viewcode-block" id="NodeServer.setup"><a class="viewcode-back" href="../../nsdev.html#polyglot.nodeserver_api.NodeServer.setup">[docs]</a>    <span class="k">def</span> <span class="nf">setup</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="NodeServer.setup"><a class="viewcode-back" href="../../module.html#polyglot.nodeserver_api.NodeServer.setup">[docs]</a>    <span class="k">def</span> <span class="nf">setup</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Setup the node server.  All node servers must override this method and </span>
 <span class="sd">        call it thru super.</span>
@@ -446,7 +447,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">logger</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">poly</span><span class="o">.</span><span class="n">logger</span>
         </div>
-<div class="viewcode-block" id="NodeServer.on_config"><a class="viewcode-back" href="../../nsdev.html#polyglot.nodeserver_api.NodeServer.on_config">[docs]</a>    <span class="k">def</span> <span class="nf">on_config</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">data</span><span class="p">):</span>
+<div class="viewcode-block" id="NodeServer.on_config"><a class="viewcode-back" href="../../module.html#polyglot.nodeserver_api.NodeServer.on_config">[docs]</a>    <span class="k">def</span> <span class="nf">on_config</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">data</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Received configuration data from Polyglot</span>
 
@@ -456,7 +457,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">config</span> <span class="o">=</span> <span class="n">data</span>
         <span class="k">return</span> <span class="bp">True</span>
 </div>
-<div class="viewcode-block" id="NodeServer.on_install"><a class="viewcode-back" href="../../nsdev.html#polyglot.nodeserver_api.NodeServer.on_install">[docs]</a>    <span class="k">def</span> <span class="nf">on_install</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">profile_number</span><span class="p">):</span>
+<div class="viewcode-block" id="NodeServer.on_install"><a class="viewcode-back" href="../../module.html#polyglot.nodeserver_api.NodeServer.on_install">[docs]</a>    <span class="k">def</span> <span class="nf">on_install</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">profile_number</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Received install command from ISY</span>
 
@@ -466,7 +467,7 @@
         <span class="c1"># pylint: disable=no-self-use</span>
         <span class="k">return</span> <span class="bp">False</span>
 </div>
-<div class="viewcode-block" id="NodeServer.on_query"><a class="viewcode-back" href="../../nsdev.html#polyglot.nodeserver_api.NodeServer.on_query">[docs]</a>    <span class="k">def</span> <span class="nf">on_query</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node_address</span><span class="p">,</span> <span class="n">request_id</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+<div class="viewcode-block" id="NodeServer.on_query"><a class="viewcode-back" href="../../module.html#polyglot.nodeserver_api.NodeServer.on_query">[docs]</a>    <span class="k">def</span> <span class="nf">on_query</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node_address</span><span class="p">,</span> <span class="n">request_id</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Received query command from ISY</span>
 
@@ -477,7 +478,7 @@
         <span class="c1"># pylint: disable=no-self-use</span>
         <span class="k">return</span> <span class="bp">False</span>
 </div>
-<div class="viewcode-block" id="NodeServer.on_status"><a class="viewcode-back" href="../../nsdev.html#polyglot.nodeserver_api.NodeServer.on_status">[docs]</a>    <span class="k">def</span> <span class="nf">on_status</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node_address</span><span class="p">,</span> <span class="n">request_id</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+<div class="viewcode-block" id="NodeServer.on_status"><a class="viewcode-back" href="../../module.html#polyglot.nodeserver_api.NodeServer.on_status">[docs]</a>    <span class="k">def</span> <span class="nf">on_status</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node_address</span><span class="p">,</span> <span class="n">request_id</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Received status command from ISY</span>
 
@@ -488,7 +489,7 @@
         <span class="c1"># pylint: disable=no-self-use</span>
         <span class="k">return</span> <span class="bp">False</span>
 </div>
-<div class="viewcode-block" id="NodeServer.on_add_all"><a class="viewcode-back" href="../../nsdev.html#polyglot.nodeserver_api.NodeServer.on_add_all">[docs]</a>    <span class="k">def</span> <span class="nf">on_add_all</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request_id</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+<div class="viewcode-block" id="NodeServer.on_add_all"><a class="viewcode-back" href="../../module.html#polyglot.nodeserver_api.NodeServer.on_add_all">[docs]</a>    <span class="k">def</span> <span class="nf">on_add_all</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request_id</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Received add all command from ISY</span>
 
@@ -498,7 +499,7 @@
         <span class="c1"># pylint: disable=no-self-use</span>
         <span class="k">return</span> <span class="bp">False</span>
 </div>
-<div class="viewcode-block" id="NodeServer.on_added"><a class="viewcode-back" href="../../nsdev.html#polyglot.nodeserver_api.NodeServer.on_added">[docs]</a>    <span class="k">def</span> <span class="nf">on_added</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node_address</span><span class="p">,</span> <span class="n">node_def_id</span><span class="p">,</span> <span class="n">primary_node_address</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+<div class="viewcode-block" id="NodeServer.on_added"><a class="viewcode-back" href="../../module.html#polyglot.nodeserver_api.NodeServer.on_added">[docs]</a>    <span class="k">def</span> <span class="nf">on_added</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node_address</span><span class="p">,</span> <span class="n">node_def_id</span><span class="p">,</span> <span class="n">primary_node_address</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Received node added report from ISY</span>
 
@@ -512,7 +513,7 @@
         <span class="c1"># pylint: disable=no-self-use</span>
         <span class="k">return</span> <span class="bp">False</span>
 </div>
-<div class="viewcode-block" id="NodeServer.on_removed"><a class="viewcode-back" href="../../nsdev.html#polyglot.nodeserver_api.NodeServer.on_removed">[docs]</a>    <span class="k">def</span> <span class="nf">on_removed</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node_address</span><span class="p">):</span>
+<div class="viewcode-block" id="NodeServer.on_removed"><a class="viewcode-back" href="../../module.html#polyglot.nodeserver_api.NodeServer.on_removed">[docs]</a>    <span class="k">def</span> <span class="nf">on_removed</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node_address</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Received node removed report from ISY</span>
 
@@ -522,7 +523,7 @@
         <span class="c1"># pylint: disable=no-self-use</span>
         <span class="k">return</span> <span class="bp">False</span>
 </div>
-<div class="viewcode-block" id="NodeServer.on_renamed"><a class="viewcode-back" href="../../nsdev.html#polyglot.nodeserver_api.NodeServer.on_renamed">[docs]</a>    <span class="k">def</span> <span class="nf">on_renamed</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node_address</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+<div class="viewcode-block" id="NodeServer.on_renamed"><a class="viewcode-back" href="../../module.html#polyglot.nodeserver_api.NodeServer.on_renamed">[docs]</a>    <span class="k">def</span> <span class="nf">on_renamed</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node_address</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Received node renamed report from ISY</span>
 
@@ -533,7 +534,7 @@
         <span class="c1"># pylint: disable=no-self-use</span>
         <span class="k">return</span> <span class="bp">False</span>
 </div>
-<div class="viewcode-block" id="NodeServer.on_enabled"><a class="viewcode-back" href="../../nsdev.html#polyglot.nodeserver_api.NodeServer.on_enabled">[docs]</a>    <span class="k">def</span> <span class="nf">on_enabled</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node_address</span><span class="p">):</span>
+<div class="viewcode-block" id="NodeServer.on_enabled"><a class="viewcode-back" href="../../module.html#polyglot.nodeserver_api.NodeServer.on_enabled">[docs]</a>    <span class="k">def</span> <span class="nf">on_enabled</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node_address</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Received node enabled report from ISY</span>
 
@@ -543,7 +544,7 @@
         <span class="c1"># pylint: disable=no-self-use</span>
         <span class="k">return</span> <span class="bp">False</span>
 </div>
-<div class="viewcode-block" id="NodeServer.on_disabled"><a class="viewcode-back" href="../../nsdev.html#polyglot.nodeserver_api.NodeServer.on_disabled">[docs]</a>    <span class="k">def</span> <span class="nf">on_disabled</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node_address</span><span class="p">):</span>
+<div class="viewcode-block" id="NodeServer.on_disabled"><a class="viewcode-back" href="../../module.html#polyglot.nodeserver_api.NodeServer.on_disabled">[docs]</a>    <span class="k">def</span> <span class="nf">on_disabled</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node_address</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Received node disabled report from ISY</span>
 
@@ -553,7 +554,7 @@
         <span class="c1"># pylint: disable=no-self-use</span>
         <span class="k">return</span> <span class="bp">False</span>
 </div>
-<div class="viewcode-block" id="NodeServer.on_cmd"><a class="viewcode-back" href="../../nsdev.html#polyglot.nodeserver_api.NodeServer.on_cmd">[docs]</a>    <span class="k">def</span> <span class="nf">on_cmd</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node_address</span><span class="p">,</span> <span class="n">command</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">uom</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+<div class="viewcode-block" id="NodeServer.on_cmd"><a class="viewcode-back" href="../../module.html#polyglot.nodeserver_api.NodeServer.on_cmd">[docs]</a>    <span class="k">def</span> <span class="nf">on_cmd</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node_address</span><span class="p">,</span> <span class="n">command</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">uom</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
                <span class="n">request_id</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Received run command from ISY</span>
@@ -569,7 +570,7 @@
         <span class="c1"># pylint: disable=no-self-use</span>
         <span class="k">return</span> <span class="bp">False</span>
 </div>
-<div class="viewcode-block" id="NodeServer.on_exit"><a class="viewcode-back" href="../../nsdev.html#polyglot.nodeserver_api.NodeServer.on_exit">[docs]</a>    <span class="k">def</span> <span class="nf">on_exit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<div class="viewcode-block" id="NodeServer.on_exit"><a class="viewcode-back" href="../../module.html#polyglot.nodeserver_api.NodeServer.on_exit">[docs]</a>    <span class="k">def</span> <span class="nf">on_exit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Polyglot has triggered a clean shutdown. Generally, this method does</span>
 <span class="sd">        not need to be orwritten.</span>
@@ -579,7 +580,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">running</span> <span class="o">=</span> <span class="bp">False</span>
         <span class="k">return</span> <span class="bp">True</span>
 </div>
-<div class="viewcode-block" id="NodeServer.on_result"><a class="viewcode-back" href="../../nsdev.html#polyglot.nodeserver_api.NodeServer.on_result">[docs]</a>    <span class="k">def</span> <span class="nf">on_result</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">seq</span><span class="p">,</span> <span class="n">status_code</span><span class="p">,</span> <span class="n">elapsed</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+<div class="viewcode-block" id="NodeServer.on_result"><a class="viewcode-back" href="../../module.html#polyglot.nodeserver_api.NodeServer.on_result">[docs]</a>    <span class="k">def</span> <span class="nf">on_result</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">seq</span><span class="p">,</span> <span class="n">status_code</span><span class="p">,</span> <span class="n">elapsed</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Handles a result message, which contains the result from a REST API</span>
 <span class="sd">        call to the ISY.  The result message is uniquely identified by the</span>
@@ -595,7 +596,7 @@
         <span class="n">func</span><span class="p">,</span> <span class="n">args</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_seq_cb</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">seq</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">func</span><span class="p">(</span><span class="n">seq</span><span class="o">=</span><span class="n">seq</span><span class="p">,</span> <span class="n">status_code</span><span class="o">=</span><span class="n">status_code</span><span class="p">,</span> <span class="n">elapsed</span><span class="o">=</span><span class="n">elapsed</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="n">text</span><span class="p">,</span> <span class="o">**</span><span class="n">args</span><span class="p">)</span>
 </div>
-<div class="viewcode-block" id="NodeServer.register_result_cb"><a class="viewcode-back" href="../../nsdev.html#polyglot.nodeserver_api.NodeServer.register_result_cb">[docs]</a>    <span class="k">def</span> <span class="nf">register_result_cb</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">func</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<div class="viewcode-block" id="NodeServer.register_result_cb"><a class="viewcode-back" href="../../module.html#polyglot.nodeserver_api.NodeServer.register_result_cb">[docs]</a>    <span class="k">def</span> <span class="nf">register_result_cb</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">func</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Registers a callback function to handle a result.</span>
 <span class="sd">        Returns the unique sequence ID to be passed to the function whose</span>
@@ -611,7 +612,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_seq_cb</span><span class="p">[</span><span class="n">s</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">func</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">]</span>
         <span class="k">return</span> <span class="n">s</span>
 </div>
-<div class="viewcode-block" id="NodeServer.add_node"><a class="viewcode-back" href="../../nsdev.html#polyglot.nodeserver_api.NodeServer.add_node">[docs]</a>    <span class="k">def</span> <span class="nf">add_node</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node</span><span class="p">,</span> <span class="n">callback</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<div class="viewcode-block" id="NodeServer.add_node"><a class="viewcode-back" href="../../module.html#polyglot.nodeserver_api.NodeServer.add_node">[docs]</a>    <span class="k">def</span> <span class="nf">add_node</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node</span><span class="p">,</span> <span class="n">callback</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Add this node to the polyglot</span>
 
@@ -634,7 +635,7 @@
                            <span class="n">node</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">timeout</span><span class="p">,</span> <span class="n">seq</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">True</span>
 </div>
-<div class="viewcode-block" id="NodeServer.restcall"><a class="viewcode-back" href="../../nsdev.html#polyglot.nodeserver_api.NodeServer.restcall">[docs]</a>    <span class="k">def</span> <span class="nf">restcall</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">api</span><span class="p">,</span> <span class="n">callback</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<div class="viewcode-block" id="NodeServer.restcall"><a class="viewcode-back" href="../../module.html#polyglot.nodeserver_api.NodeServer.restcall">[docs]</a>    <span class="k">def</span> <span class="nf">restcall</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">api</span><span class="p">,</span> <span class="n">callback</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Sends an asynchronous REST API call to the ISY.</span>
 <span class="sd">        Returns the unique seq id (that can be used to match up the result</span>
@@ -646,17 +647,17 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">poly</span><span class="o">.</span><span class="n">restcall</span><span class="p">(</span><span class="n">api</span><span class="p">,</span> <span class="n">timeout</span><span class="p">,</span> <span class="n">seq</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">seq</span>
 </div>
-<div class="viewcode-block" id="NodeServer.poll"><a class="viewcode-back" href="../../nsdev.html#polyglot.nodeserver_api.NodeServer.poll">[docs]</a>    <span class="k">def</span> <span class="nf">poll</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="NodeServer.poll"><a class="viewcode-back" href="../../module.html#polyglot.nodeserver_api.NodeServer.poll">[docs]</a>    <span class="k">def</span> <span class="nf">poll</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Called every shortpoll seconds to allow for updating nodes. &quot;&quot;&quot;</span>
         <span class="c1"># pylint: disable=no-self-use</span>
         <span class="k">pass</span>
 </div>
-<div class="viewcode-block" id="NodeServer.long_poll"><a class="viewcode-back" href="../../nsdev.html#polyglot.nodeserver_api.NodeServer.long_poll">[docs]</a>    <span class="k">def</span> <span class="nf">long_poll</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="NodeServer.long_poll"><a class="viewcode-back" href="../../module.html#polyglot.nodeserver_api.NodeServer.long_poll">[docs]</a>    <span class="k">def</span> <span class="nf">long_poll</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Called every longpoll seconds for less important polling. &quot;&quot;&quot;</span>
         <span class="c1"># pylint: disable=no-self-use</span>
         <span class="k">pass</span>
         </div>
-<div class="viewcode-block" id="NodeServer.run"><a class="viewcode-back" href="../../nsdev.html#polyglot.nodeserver_api.NodeServer.run">[docs]</a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="NodeServer.run"><a class="viewcode-back" href="../../module.html#polyglot.nodeserver_api.NodeServer.run">[docs]</a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Run the Node Server. Exit when triggered. Generally, this method should</span>
 <span class="sd">        not be overwritten.</span>
@@ -680,7 +681,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">poly</span><span class="o">.</span><span class="n">exit</span><span class="p">()</span>
 
 </div></div>
-<div class="viewcode-block" id="SimpleNodeServer"><a class="viewcode-back" href="../../nsdev.html#polyglot.nodeserver_api.SimpleNodeServer">[docs]</a><span class="k">class</span> <span class="nc">SimpleNodeServer</span><span class="p">(</span><span class="n">NodeServer</span><span class="p">):</span>
+<div class="viewcode-block" id="SimpleNodeServer"><a class="viewcode-back" href="../../module.html#polyglot.nodeserver_api.SimpleNodeServer">[docs]</a><span class="k">class</span> <span class="nc">SimpleNodeServer</span><span class="p">(</span><span class="n">NodeServer</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Simple Node Server with basic functionality built-in. This class inherits</span>
 <span class="sd">    from :class:`polyglot.nodeserver_api.NodeServer` and is the best starting</span>
@@ -704,7 +705,7 @@
 <span class="sd">    exist_node methods.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="nd">@auto_request_report</span>
-<div class="viewcode-block" id="SimpleNodeServer.add_node"><a class="viewcode-back" href="../../nsdev.html#polyglot.nodeserver_api.SimpleNodeServer.add_node">[docs]</a>    <span class="k">def</span> <span class="nf">add_node</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node</span><span class="p">):</span>
+<div class="viewcode-block" id="SimpleNodeServer.add_node"><a class="viewcode-back" href="../../module.html#polyglot.nodeserver_api.SimpleNodeServer.add_node">[docs]</a>    <span class="k">def</span> <span class="nf">add_node</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Add node to the Polyglot and the nodes dictionary.</span>
 
@@ -747,7 +748,7 @@
                 <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">na</span><span class="p">,</span> <span class="n">status_code</span><span class="p">))</span>
         <span class="k">return</span> <span class="bp">False</span>
 
-<div class="viewcode-block" id="SimpleNodeServer.get_node"><a class="viewcode-back" href="../../nsdev.html#polyglot.nodeserver_api.SimpleNodeServer.get_node">[docs]</a>    <span class="k">def</span> <span class="nf">get_node</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">address</span><span class="p">):</span>
+<div class="viewcode-block" id="SimpleNodeServer.get_node"><a class="viewcode-back" href="../../module.html#polyglot.nodeserver_api.SimpleNodeServer.get_node">[docs]</a>    <span class="k">def</span> <span class="nf">get_node</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">address</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Get a node by it&#39;s address.</span>
 
@@ -758,7 +759,7 @@
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="n">address</span><span class="p">]</span>
         <span class="k">return</span> <span class="bp">False</span>
 </div>
-<div class="viewcode-block" id="SimpleNodeServer.exist_node"><a class="viewcode-back" href="../../nsdev.html#polyglot.nodeserver_api.SimpleNodeServer.exist_node">[docs]</a>    <span class="k">def</span> <span class="nf">exist_node</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">address</span><span class="p">):</span>
+<div class="viewcode-block" id="SimpleNodeServer.exist_node"><a class="viewcode-back" href="../../module.html#polyglot.nodeserver_api.SimpleNodeServer.exist_node">[docs]</a>    <span class="k">def</span> <span class="nf">exist_node</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">address</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Check if a node exists by it&#39;s address.</span>
 
@@ -769,7 +770,7 @@
             <span class="k">return</span> <span class="bp">True</span>
         <span class="k">return</span> <span class="bp">False</span>
 </div>
-<div class="viewcode-block" id="SimpleNodeServer.update_config"><a class="viewcode-back" href="../../nsdev.html#polyglot.nodeserver_api.SimpleNodeServer.update_config">[docs]</a>    <span class="k">def</span> <span class="nf">update_config</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">replace_manifest</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+<div class="viewcode-block" id="SimpleNodeServer.update_config"><a class="viewcode-back" href="../../module.html#polyglot.nodeserver_api.SimpleNodeServer.update_config">[docs]</a>    <span class="k">def</span> <span class="nf">update_config</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">replace_manifest</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Updates the configuration with new node manifests and sends</span>
 <span class="sd">        the configuration to Polyglot to be saved.</span>
@@ -786,7 +787,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">poly</span><span class="o">.</span><span class="n">send_config</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">)</span>
 </div>
     <span class="nd">@auto_request_report</span>
-<div class="viewcode-block" id="SimpleNodeServer.on_query"><a class="viewcode-back" href="../../nsdev.html#polyglot.nodeserver_api.SimpleNodeServer.on_query">[docs]</a>    <span class="k">def</span> <span class="nf">on_query</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node_address</span><span class="p">,</span> <span class="n">request_id</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+<div class="viewcode-block" id="SimpleNodeServer.on_query"><a class="viewcode-back" href="../../module.html#polyglot.nodeserver_api.SimpleNodeServer.on_query">[docs]</a>    <span class="k">def</span> <span class="nf">on_query</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node_address</span><span class="p">,</span> <span class="n">request_id</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Queries each node and reports all control values to the ISY. Also</span>
 <span class="sd">        responds to report requests if necessary.</span>
@@ -803,7 +804,7 @@
             <span class="k">return</span> <span class="bp">False</span>
 </div>
     <span class="nd">@auto_request_report</span>
-<div class="viewcode-block" id="SimpleNodeServer.on_status"><a class="viewcode-back" href="../../nsdev.html#polyglot.nodeserver_api.SimpleNodeServer.on_status">[docs]</a>    <span class="k">def</span> <span class="nf">on_status</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node_address</span><span class="p">,</span> <span class="n">request_id</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+<div class="viewcode-block" id="SimpleNodeServer.on_status"><a class="viewcode-back" href="../../module.html#polyglot.nodeserver_api.SimpleNodeServer.on_status">[docs]</a>    <span class="k">def</span> <span class="nf">on_status</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node_address</span><span class="p">,</span> <span class="n">request_id</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Reports the requested node&#39;s control values to the ISY without forcing</span>
 <span class="sd">        a query. Also sends requests reponses when necessary.</span>
@@ -819,7 +820,7 @@
         <span class="k">return</span> <span class="bp">False</span>
 </div>
     <span class="nd">@auto_request_report</span>
-<div class="viewcode-block" id="SimpleNodeServer.on_add_all"><a class="viewcode-back" href="../../nsdev.html#polyglot.nodeserver_api.SimpleNodeServer.on_add_all">[docs]</a>    <span class="k">def</span> <span class="nf">on_add_all</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request_id</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+<div class="viewcode-block" id="SimpleNodeServer.on_add_all"><a class="viewcode-back" href="../../module.html#polyglot.nodeserver_api.SimpleNodeServer.on_add_all">[docs]</a>    <span class="k">def</span> <span class="nf">on_add_all</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request_id</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Adds all nodes to the ISY. Also sends requests reponses when necessary.</span>
 
@@ -832,7 +833,7 @@
                 <span class="n">node</span><span class="o">.</span><span class="n">add_node</span><span class="p">()</span>
         <span class="k">return</span> <span class="bp">True</span>
 </div>
-<div class="viewcode-block" id="SimpleNodeServer.on_added"><a class="viewcode-back" href="../../nsdev.html#polyglot.nodeserver_api.SimpleNodeServer.on_added">[docs]</a>    <span class="k">def</span> <span class="nf">on_added</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node_address</span><span class="p">,</span> <span class="n">node_def_id</span><span class="p">,</span> <span class="n">primary_node_address</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+<div class="viewcode-block" id="SimpleNodeServer.on_added"><a class="viewcode-back" href="../../module.html#polyglot.nodeserver_api.SimpleNodeServer.on_added">[docs]</a>    <span class="k">def</span> <span class="nf">on_added</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node_address</span><span class="p">,</span> <span class="n">node_def_id</span><span class="p">,</span> <span class="n">primary_node_address</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Internally indicates that the specified node has been added to the ISY.</span>
 
@@ -849,7 +850,7 @@
             <span class="k">return</span> <span class="bp">True</span>
         <span class="k">return</span> <span class="bp">False</span>
 </div>
-<div class="viewcode-block" id="SimpleNodeServer.on_removed"><a class="viewcode-back" href="../../nsdev.html#polyglot.nodeserver_api.SimpleNodeServer.on_removed">[docs]</a>    <span class="k">def</span> <span class="nf">on_removed</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node_address</span><span class="p">):</span>
+<div class="viewcode-block" id="SimpleNodeServer.on_removed"><a class="viewcode-back" href="../../module.html#polyglot.nodeserver_api.SimpleNodeServer.on_removed">[docs]</a>    <span class="k">def</span> <span class="nf">on_removed</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node_address</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Internally indicates that a node has been removed from the ISY.</span>
 
@@ -861,7 +862,7 @@
             <span class="k">return</span> <span class="bp">True</span>
         <span class="k">return</span> <span class="bp">False</span>
 </div>
-<div class="viewcode-block" id="SimpleNodeServer.on_renamed"><a class="viewcode-back" href="../../nsdev.html#polyglot.nodeserver_api.SimpleNodeServer.on_renamed">[docs]</a>    <span class="k">def</span> <span class="nf">on_renamed</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node_address</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+<div class="viewcode-block" id="SimpleNodeServer.on_renamed"><a class="viewcode-back" href="../../module.html#polyglot.nodeserver_api.SimpleNodeServer.on_renamed">[docs]</a>    <span class="k">def</span> <span class="nf">on_renamed</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node_address</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Changes the node name internally to match the ISY.</span>
 
@@ -875,7 +876,7 @@
         <span class="k">return</span> <span class="bp">False</span>
 </div>
     <span class="nd">@auto_request_report</span>
-<div class="viewcode-block" id="SimpleNodeServer.on_cmd"><a class="viewcode-back" href="../../nsdev.html#polyglot.nodeserver_api.SimpleNodeServer.on_cmd">[docs]</a>    <span class="k">def</span> <span class="nf">on_cmd</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node_address</span><span class="p">,</span> <span class="n">command</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">uom</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+<div class="viewcode-block" id="SimpleNodeServer.on_cmd"><a class="viewcode-back" href="../../module.html#polyglot.nodeserver_api.SimpleNodeServer.on_cmd">[docs]</a>    <span class="k">def</span> <span class="nf">on_cmd</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node_address</span><span class="p">,</span> <span class="n">command</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">uom</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
                <span class="n">request_id</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Runs the specified command on the specified node. Also sends requests</span>
@@ -896,7 +897,7 @@
                              <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">node_address</span><span class="p">,</span> <span class="n">command</span><span class="p">))</span>
         <span class="k">return</span> <span class="bp">False</span>
 </div>
-<div class="viewcode-block" id="SimpleNodeServer.on_exit"><a class="viewcode-back" href="../../nsdev.html#polyglot.nodeserver_api.SimpleNodeServer.on_exit">[docs]</a>    <span class="k">def</span> <span class="nf">on_exit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<div class="viewcode-block" id="SimpleNodeServer.on_exit"><a class="viewcode-back" href="../../module.html#polyglot.nodeserver_api.SimpleNodeServer.on_exit">[docs]</a>    <span class="k">def</span> <span class="nf">on_exit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Triggers a clean shut down of the node server by saving the manifest,</span>
 <span class="sd">        clearing the IO, and stopping.</span>
@@ -911,7 +912,7 @@
         <span class="k">return</span> <span class="bp">True</span>
 
 </div></div>
-<div class="viewcode-block" id="PolyglotConnector"><a class="viewcode-back" href="../../nsdev.html#polyglot.nodeserver_api.PolyglotConnector">[docs]</a><span class="k">class</span> <span class="nc">PolyglotConnector</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<div class="viewcode-block" id="PolyglotConnector"><a class="viewcode-back" href="../../module.html#polyglot.nodeserver_api.PolyglotConnector">[docs]</a><span class="k">class</span> <span class="nc">PolyglotConnector</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Polyglot API implimentation. Connects to Polyglot and handles node server</span>
 <span class="sd">    IO.</span>
@@ -999,7 +1000,7 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">disconnect</span><span class="p">()</span>
 
-<div class="viewcode-block" id="PolyglotConnector.connect"><a class="viewcode-back" href="../../nsdev.html#polyglot.nodeserver_api.PolyglotConnector.connect">[docs]</a>    <span class="k">def</span> <span class="nf">connect</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="PolyglotConnector.connect"><a class="viewcode-back" href="../../module.html#polyglot.nodeserver_api.PolyglotConnector.connect">[docs]</a>    <span class="k">def</span> <span class="nf">connect</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Connects to Polyglot if not currently connected &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">connected</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_outq</span><span class="o">.</span><span class="n">locked</span> <span class="o">=</span> <span class="bp">False</span>
@@ -1014,7 +1015,7 @@
             <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">thread</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_threads</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
                 <span class="n">thread</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
 </div>
-<div class="viewcode-block" id="PolyglotConnector.disconnect"><a class="viewcode-back" href="../../nsdev.html#polyglot.nodeserver_api.PolyglotConnector.disconnect">[docs]</a>    <span class="k">def</span> <span class="nf">disconnect</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="PolyglotConnector.disconnect"><a class="viewcode-back" href="../../module.html#polyglot.nodeserver_api.PolyglotConnector.disconnect">[docs]</a>    <span class="k">def</span> <span class="nf">disconnect</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Disconnects from Polyglot. Blocks the thread until IO stream is clear</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -1025,7 +1026,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">_errq</span><span class="o">.</span><span class="n">join</span><span class="p">()</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_threads</span> <span class="o">=</span> <span class="p">{}</span>
 </div>
-<div class="viewcode-block" id="PolyglotConnector.wait_for_config"><a class="viewcode-back" href="../../nsdev.html#polyglot.nodeserver_api.PolyglotConnector.wait_for_config">[docs]</a>    <span class="k">def</span> <span class="nf">wait_for_config</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="PolyglotConnector.wait_for_config"><a class="viewcode-back" href="../../module.html#polyglot.nodeserver_api.PolyglotConnector.wait_for_config">[docs]</a>    <span class="k">def</span> <span class="nf">wait_for_config</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Blocks the thread until the configuration is received &quot;&quot;&quot;</span>
         <span class="k">while</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_got_config</span><span class="p">:</span>
             <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
@@ -1122,7 +1123,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_got_config</span> <span class="o">=</span> <span class="bp">True</span>
         <span class="k">return</span> <span class="bp">True</span>
 
-<div class="viewcode-block" id="PolyglotConnector.get_params"><a class="viewcode-back" href="../../nsdev.html#polyglot.nodeserver_api.PolyglotConnector.get_params">[docs]</a>    <span class="k">def</span> <span class="nf">get_params</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<div class="viewcode-block" id="PolyglotConnector.get_params"><a class="viewcode-back" href="../../module.html#polyglot.nodeserver_api.PolyglotConnector.get_params">[docs]</a>    <span class="k">def</span> <span class="nf">get_params</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Get the params from nodeserver and makes them available to</span>
 <span class="sd">        the nodeserver api &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">isyver</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;isyver&#39;</span><span class="p">]</span>
@@ -1165,7 +1166,7 @@
         <span class="n">cmd</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">({</span><span class="n">cmd_code</span><span class="p">:</span> <span class="n">kwargs</span><span class="p">})</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_outq</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="n">cmd</span><span class="p">,</span> <span class="bp">True</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
 
-<div class="viewcode-block" id="PolyglotConnector.send_error"><a class="viewcode-back" href="../../nsdev.html#polyglot.nodeserver_api.PolyglotConnector.send_error">[docs]</a>    <span class="k">def</span> <span class="nf">send_error</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">err_str</span><span class="p">):</span>
+<div class="viewcode-block" id="PolyglotConnector.send_error"><a class="viewcode-back" href="../../module.html#polyglot.nodeserver_api.PolyglotConnector.send_error">[docs]</a>    <span class="k">def</span> <span class="nf">send_error</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">err_str</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Enqueue an error to be sent back to Polyglot.</span>
 
@@ -1173,7 +1174,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_errq</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="n">err_str</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">),</span> <span class="bp">True</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
 </div>
-<div class="viewcode-block" id="PolyglotConnector.send_config"><a class="viewcode-back" href="../../nsdev.html#polyglot.nodeserver_api.PolyglotConnector.send_config">[docs]</a>    <span class="k">def</span> <span class="nf">send_config</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config_data</span><span class="p">):</span>
+<div class="viewcode-block" id="PolyglotConnector.send_config"><a class="viewcode-back" href="../../module.html#polyglot.nodeserver_api.PolyglotConnector.send_config">[docs]</a>    <span class="k">def</span> <span class="nf">send_config</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config_data</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Update the configuration in Polyglot.</span>
 
@@ -1185,7 +1186,7 @@
             <span class="k">return</span> <span class="bp">True</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;send_config: config_data must be dictionary&#39;</span><span class="p">)</span>
 </div>
-<div class="viewcode-block" id="PolyglotConnector.install"><a class="viewcode-back" href="../../nsdev.html#polyglot.nodeserver_api.PolyglotConnector.install">[docs]</a>    <span class="k">def</span> <span class="nf">install</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<div class="viewcode-block" id="PolyglotConnector.install"><a class="viewcode-back" href="../../module.html#polyglot.nodeserver_api.PolyglotConnector.install">[docs]</a>    <span class="k">def</span> <span class="nf">install</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Abstract method to install the node server in the ISY. This has not</span>
 <span class="sd">        been implimented yet and running it will raise an error.</span>
@@ -1195,7 +1196,7 @@
         <span class="c1"># [future] implement when documentation is available</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s1">&#39;install function has not been implemented&#39;</span><span class="p">)</span>
 </div>
-<div class="viewcode-block" id="PolyglotConnector.report_status"><a class="viewcode-back" href="../../nsdev.html#polyglot.nodeserver_api.PolyglotConnector.report_status">[docs]</a>    <span class="k">def</span> <span class="nf">report_status</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node_address</span><span class="p">,</span> <span class="n">driver_control</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">uom</span><span class="p">,</span>
+<div class="viewcode-block" id="PolyglotConnector.report_status"><a class="viewcode-back" href="../../module.html#polyglot.nodeserver_api.PolyglotConnector.report_status">[docs]</a>    <span class="k">def</span> <span class="nf">report_status</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node_address</span><span class="p">,</span> <span class="n">driver_control</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">uom</span><span class="p">,</span>
                       <span class="n">timeout</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">seq</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Updates the ISY with the current value of a driver control (e.g. the</span>
@@ -1218,7 +1219,7 @@
                      <span class="n">driver_control</span><span class="o">=</span><span class="n">driver_control</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="n">value</span><span class="p">,</span> <span class="n">uom</span><span class="o">=</span><span class="n">uom</span><span class="p">,</span>
                      <span class="n">timeout</span><span class="o">=</span><span class="n">timeout</span><span class="p">,</span> <span class="n">seq</span><span class="o">=</span><span class="n">seq</span><span class="p">)</span>
 </div>
-<div class="viewcode-block" id="PolyglotConnector.report_command"><a class="viewcode-back" href="../../nsdev.html#polyglot.nodeserver_api.PolyglotConnector.report_command">[docs]</a>    <span class="k">def</span> <span class="nf">report_command</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node_address</span><span class="p">,</span> <span class="n">command</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">uom</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+<div class="viewcode-block" id="PolyglotConnector.report_command"><a class="viewcode-back" href="../../module.html#polyglot.nodeserver_api.PolyglotConnector.report_command">[docs]</a>    <span class="k">def</span> <span class="nf">report_command</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node_address</span><span class="p">,</span> <span class="n">command</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">uom</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
                        <span class="n">timeout</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">seq</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Sends a command to the ISY that may be used in programs and/or scenes.</span>
@@ -1251,7 +1252,7 @@
             <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;seq&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">seq</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_mk_cmd</span><span class="p">(</span><span class="s1">&#39;command&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 </div>
-<div class="viewcode-block" id="PolyglotConnector.add_node"><a class="viewcode-back" href="../../nsdev.html#polyglot.nodeserver_api.PolyglotConnector.add_node">[docs]</a>    <span class="k">def</span> <span class="nf">add_node</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node_address</span><span class="p">,</span> <span class="n">node_def_id</span><span class="p">,</span> <span class="n">primary</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span>
+<div class="viewcode-block" id="PolyglotConnector.add_node"><a class="viewcode-back" href="../../module.html#polyglot.nodeserver_api.PolyglotConnector.add_node">[docs]</a>    <span class="k">def</span> <span class="nf">add_node</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node_address</span><span class="p">,</span> <span class="n">node_def_id</span><span class="p">,</span> <span class="n">primary</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span>
                  <span class="n">timeout</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">seq</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Adds a node to the ISY. To make this node the primary, set primary to</span>
@@ -1277,7 +1278,7 @@
             <span class="n">args</span><span class="p">[</span><span class="s1">&#39;seq&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">seq</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_mk_cmd</span><span class="p">(</span><span class="s1">&#39;add&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">args</span><span class="p">)</span>
 </div>
-<div class="viewcode-block" id="PolyglotConnector.change_node"><a class="viewcode-back" href="../../nsdev.html#polyglot.nodeserver_api.PolyglotConnector.change_node">[docs]</a>    <span class="k">def</span> <span class="nf">change_node</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node_address</span><span class="p">,</span> <span class="n">node_def_id</span><span class="p">,</span>
+<div class="viewcode-block" id="PolyglotConnector.change_node"><a class="viewcode-back" href="../../module.html#polyglot.nodeserver_api.PolyglotConnector.change_node">[docs]</a>    <span class="k">def</span> <span class="nf">change_node</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node_address</span><span class="p">,</span> <span class="n">node_def_id</span><span class="p">,</span>
                     <span class="n">timeout</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">seq</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Changes the node definition to use for an existing node. An example of</span>
@@ -1296,7 +1297,7 @@
                      <span class="n">node_def_id</span><span class="o">=</span><span class="n">node_def_id</span><span class="p">,</span>
                      <span class="n">timeout</span><span class="o">=</span><span class="n">timeout</span><span class="p">,</span> <span class="n">seq</span><span class="o">=</span><span class="n">seq</span><span class="p">)</span>
 </div>
-<div class="viewcode-block" id="PolyglotConnector.remove_node"><a class="viewcode-back" href="../../nsdev.html#polyglot.nodeserver_api.PolyglotConnector.remove_node">[docs]</a>    <span class="k">def</span> <span class="nf">remove_node</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node_address</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">seq</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+<div class="viewcode-block" id="PolyglotConnector.remove_node"><a class="viewcode-back" href="../../module.html#polyglot.nodeserver_api.PolyglotConnector.remove_node">[docs]</a>    <span class="k">def</span> <span class="nf">remove_node</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node_address</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">seq</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
 
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Removes a node from the ISY. A node cannot be removed if it is the</span>
@@ -1312,7 +1313,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_mk_cmd</span><span class="p">(</span><span class="s1">&#39;remove&#39;</span><span class="p">,</span> <span class="n">node_address</span><span class="o">=</span><span class="n">node_address</span><span class="p">,</span>
                      <span class="n">timeout</span><span class="o">=</span><span class="n">timeout</span><span class="p">,</span> <span class="n">seq</span><span class="o">=</span><span class="n">seq</span><span class="p">)</span>
 </div>
-<div class="viewcode-block" id="PolyglotConnector.report_request_status"><a class="viewcode-back" href="../../nsdev.html#polyglot.nodeserver_api.PolyglotConnector.report_request_status">[docs]</a>    <span class="k">def</span> <span class="nf">report_request_status</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request_id</span><span class="p">,</span> <span class="n">success</span><span class="p">,</span>
+<div class="viewcode-block" id="PolyglotConnector.report_request_status"><a class="viewcode-back" href="../../module.html#polyglot.nodeserver_api.PolyglotConnector.report_request_status">[docs]</a>    <span class="k">def</span> <span class="nf">report_request_status</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request_id</span><span class="p">,</span> <span class="n">success</span><span class="p">,</span>
                               <span class="n">timeout</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">seq</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        When the ISY sends a request to the node server, the request may</span>
@@ -1338,7 +1339,7 @@
                      <span class="n">timeout</span><span class="o">=</span><span class="n">timeout</span><span class="p">,</span> <span class="n">seq</span><span class="o">=</span><span class="n">seq</span><span class="p">)</span>
 
 </div>
-<div class="viewcode-block" id="PolyglotConnector.restcall"><a class="viewcode-back" href="../../nsdev.html#polyglot.nodeserver_api.PolyglotConnector.restcall">[docs]</a>    <span class="k">def</span> <span class="nf">restcall</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">api</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">seq</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+<div class="viewcode-block" id="PolyglotConnector.restcall"><a class="viewcode-back" href="../../module.html#polyglot.nodeserver_api.PolyglotConnector.restcall">[docs]</a>    <span class="k">def</span> <span class="nf">restcall</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">api</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">seq</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
 
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Calls a RESTful api on the ISY.  The api is the portion of</span>
@@ -1352,7 +1353,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_mk_cmd</span><span class="p">(</span><span class="s1">&#39;restcall&#39;</span><span class="p">,</span> <span class="n">api</span><span class="o">=</span><span class="n">api</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="n">timeout</span><span class="p">,</span> <span class="n">seq</span><span class="o">=</span><span class="n">seq</span><span class="p">)</span>
 </div>
-<div class="viewcode-block" id="PolyglotConnector.pong"><a class="viewcode-back" href="../../nsdev.html#polyglot.nodeserver_api.PolyglotConnector.pong">[docs]</a>    <span class="k">def</span> <span class="nf">pong</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<div class="viewcode-block" id="PolyglotConnector.pong"><a class="viewcode-back" href="../../module.html#polyglot.nodeserver_api.PolyglotConnector.pong">[docs]</a>    <span class="k">def</span> <span class="nf">pong</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Sends pong reply to Polyglot&#39;s ping request. This verifies that the</span>
 <span class="sd">        communication between the Node Server and Polyglot is functioning.</span>
@@ -1361,7 +1362,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_mk_cmd</span><span class="p">(</span><span class="s1">&#39;pong&#39;</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">True</span>
         </div>
-<div class="viewcode-block" id="PolyglotConnector.exit"><a class="viewcode-back" href="../../nsdev.html#polyglot.nodeserver_api.PolyglotConnector.exit">[docs]</a>    <span class="k">def</span> <span class="nf">exit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<div class="viewcode-block" id="PolyglotConnector.exit"><a class="viewcode-back" href="../../module.html#polyglot.nodeserver_api.PolyglotConnector.exit">[docs]</a>    <span class="k">def</span> <span class="nf">exit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Tells Polyglot that this Node Server is done.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -1371,7 +1372,7 @@
         <span class="k">return</span> <span class="bp">True</span>
 
     <span class="c1"># manage handlers</span></div>
-<div class="viewcode-block" id="PolyglotConnector.listen"><a class="viewcode-back" href="../../nsdev.html#polyglot.nodeserver_api.PolyglotConnector.listen">[docs]</a>    <span class="k">def</span> <span class="nf">listen</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">,</span> <span class="n">handler</span><span class="p">):</span>
+<div class="viewcode-block" id="PolyglotConnector.listen"><a class="viewcode-back" href="../../module.html#polyglot.nodeserver_api.PolyglotConnector.listen">[docs]</a>    <span class="k">def</span> <span class="nf">listen</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">,</span> <span class="n">handler</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Register an event handler. Returns True on success. Event names are</span>
 <span class="sd">        defined in `commands`. Handlers must be callable.</span>
