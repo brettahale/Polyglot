@@ -484,26 +484,18 @@ class NodeServer(object):
         self._seq_cb[s] = [func, kwargs]
         return s
 
-    def add_node(self, node, callback=None, timeout=None, **kwargs):
+    def add_node(self, node_address, node_def_id, node_primary_addr,
+                 node_name, callback=None, timeout=None, **kwargs):
         """
         Add this node to the polyglot
 
         :returns bool: True on success
         """
-        # By default the primary_address is its own address...
-        primary_addr = node.address
-        # ...unless a node was passed in as the primary.
-        if node.primary is not True:
-            # A primary node must be its own primary because ISY only supports one level deep.
-            if not node.primary.primary is True:
-                raise RuntimeError('Error: node "%s" primary "%s" is not a primary.'
-                                   % (node.name, node.primary.name))
-            primary_addr = node.primary.address
         seq = None
         if callback:
             seq = self.register_result_cb(callback, **kwargs)
-        self.poly.add_node(node.address, node.node_def_id, primary_addr,
-                           node.name, timeout, seq)
+        self.poly.add_node(node_address, node_def_id, node_primary_addr,
+                           node_name, timeout, seq)
         return True
 
     def restcall(self, api, callback=None, timeout=None, **kwargs):
@@ -587,8 +579,20 @@ class SimpleNodeServer(NodeServer):
         if na not in self.nodes:
             self.nodes[na] = node
         if not self.nodes[na].added:
-            super(SimpleNodeServer, self).add_node(node, self._add_node_cb,
-                                                   None, na=na)
+            # By default the primary_address is its own address...
+            primary_addr = na
+            # ...unless a node was passed in as the primary.
+            if node.primary is not True:
+                # A primary node must be its own primary because ISY only
+                # supports one level deep.
+                if not node.primary.primary is True:
+                    raise RuntimeError('Error: node "%s", primary "%s" is not primary.'
+                                       % (node.name, node.primary.name))
+                primary_addr = node.primary.address
+            super(SimpleNodeServer, self).add_node(na, node.node_def_id,
+                                                   primary_addr, node.name,
+                                                   self._add_node_cb, None,
+                                                   na=na)
         return True
 
     def restcall(self, api, timeout=None):
