@@ -5,7 +5,7 @@ server development. The classes :class:`polyglot.nodeserver_api.NodeServer` and
 creating a node server. The class :class:`polyglot.nodeserver_api.Node` is
 used as an abstract class to crate custom nodes for node servers.  The class
 :class:`polyglot.nodeserver_api.PolyglotConnector` is a bottom level
-implimentation of the API used to communicate between Polyglot and your
+implementation of the API used to communicate between Polyglot and your
 node server. Finally, included in this library is a method decorator,
 :meth:`polyglot.nodeserver_api.auto_request_report`, that wraps functions and
 methods to automatically handle report requests from the ISY.
@@ -42,7 +42,7 @@ def auto_request_report(fun):
     Python decorator to automate request reporting. Decorated functions must
     return a boolean value indicating their success or failure. It the
     argument *request_id* is passed to the decorated function, a response will
-    be sent to the ISY. This decorator is implimented in the SimpleNodeServer.
+    be sent to the ISY. This decorator is implemented in the SimpleNodeServer.
     """
     @wraps(fun)
     def auto_request_report_wrapper(*args, **kwargs):
@@ -85,7 +85,8 @@ class Node(object):
         manifest = manifest.get(address, {}) if manifest else {}
         new_node = manifest == {}
         if not hasattr(parent,'_is_node_server'):
-            raise RuntimeError("Node '%s' parent '%s' is not a NodeServer?" % (name, parent))
+            raise RuntimeError('Error: node "%s", parent "%s" is not a NodeServer.'
+                               % (name, parent))
         self.parent = parent
         self.address = address
         self.added = manifest.get('added', False)
@@ -453,9 +454,6 @@ class NodeServer(object):
         call to the ISY.  The result message is uniquely identified by the
         seq id, and will always contain at least the numeric status.
         """
-        #self.poly.send_error(
-        #    '**DEBUG: on_result seq={} status_code={} elapsed={}'.
-        #    format(seq, status_code, elapsed))
         if seq not in self._seq_cb:
             self.poly.send_error(
                 '**ERROR: on_result: missing callback for seq={}'.format(seq))
@@ -485,19 +483,18 @@ class NodeServer(object):
 
         :returns bool: True on success
         """
-        # By default the primary_address is it's own address
+        # By default the primary_address is its own address...
         primary_addr = node.address
-        # Unless a Node was passed in as the primary.
+        # ...unless a node was passed in as the primary.
         if node.primary is not True:
-            # A primary node must be it's own primary because ISY only supports one level deep.
+            # A primary node must be its own primary because ISY only supports one level deep.
             if not node.primary.primary is True:
-                raise RuntimeError("Node '%s' primary '%s' must be a primary!"
+                raise RuntimeError('Error: node "%s" primary "%s" is not a primary.'
                                    % (node.name, node.primary.name))
             primary_addr = node.primary.address
         seq = None
         if callback:
             seq = self.register_result_cb(callback, **kwargs)
-            #self.poly.send_error('**INFO: add_node callback registered: seq={}'.format(seq))
         self.poly.add_node(node.address, node.node_def_id, primary_addr,
                            node.name, timeout, seq)
         return True
@@ -510,7 +507,6 @@ class NodeServer(object):
         """
         if callback:
             seq = self.register_result_cb(callback, **kwargs)
-            #self.poly.send_error('**INFO: restcall callback registered: seq={}'.format(seq))
         self.poly.restcall(api, timeout, seq)
         return seq
 
@@ -552,7 +548,7 @@ class SimpleNodeServer(NodeServer):
     """
     Simple Node Server with basic functionality built-in. This class inherits
     from :class:`polyglot.nodeserver_api.NodeServer` and is the best starting
-    point when developing a new node server. This class impliments the idea of
+    point when developing a new node server. This class implements the idea of
     manifests which are dictionaries that contain the relevant information
     about all of the nodes. The manifest gets sent to Polyglot to be saved as
     part of the configuration. This allows the node server to automatically
@@ -595,10 +591,8 @@ class SimpleNodeServer(NodeServer):
     def get_rest_response(self, seq):
         return self._rest_response.pop(seq, None)
 
-#    def _save_rest_response(self, seq, status_code, elapsed, text, **kwargs):
     def _save_rest_response(self, **kwargs):
         seq = kwargs['seq']
-        #self.poly.send_error('**DEBUG: restresponse: seq={}, status_code={}'.format(seq, kwargs['status_code']))
         self._rest_response[seq] = kwargs
         return True
 
@@ -606,18 +600,16 @@ class SimpleNodeServer(NodeServer):
         if int(status_code) == 200:
             if na in self.nodes:
                 self.nodes[na].added = True
-                #self.poly.send_error('**DEBUG: _add_node_cb: node {} added'.format(na))
                 return True
-            #self.poly.send_error('**ERROR: _add_node_cb: node {} does not exist'.format(na))
         else:
             self.poly.send_error(
                 '**ERROR: node {}: node add REST call to ISY failed: {}'
                 .format(na, status_code))
         return False
 
-    def get_node(self,address):
+    def get_node(self, address):
         """
-        Get a node by it's address.
+        Get a node by its address.
 
         :param str address: The node address
         :returns polyglot.nodeserver_api.Node: If found, otherwise False
@@ -626,9 +618,9 @@ class SimpleNodeServer(NodeServer):
             return self.nodes[address]
         return False
 
-    def exist_node(self,address):
+    def exist_node(self, address):
         """
-        Check if a node exists by it's address.
+        Check if a node exists by its address.
 
         :param str address: The node address
         :returns bool: True if the node exists
@@ -781,7 +773,7 @@ class SimpleNodeServer(NodeServer):
 
 class PolyglotConnector(object):
     """
-    Polyglot API implimentation. Connects to Polyglot and handles node server
+    Polyglot API implementation. Connects to Polyglot and handles node server
     IO.
 
     :raises: RuntimeError
@@ -1056,7 +1048,7 @@ class PolyglotConnector(object):
     def install(self, *args, **kwargs):
         """
         Abstract method to install the node server in the ISY. This has not
-        been implimented yet and running it will raise an error.
+        been implemented yet and running it will raise an error.
 
         :raises: NotImplementedError
         """
