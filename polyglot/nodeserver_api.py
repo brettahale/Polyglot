@@ -90,6 +90,7 @@ class Node(object):
         self.parent = parent
         self.address = address
         self.added = manifest.get('added', False)
+        self.enabled = manifest.get('enabled', False)
         self.name = manifest.get('name', name)
         self.logger = self.parent.poly.logger
         self.primary = primary
@@ -216,9 +217,11 @@ class Node(object):
 
         :type: dict
         """
-        manifest = {'name': self.name, 'added': self.added,
-                    'node_def_id': self.node_def_id}
-        manifest['drivers'] = {}
+        manifest = {'name': self.name,
+                    'added': self.added,
+                    'enabled': self.enabled,
+                    'node_def_id': self.node_def_id,
+                    'drivers': {}}
 
         for key, val in self._drivers.items():
             manifest['drivers'][key] = val[0]
@@ -626,6 +629,21 @@ class SimpleNodeServer(NodeServer):
         """
         self.poly.send_error(str)
 
+    def _enable_node(self, address):
+        # Ensure the addressed node is enabled, and if the state changes
+        # then force the configuration file update to record same
+        if not self.nodes[address].enabled:
+            self.nodes[address].enabled = True
+            self.update_config()
+            self.smsg('**INFO: Node: "{}" enabled'.format(address))
+
+    def _disable_node(self, address):
+        # Ensure the addressed node is disabled - as above
+        if self.nodes[address].enabled:
+            self.nodes[address].enabled = False
+            self.update_config()
+            self.smsg('**INFO: Node: "{}" disabled'.format(address))
+
     def get_node(self, address):
         """
         Get a node by its address.
@@ -664,6 +682,26 @@ class SimpleNodeServer(NodeServer):
         self.config['manifest'] = output
         self.poly.send_config(self.config)
 
+    def on_enabled(self, node_address):
+        """
+        Received node enabled report from ISY
+
+        :param str node_address: The address of the node to act on
+        :returns bool: True on success
+        """
+        self._enable_node(node_address)
+        return True
+
+    def on_disabled(self, node_address):
+        """
+        Received node disabled report from ISY
+
+        :param str node_address: The address of the node to act on
+        :returns bool: True on success
+        """
+        self._disable_node(node_address)
+        return True
+
     @auto_request_report
     def on_query(self, node_address, request_id=None):
         """
@@ -675,6 +713,7 @@ class SimpleNodeServer(NodeServer):
         :returns bool: True on success
         """
         if node_address in self.nodes:
+            self._enable_node(node_address)
             return self.nodes[node_address].query()
         elif node_address == "0":
             return all([node.query() for node in self.nodes.values()])
@@ -692,6 +731,7 @@ class SimpleNodeServer(NodeServer):
         :returns bool: True on success
         """
         if node_address in self.nodes:
+            self._enable_node(node_address)
             return self.nodes[node_address].report_driver()
         elif node_address == "0":
             return all([node.report_driver() for node in self.nodes.values()])
@@ -724,6 +764,7 @@ class SimpleNodeServer(NodeServer):
         """
         if node_address in self.nodes:
             self.nodes[node_address].added = True
+            self.nodes[node_address].enabled = True
             self.nodes[node_address].name = name
             return True
         return False
@@ -737,6 +778,7 @@ class SimpleNodeServer(NodeServer):
         """
         if node_address in self.nodes:
             self.nodes[node_address].added = False
+            self.nodes[node_address].enabled = False
             return True
         return False
 
@@ -749,6 +791,7 @@ class SimpleNodeServer(NodeServer):
         :returns bool: True on success
         """
         if node_address in self.nodes:
+            self._enable_node(node_address)
             self.nodes[node_address].name = name
             return True
         return False
@@ -769,6 +812,7 @@ class SimpleNodeServer(NodeServer):
         :returns bool: True on success
         """
         if node_address in self.nodes:
+            self._enable_node(node_address)
             return self.nodes[node_address].run_cmd(
                 command, value=value, cmd=command, uom=uom, **kwargs)
         self.smsg('ERROR: on_cmd: node {} does not exist for command {}'
