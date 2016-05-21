@@ -315,6 +315,14 @@ class NodeServer(object):
         """
         self.logger = self.poly.logger
         
+    def smsg(self, str):
+        """
+        Logs/sends a diagnostic/debug, informative, or error message.
+        Individual node servers can override this method if they desire to
+        redirect or filter these messages.
+        """
+        self.poly.send_error(str)
+
     def on_config(self, **data):
         """
         Received configuration data from Polyglot
@@ -455,8 +463,7 @@ class NodeServer(object):
         seq id, and will always contain at least the numeric status.
         """
         if seq not in self._seq_cb:
-            self.poly.send_error(
-                '**ERROR: on_result: missing callback for seq={}'.format(seq))
+            self.smsg('**ERROR: on_result: missing callback for seq={}'.format(seq))
             return False
         func, args = self._seq_cb.pop(seq)
         return func(seq=seq, status_code=status_code, elapsed=elapsed, text=text, **args)
@@ -602,10 +609,18 @@ class SimpleNodeServer(NodeServer):
                 self.nodes[na].added = True
                 return True
         else:
-            self.poly.send_error(
+            self.smsg(
                 '**ERROR: node {}: node add REST call to ISY failed: {}'
                 .format(na, status_code))
         return False
+
+    def smsg(self, str):
+        """
+        Logs/sends a diagnostic/debug, informative, or error message.
+        Individual node servers can override this method if they desire to
+        redirect or filter these messages.
+        """
+        self.poly.send_error(str)
 
     def get_node(self, address):
         """
@@ -752,8 +767,8 @@ class SimpleNodeServer(NodeServer):
         if node_address in self.nodes:
             return self.nodes[node_address].run_cmd(
                 command, value=value, cmd=command, uom=uom, **kwargs)
-        self.poly.send_error('ERROR: on_cmd: node {} does not exist for command {}'
-                             .format(node_address, command))
+        self.smsg('ERROR: on_cmd: node {} does not exist for command {}'
+                  .format(node_address, command))
         return False
 
     def on_exit(self, *args, **kwargs):
