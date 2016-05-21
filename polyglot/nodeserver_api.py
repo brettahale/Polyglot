@@ -81,26 +81,37 @@ class Node(object):
 
     def __init__(self, parent, address, name, primary=True, manifest=None):
         """ update driver values from manifest """
+        self.parent = parent
+        self.logger = self.parent.poly.logger
+        self.address = address
+        self.primary = primary
         self._drivers = copy.deepcopy(self._drivers)
         manifest = manifest.get(address, {}) if manifest else {}
         new_node = manifest == {}
         if not hasattr(parent,'_is_node_server'):
             raise RuntimeError('Error: node "%s", parent "%s" is not a NodeServer.'
                                % (name, parent))
-        self.parent = parent
-        self.address = address
         self.added = manifest.get('added', False)
         self.enabled = manifest.get('enabled', False)
         self.name = manifest.get('name', name)
-        self.logger = self.parent.poly.logger
-        self.primary = primary
-
         drivers = manifest.get('drivers', {})
         for key, value in self._drivers.items():
             self._drivers[key][0] = drivers.get(key, value[0])
 
+        self.smsg(
+            '**INFO: Node initialized: addr="{}" name="{}" added={} enabled={}'
+            .format(self.address, self.name, self.added, self.enabled))
+
         self.add_node()
 
+
+    def smsg(self, str):
+        """
+        Logs/sends a diagnostic/debug, informative, or error message.
+        Individual node servers can override this method if they desire to
+        redirect or filter these messages.
+        """
+        self.parent.smsg(str)
 
     def run_cmd(self, command, **kwargs):
         """
@@ -194,17 +205,10 @@ class Node(object):
         :returns boolean: Indicates success or failure of node addition
         """
         if (int(len(self.address)) > 14):
-            if self.logger:
-                self.logger.error(
-                    "Node name too long (>14, will fail when adding to the ISY): %s",
-                    self.address)
-            # Ensure this error also appears in the main Polyglot log
-            self.parent.poly.send_error(
-                "Node name too long (>14, will fail when adding to the ISY): {}"
+            self.smsg(
+                '**ERROR: name too long (>14), will fail when adding on ISY): "{}"'
                 .format(self.address))
-        # Add this node to the node server
-        if self.logger:
-            self.logger.debug("Node '%s': parent='%s'" % (self.name,self.parent))
+        self.smsg('**DEBUG: node "%s": parent="%s"' % (self.name,self.parent))
         self.parent.add_node(self)
         self.report_driver()
         return True
@@ -592,6 +596,8 @@ class SimpleNodeServer(NodeServer):
                     raise RuntimeError('Error: node "%s", primary "%s" is not primary.'
                                        % (node.name, node.primary.name))
                 primary_addr = node.primary.address
+            self.smsg('**DEBUG: add_node: na="{}", id="{}", pa="{}", nm="{}"'
+                      .format(na, node.node_def_id, primary_addr, node.name))
             super(SimpleNodeServer, self).add_node(na, node.node_def_id,
                                                    primary_addr, node.name,
                                                    self._add_node_cb, None,
@@ -599,6 +605,7 @@ class SimpleNodeServer(NodeServer):
         return True
 
     def restcall(self, api, timeout=None):
+        self.smsg('**DEBUG: restcall: api="{}"'.format(api))
         return super(SimpleNodeServer, self).restcall(
             api, self._save_rest_response, timeout)
 
@@ -614,35 +621,34 @@ class SimpleNodeServer(NodeServer):
         if int(status_code) == 200:
             if na in self.nodes:
                 self.nodes[na].added = True
+                self.smsg(
+                    '**INFO: node "{}": node successfully added on ISY'
+                    .format(na))
                 return True
+            else:
+                self.smsg(
+                    '**ERROR: node "{}": node added on ISY, but no longer exists.'
+                    .format(na))
         else:
             self.smsg(
-                '**ERROR: node {}: node add REST call to ISY failed: {}'
+                '**ERROR: node "{}": node add REST call to ISY failed: {}'
                 .format(na, status_code))
         return False
-
-    def smsg(self, str):
-        """
-        Logs/sends a diagnostic/debug, informative, or error message.
-        Individual node servers can override this method if they desire to
-        redirect or filter these messages.
-        """
-        self.poly.send_error(str)
 
     def _enable_node(self, address):
         # Ensure the addressed node is enabled, and if the state changes
         # then force the configuration file update to record same
         if not self.nodes[address].enabled:
             self.nodes[address].enabled = True
+            self.smsg('**INFO: node "{}" enabled'.format(address))
             self.update_config()
-            self.smsg('**INFO: Node: "{}" enabled'.format(address))
 
     def _disable_node(self, address):
         # Ensure the addressed node is disabled - as above
         if self.nodes[address].enabled:
             self.nodes[address].enabled = False
+            self.smsg('**INFO: node "{}" disabled'.format(address))
             self.update_config()
-            self.smsg('**INFO: Node: "{}" disabled'.format(address))
 
     def get_node(self, address):
         """
@@ -718,7 +724,9 @@ class SimpleNodeServer(NodeServer):
         elif node_address == "0":
             return all([node.query() for node in self.nodes.values()])
         else:
-            return False
+            self.smsg('**ERROR: on_query: node "{}" does not exist'
+                      .format(node_address))
+        return False
 
     @auto_request_report
     def on_status(self, node_address, request_id=None):
@@ -735,6 +743,9 @@ class SimpleNodeServer(NodeServer):
             return self.nodes[node_address].report_driver()
         elif node_address == "0":
             return all([node.report_driver() for node in self.nodes.values()])
+        else:
+            self.smsg('**ERROR: on_status: node "{}" does not exist'
+                      .format(node_address))
         return False
 
     @auto_request_report
@@ -767,6 +778,8 @@ class SimpleNodeServer(NodeServer):
             self.nodes[node_address].enabled = True
             self.nodes[node_address].name = name
             return True
+        self.smsg('**ERROR: on_added: node "{}" does not exist'
+                  .format(node_address))
         return False
 
     def on_removed(self, node_address):
@@ -780,6 +793,8 @@ class SimpleNodeServer(NodeServer):
             self.nodes[node_address].added = False
             self.nodes[node_address].enabled = False
             return True
+        self.smsg('**WARNING: on_removed: node "{}" does not exist'
+                  .format(node_address))
         return False
 
     def on_renamed(self, node_address, name):
@@ -791,9 +806,14 @@ class SimpleNodeServer(NodeServer):
         :returns bool: True on success
         """
         if node_address in self.nodes:
-            self._enable_node(node_address)
+            orig_name = self.nodes[node_address].name
             self.nodes[node_address].name = name
+            self.smsg('**INFO: node "{}" renamed from "{}" to "{}"'
+                      .format(node_address, orig_name, name))
+            self._enable_node(node_address)
             return True
+        self.smsg('**ERROR: on_renamed: node "{}" does not exist'
+                  .format(node_address))
         return False
 
     @auto_request_report
@@ -815,7 +835,7 @@ class SimpleNodeServer(NodeServer):
             self._enable_node(node_address)
             return self.nodes[node_address].run_cmd(
                 command, value=value, cmd=command, uom=uom, **kwargs)
-        self.smsg('ERROR: on_cmd: node {} does not exist for command {}'
+        self.smsg('**ERROR: on_cmd: node "{}" does not exist for command "{}"'
                   .format(node_address, command))
         return False
 
