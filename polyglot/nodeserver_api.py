@@ -24,6 +24,7 @@ import sys
 import threading
 import time
 import traceback
+import xml.etree.ElementTree as ET
 
 # Increment this version number each time a breaking change is made to
 # anything that the nodeserver API exposes to a node server.  This makes
@@ -94,6 +95,7 @@ class Node(object):
         self.added = manifest.get('added', False)
         self.enabled = manifest.get('enabled', False)
         self.name = manifest.get('name', name)
+        self.probe_t = 0
         drivers = manifest.get('drivers', {})
         for key, value in self._drivers.items():
             self._drivers[key][0] = drivers.get(key, value[0])
@@ -516,6 +518,11 @@ class NodeServer(object):
         self.poly.restcall(api, timeout, seq)
         return seq
 
+    def tock(self):
+        """ Called every few seconds for internal housekeeping. """
+        # pylint: disable=no-self-use
+        pass
+
     def poll(self):
         """ Called every shortpoll seconds to allow for updating nodes. """
         # pylint: disable=no-self-use
@@ -533,16 +540,27 @@ class NodeServer(object):
         """
         self.running = True
         self.poly.connect()
-        counter = 0
+        scounter = 0
+        lcounter = 0
+        tcounter = 0
         try:
             while self.running:
-                time.sleep(self.shortpoll)
-                self.poll()
-                counter += self.shortpoll
+                time.sleep(1)
+                scounter += 1
+                lcounter += 1
+                tcounter += 1
 
-                if counter >= self.longpoll:
+                if scounter >= self.shortpoll:
+                    self.poll()
+                    scounter = 0
+
+                if lcounter >= self.longpoll:
                     self.long_poll()
-                    counter = 0
+                    lcounter = 0
+
+                if tcounter >= 7:
+                    self.tock()
+                    tcounter = 0
 
         except KeyboardInterrupt:
             self.on_exit()
@@ -604,6 +622,130 @@ class SimpleNodeServer(NodeServer):
                                                    na=na)
         return True
 
+    def tock(self):
+        all_nodes = list(self.nodes.keys())
+        if len(all_nodes) > 0:
+            t = int(time.time())
+            next_t = t + 600 + (7 * self.poly.profile)
+            for node in self.nodes.values():
+                next_t += 7
+                if node.probe_t < t:
+                    # Request the check - sends rest api call
+                    self.request_node_probe(node.address)
+                    # Mark node for next check
+                    node.probe_t = next_t
+        # [TODO] extend probe for unknown nodes
+        return True
+
+    def request_node_probe(self, node_address, timeout=None):
+        pfx = str(self.poly.profile).zfill(3)
+        full_addr = 'n{}_{}'.format(pfx, node_address)
+        api = 'nodes/' + full_addr
+        self.smsg('**DEBUG: request_node_probe: na="{}" fa="{}" api="{}"'
+                  .format(node_address, full_addr, api))
+        return super(SimpleNodeServer, self).restcall(
+            api, self.node_probe_response, timeout, na=node_address)
+
+    def node_probe_response(self, status_code, text, na, **kwargs):
+
+        self.smsg('**DEBUG: probe: st={} na="{}" text: {}'
+                  .format(status_code, na, text))
+
+        if na in self.nodes:
+            node = self.nodes[na]
+        else:
+            self.smsg('**ERROR: probe: node "{}" does not exist'.format(na))
+            # No action practical for this problem
+            return False
+
+        if status_code != 200:
+            self.smsg('**WARNING: probe: status code: {}'.format(status_code))
+            if status_code == 404 and node.added:
+                self.smsg('**WARNING: probe: na="{}": state mismatch'.format(na))
+                self.smsg('**WARNING: probe: ISY does not think this node exists')
+                self.smsg('**WARNING: probe: Correcting local node state')
+                node.enabled = False
+                node.added = False
+            return True
+
+        # Parse the XML response text from the ISY
+        try:
+            root = ET.fromstring(text)
+        except ET.ParseError:
+            self.smsg('**ERROR: probe: Unable to parse ISY response: {}'
+                      .format(text))
+            # No action practical for this problem
+            return False
+
+        # Find the root node element
+        n = root.find('node')
+        if n is None:
+            self.smsg('**ERROR: probe: missing node element in response: {}'
+                      .format(text))
+            # No action practical for this problem
+            return False
+
+        # Extract all the other fields we're interested in
+        n_def_id = n.attrib.get('nodeDefId', None)
+        n_flag = n.attrib.get('flag', '0')
+        n_addr = n.findtext('address')
+        n_name = n.findtext('name')
+        n_pnode = n.findtext('pnode')
+        n_enabled = (n.findtext('enabled', 'false') == 'true')
+        self.smsg('**INFO: probe: fa={} pfa={} id={} fl={} en={} nm="{}"'
+                  .format(n_addr, n_pnode, n_def_id, n_flag,
+                          n_enabled, n_name))
+
+        # Check that the fields match our node
+
+        pfx = str(self.poly.profile).zfill(3)
+        full_addr = 'n{}_{}'.format(pfx, node.address)
+        if full_addr != n_addr:
+            self.smsg('**ERROR: probe: expected na="{}", response is for na="{}"'
+                      .format(full_addr, n_addr))
+            # No action practical for this problem
+            return False
+
+        if node.node_def_id != n_def_id:
+            self.smsg('**ERROR: probe: expected id="{}", response is for id="{}"'
+                      .format(node.node_def_id, n_def_id))
+            self.smsg('**ERROR: probe: setting local node state to "not added"')
+            node.enabled = False
+            node.added = False
+            return True
+
+        if node.primary is not True:
+            primary_addr = node.primary.address
+        else:
+            primary_addr = node.address
+        full_paddr = 'n{}_{}'.format(pfx, primary_addr)
+        if full_paddr != n_pnode:
+            self.smsg('**ERROR: probe: node parent mismatch, local: "{}" ISY: "{}"'
+                      .format(full_paddr, n_pnode))
+            self.smsg('**ERROR: probe: setting local node state to "not added"')
+            node.enabled = False
+            node.added = False
+            return True
+
+        if not node.added:
+            self.smsg('**WARNING: probe: node state mismatch - node is added on ISY')
+            self.smsg('**WARNING: probe: correcting local node state')
+            node.added = True
+
+        if node.name != n_name:
+            self.smsg('**WARNING: probe: node name mismatch, local: "{}" ISY: "{}"'
+                      .format(node.name, n_name))
+            self.smsg('**WARNING: probe: correcting local node name')
+            node.name = n_name;
+
+        if node.enabled != n_enabled:
+            self.smsg('**WARNING: probe: node enable mismatch, local:"{}" ISY:"{}"'
+                      .format(node.enabled, n_enabled))
+            self.smsg('**WARNING: probe: correcting local node state')
+            node.enabled = n_enabled;
+
+        return True
+
     def restcall(self, api, timeout=None):
         self.smsg('**DEBUG: restcall: api="{}"'.format(api))
         return super(SimpleNodeServer, self).restcall(
@@ -642,6 +784,7 @@ class SimpleNodeServer(NodeServer):
             self.nodes[address].enabled = True
             self.smsg('**INFO: node "{}" enabled'.format(address))
             self.update_config()
+            self.probe_t = 0
 
     def _disable_node(self, address):
         # Ensure the addressed node is disabled - as above
@@ -649,6 +792,7 @@ class SimpleNodeServer(NodeServer):
             self.nodes[address].enabled = False
             self.smsg('**INFO: node "{}" disabled'.format(address))
             self.update_config()
+            self.probe_t = 0
 
     def get_node(self, address):
         """
