@@ -259,14 +259,14 @@
 <div class="section" id="module-polyglot.nodeserver_api">
 <span id="nodeserver-api"></span><h3>Nodeserver API<a class="headerlink" href="#module-polyglot.nodeserver_api" title="Permalink to this headline">¶</a></h3>
 <p>This library consists of four classes and one function to assist with node
-server development. The classes <a class="reference internal" href="#polyglot.nodeserver_api.NodeServer" title="polyglot.nodeserver_api.NodeServer"><code class="xref py py-class docutils literal"><span class="pre">polyglot.nodeserver_api.NodeServer</span></code></a> and
-<a class="reference internal" href="#polyglot.nodeserver_api.SimpleNodeServer" title="polyglot.nodeserver_api.SimpleNodeServer"><code class="xref py py-class docutils literal"><span class="pre">polyglot.nodeserver_api.SimpleNodeServer</span></code></a> and basic structures for
-creating a node server. The class <a class="reference internal" href="#polyglot.nodeserver_api.Node" title="polyglot.nodeserver_api.Node"><code class="xref py py-class docutils literal"><span class="pre">polyglot.nodeserver_api.Node</span></code></a> is
+server development. The classes <a class="reference internal" href="nsdev.html#polyglot.nodeserver_api.NodeServer" title="polyglot.nodeserver_api.NodeServer"><code class="xref py py-class docutils literal"><span class="pre">polyglot.nodeserver_api.NodeServer</span></code></a> and
+<a class="reference internal" href="nsdev.html#polyglot.nodeserver_api.SimpleNodeServer" title="polyglot.nodeserver_api.SimpleNodeServer"><code class="xref py py-class docutils literal"><span class="pre">polyglot.nodeserver_api.SimpleNodeServer</span></code></a> and basic structures for
+creating a node server. The class <a class="reference internal" href="nsdev.html#polyglot.nodeserver_api.Node" title="polyglot.nodeserver_api.Node"><code class="xref py py-class docutils literal"><span class="pre">polyglot.nodeserver_api.Node</span></code></a> is
 used as an abstract class to crate custom nodes for node servers.  The class
-<a class="reference internal" href="#polyglot.nodeserver_api.PolyglotConnector" title="polyglot.nodeserver_api.PolyglotConnector"><code class="xref py py-class docutils literal"><span class="pre">polyglot.nodeserver_api.PolyglotConnector</span></code></a> is a bottom level
-implimentation of the API used to communicate between Polyglot and your
+<a class="reference internal" href="nsdev.html#polyglot.nodeserver_api.PolyglotConnector" title="polyglot.nodeserver_api.PolyglotConnector"><code class="xref py py-class docutils literal"><span class="pre">polyglot.nodeserver_api.PolyglotConnector</span></code></a> is a bottom level
+implementation of the API used to communicate between Polyglot and your
 node server. Finally, included in this library is a method decorator,
-<a class="reference internal" href="#polyglot.nodeserver_api.auto_request_report" title="polyglot.nodeserver_api.auto_request_report"><code class="xref py py-meth docutils literal"><span class="pre">polyglot.nodeserver_api.auto_request_report()</span></code></a>, that wraps functions and
+<a class="reference internal" href="nsdev.html#polyglot.nodeserver_api.auto_request_report" title="polyglot.nodeserver_api.auto_request_report"><code class="xref py py-meth docutils literal"><span class="pre">polyglot.nodeserver_api.auto_request_report()</span></code></a>, that wraps functions and
 methods to automatically handle report requests from the ISY.</p>
 <dl class="class">
 <dt id="polyglot.nodeserver_api.Node">
@@ -277,20 +277,18 @@ methods to automatically handle report requests from the ISY.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>parent</strong> (<a class="reference internal" href="#polyglot.nodeserver_api.NodeServer" title="polyglot.nodeserver_api.NodeServer"><em>polyglot.nodeserver_api.NodeServer</em></a>) &#8211; The node server that controls the node</li>
+<li><strong>parent</strong> (<a class="reference internal" href="nsdev.html#polyglot.nodeserver_api.NodeServer" title="polyglot.nodeserver_api.NodeServer"><em>polyglot.nodeserver_api.NodeServer</em></a>) &#8211; The node server that controls the node</li>
 <li><strong>address</strong> (<em>str</em>) &#8211; The address of the node in the ISY without the node
 server ID prefix</li>
 <li><strong>name</strong> (<em>str</em>) &#8211; The name of the node</li>
-<li><strong>primary</strong> &#8211; The primary node for the device this node belongs to,</li>
+<li><strong>primary</strong> (<em>polyglot.nodeserver_api.Node or True if this node is the primary.</em>) &#8211; The primary node for the device this node belongs to, 
+or True if it&#8217;s the primary.</li>
+<li><strong>manifest</strong> (<em>dict or None</em>) &#8211; The node manifest saved by the node server</li>
 </ul>
 </td>
 </tr>
 </tbody>
 </table>
-<p>:               or True if it&#8217;s the primary.
-:type primary: polyglot.nodeserver_api.Node or True if this node is the primary.
-:param manifest: The node manifest saved by the node server
-:type manifest: dict or None</p>
 <dl class="attribute">
 <dt id="polyglot.nodeserver_api.Node._drivers">
 <code class="descname">_drivers</code><em class="property"> = {}</em><a class="headerlink" href="#polyglot.nodeserver_api.Node._drivers" title="Permalink to this definition">¶</a></dt>
@@ -456,6 +454,14 @@ silently.</li>
 </table>
 </dd></dl>
 
+<dl class="method">
+<dt id="polyglot.nodeserver_api.Node.smsg">
+<code class="descname">smsg</code><span class="sig-paren">(</span><em>str</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polyglot/nodeserver_api.html#Node.smsg"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polyglot.nodeserver_api.Node.smsg" title="Permalink to this definition">¶</a></dt>
+<dd><p>Logs/sends a diagnostic/debug, informative, or error message.
+Individual node servers can override this method if they desire to
+redirect or filter these messages.</p>
+</dd></dl>
+
 </dd></dl>
 
 <dl class="class">
@@ -471,7 +477,7 @@ server.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>poly</strong> (<a class="reference internal" href="#polyglot.nodeserver_api.PolyglotConnector" title="polyglot.nodeserver_api.PolyglotConnector"><em>polyglot.nodeserver_api.PolyglotConnector</em></a>) &#8211; The connected Polyglot connection</li>
+<li><strong>poly</strong> (<a class="reference internal" href="nsdev.html#polyglot.nodeserver_api.PolyglotConnector" title="polyglot.nodeserver_api.PolyglotConnector"><em>polyglot.nodeserver_api.PolyglotConnector</em></a>) &#8211; The connected Polyglot connection</li>
 <li><strong>optional shortpoll</strong> (<em>int</em>) &#8211; The seconds between poll events</li>
 <li><strong>optional longpoll</strong> (<em>int</em>) &#8211; The second between longpoll events</li>
 </ul>
@@ -481,7 +487,7 @@ server.</p>
 </table>
 <dl class="method">
 <dt id="polyglot.nodeserver_api.NodeServer.add_node">
-<code class="descname">add_node</code><span class="sig-paren">(</span><em>node</em>, <em>callback=None</em>, <em>timeout=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polyglot/nodeserver_api.html#NodeServer.add_node"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polyglot.nodeserver_api.NodeServer.add_node" title="Permalink to this definition">¶</a></dt>
+<code class="descname">add_node</code><span class="sig-paren">(</span><em>node_address</em>, <em>node_def_id</em>, <em>node_primary_addr</em>, <em>node_name</em>, <em>callback=None</em>, <em>timeout=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polyglot/nodeserver_api.html#NodeServer.add_node"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polyglot.nodeserver_api.NodeServer.add_node" title="Permalink to this definition">¶</a></dt>
 <dd><p>Add this node to the polyglot</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -781,12 +787,26 @@ call it thru super.
 Currently it only sets up the reference for the logger.</p>
 </dd></dl>
 
+<dl class="method">
+<dt id="polyglot.nodeserver_api.NodeServer.smsg">
+<code class="descname">smsg</code><span class="sig-paren">(</span><em>str</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polyglot/nodeserver_api.html#NodeServer.smsg"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polyglot.nodeserver_api.NodeServer.smsg" title="Permalink to this definition">¶</a></dt>
+<dd><p>Logs/sends a diagnostic/debug, informative, or error message.
+Individual node servers can override this method if they desire to
+redirect or filter these messages.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="polyglot.nodeserver_api.NodeServer.tock">
+<code class="descname">tock</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/polyglot/nodeserver_api.html#NodeServer.tock"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polyglot.nodeserver_api.NodeServer.tock" title="Permalink to this definition">¶</a></dt>
+<dd><p>Called every few seconds for internal housekeeping.</p>
+</dd></dl>
+
 </dd></dl>
 
 <dl class="class">
 <dt id="polyglot.nodeserver_api.PolyglotConnector">
 <em class="property">class </em><code class="descclassname">polyglot.nodeserver_api.</code><code class="descname">PolyglotConnector</code><a class="reference internal" href="_modules/polyglot/nodeserver_api.html#PolyglotConnector"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polyglot.nodeserver_api.PolyglotConnector" title="Permalink to this definition">¶</a></dt>
-<dd><p>Polyglot API implimentation. Connects to Polyglot and handles node server
+<dd><p>Polyglot API implementation. Connects to Polyglot and handles node server
 IO.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -895,7 +915,7 @@ the nodeserver api</p>
 <dt id="polyglot.nodeserver_api.PolyglotConnector.install">
 <code class="descname">install</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polyglot/nodeserver_api.html#PolyglotConnector.install"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polyglot.nodeserver_api.PolyglotConnector.install" title="Permalink to this definition">¶</a></dt>
 <dd><p>Abstract method to install the node server in the ISY. This has not
-been implimented yet and running it will raise an error.</p>
+been implemented yet and running it will raise an error.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -1121,8 +1141,8 @@ the url after the &#8220;<a class="reference external" href="https://isy/rest/">
 <dt id="polyglot.nodeserver_api.SimpleNodeServer">
 <em class="property">class </em><code class="descclassname">polyglot.nodeserver_api.</code><code class="descname">SimpleNodeServer</code><span class="sig-paren">(</span><em>poly</em>, <em>shortpoll=1</em>, <em>longpoll=30</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polyglot/nodeserver_api.html#SimpleNodeServer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polyglot.nodeserver_api.SimpleNodeServer" title="Permalink to this definition">¶</a></dt>
 <dd><p>Simple Node Server with basic functionality built-in. This class inherits
-from <a class="reference internal" href="#polyglot.nodeserver_api.NodeServer" title="polyglot.nodeserver_api.NodeServer"><code class="xref py py-class docutils literal"><span class="pre">polyglot.nodeserver_api.NodeServer</span></code></a> and is the best starting
-point when developing a new node server. This class impliments the idea of
+from <a class="reference internal" href="nsdev.html#polyglot.nodeserver_api.NodeServer" title="polyglot.nodeserver_api.NodeServer"><code class="xref py py-class docutils literal"><span class="pre">polyglot.nodeserver_api.NodeServer</span></code></a> and is the best starting
+point when developing a new node server. This class implements the idea of
 manifests which are dictionaries that contain the relevant information
 about all of the nodes. The manifest gets sent to Polyglot to be saved as
 part of the configuration. This allows the node server to automatically
@@ -1135,7 +1155,7 @@ recall its last known values when it is restarted.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>node</strong> (<a class="reference internal" href="#polyglot.nodeserver_api.Node" title="polyglot.nodeserver_api.Node"><em>polyglot.nodeserver_api.Node</em></a>) &#8211; The node to add</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>node</strong> (<a class="reference internal" href="nsdev.html#polyglot.nodeserver_api.Node" title="polyglot.nodeserver_api.Node"><em>polyglot.nodeserver_api.Node</em></a>) &#8211; The node to add</td>
 </tr>
 <tr class="field-even field"><th class="field-name" colspan="2">Returns boolean:</th></tr>
 <tr class="field-even field"><td>&nbsp;</td><td class="field-body">Indicates success or failure of node addition</td>
@@ -1147,7 +1167,7 @@ recall its last known values when it is restarted.</p>
 <dl class="method">
 <dt id="polyglot.nodeserver_api.SimpleNodeServer.exist_node">
 <code class="descname">exist_node</code><span class="sig-paren">(</span><em>address</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polyglot/nodeserver_api.html#SimpleNodeServer.exist_node"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polyglot.nodeserver_api.SimpleNodeServer.exist_node" title="Permalink to this definition">¶</a></dt>
-<dd><p>Check if a node exists by it&#8217;s address.</p>
+<dd><p>Check if a node exists by its address.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -1163,7 +1183,7 @@ recall its last known values when it is restarted.</p>
 <dl class="method">
 <dt id="polyglot.nodeserver_api.SimpleNodeServer.get_node">
 <code class="descname">get_node</code><span class="sig-paren">(</span><em>address</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polyglot/nodeserver_api.html#SimpleNodeServer.get_node"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polyglot.nodeserver_api.SimpleNodeServer.get_node" title="Permalink to this definition">¶</a></dt>
-<dd><p>Get a node by it&#8217;s address.</p>
+<dd><p>Get a node by its address.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -1182,7 +1202,7 @@ recall its last known values when it is restarted.</p>
 <code class="descname">nodes</code><em class="property"> = OrderedDict()</em><a class="headerlink" href="#polyglot.nodeserver_api.SimpleNodeServer.nodes" title="Permalink to this definition">¶</a></dt>
 <dd><p>Nodes registered with this node server.  All nodes are automatically added
 by the add_node method.  The keys are the node IDs while the values are
-instances of <a class="reference internal" href="#polyglot.nodeserver_api.Node" title="polyglot.nodeserver_api.Node"><code class="xref py py-class docutils literal"><span class="pre">polyglot.nodeserver_api.Node</span></code></a>. Classes inheriting
+instances of <a class="reference internal" href="nsdev.html#polyglot.nodeserver_api.Node" title="polyglot.nodeserver_api.Node"><code class="xref py py-class docutils literal"><span class="pre">polyglot.nodeserver_api.Node</span></code></a>. Classes inheriting
 can access this directly, but the prefered method is by using get_node or
 exist_node methods.</p>
 </dd></dl>
@@ -1248,6 +1268,38 @@ reponses when necessary.</p>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns bool:</th><td class="field-body"><p class="first last">True on success</p>
 </td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="polyglot.nodeserver_api.SimpleNodeServer.on_disabled">
+<code class="descname">on_disabled</code><span class="sig-paren">(</span><em>node_address</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polyglot/nodeserver_api.html#SimpleNodeServer.on_disabled"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polyglot.nodeserver_api.SimpleNodeServer.on_disabled" title="Permalink to this definition">¶</a></dt>
+<dd><p>Received node disabled report from ISY</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>node_address</strong> (<em>str</em>) &#8211; The address of the node to act on</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns bool:</th><td class="field-body">True on success</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="polyglot.nodeserver_api.SimpleNodeServer.on_enabled">
+<code class="descname">on_enabled</code><span class="sig-paren">(</span><em>node_address</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polyglot/nodeserver_api.html#SimpleNodeServer.on_enabled"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polyglot.nodeserver_api.SimpleNodeServer.on_enabled" title="Permalink to this definition">¶</a></dt>
+<dd><p>Received node enabled report from ISY</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>node_address</strong> (<em>str</em>) &#8211; The address of the node to act on</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns bool:</th><td class="field-body">True on success</td>
 </tr>
 </tbody>
 </table>
@@ -1372,7 +1424,7 @@ the configuration to Polyglot to be saved.</p>
 <dd><p>Python decorator to automate request reporting. Decorated functions must
 return a boolean value indicating their success or failure. It the
 argument <em>request_id</em> is passed to the decorated function, a response will
-be sent to the ISY. This decorator is implimented in the SimpleNodeServer.</p>
+be sent to the ISY. This decorator is implemented in the SimpleNodeServer.</p>
 </dd></dl>
 
 </div>
@@ -1663,7 +1715,7 @@ be consumed in another thread.</p>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2015, Ryan M. Kraus.
+        &copy; Copyright 2015, Universal Devices Inc..
 
     </p>
   </div>

@@ -70,7 +70,7 @@ class Node(object):
                         server ID prefix
     :param str name: The name of the node
     :param primary: The primary node for the device this node belongs to, 
-    :               or True if it's the primary.
+                        or True if it's the primary.
     :type primary: polyglot.nodeserver_api.Node or True if this node is the primary.
     :param manifest: The node manifest saved by the node server
     :type manifest: dict or None
