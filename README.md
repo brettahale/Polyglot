@@ -1,2 +1,2 @@
 Documentation found here:
-https://github.com/UniversalDevicesInc/Polyglot/wiki/Polyglot-README
+http://ud-polyglot.readthedocs.io/
