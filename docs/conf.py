@@ -51,8 +51,8 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'Polyglot'
-copyright = u'2015, Ryan M. Kraus'
-author = u'Ryan M. Kraus'
+copyright = u'2015, Universal Devices Inc.'
+author = u'Universal Devices Inc.'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
