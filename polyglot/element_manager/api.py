@@ -94,6 +94,7 @@ class ConfigHandler(GenericAPIHandler):
     def get(self):
         ''' worker '''
         config = PGLOT.elements.config
+        config['pgver'] = PGLOT.version
         self.send_json(config)
 
 
