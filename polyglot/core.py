@@ -25,6 +25,7 @@ class Polyglot(object):
     def __init__(self, config_dir):
         self.version = PGVERSION
         _LOGGER.info('Creating Polyglot, version %s', self.version)
+        
         sys.modules['pglot'] = self
         # initialize components
         self.config = ConfigManager(config_dir)
