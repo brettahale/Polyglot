@@ -290,11 +290,13 @@ The **poly.nodeserver_config** variable holds this dictionary.
 
 Your node server may modify this dictionary as necessary and use the function
 
-..code-block:: python
+.. code-block:: python
 
         write_nodeserver_config():
 		
 This method has two parameters that are optional. The defaults are shown here:
+
+.. code-block:: python
 
     default_flow_style = False 
 	indent = 4
