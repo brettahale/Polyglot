@@ -15,6 +15,9 @@ endif
 ifeq ($(OS_NAME),Darwin)
 	BUILD_TYPE = .osx.$(PROC_NAME)
 endif
+ifeq ($(OS_NAME),FreeBSD)
+	BUILD_TYPE = .freebsd.$(PROC_NAME)
+endif
 
 
 build: polyglot
