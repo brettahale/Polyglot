@@ -12,7 +12,6 @@ methods to automatically handle report requests from the ISY.
 
 .. decorator: PolyglotConnector
 """
-
 from collections import defaultdict, OrderedDict
 import copy
 from functools import wraps
@@ -21,10 +20,19 @@ import logging
 import logging.handlers
 from polyglot.utils import AsyncFileReader, Empty, LockQueue
 import sys
+import os
+import filecmp
 import threading
 import time
 import traceback
 import xml.etree.ElementTree as ET
+
+# Updated for YAML nodeserver config file (E.42) - for backwards compat
+YAML = True
+try:
+    import yaml
+except ImportError as e:
+    YAML = False
 
 # Increment this version number each time a breaking change is made to
 # anything that the nodeserver API exposes to a node server.  This makes
@@ -1039,6 +1047,9 @@ class PolyglotConnector(object):
         self.params = False
         self.isyver = False
         self.sandbox = False
+        self.configfile = None
+        self.path = None
+        self.nodeserver_config = None
         self.name = False
         self.apiver = False
         self.profile = None
@@ -1117,6 +1128,62 @@ class PolyglotConnector(object):
         while not self._got_config:
             time.sleep(1)
         self.logger = self.setup_log(self.sandbox, self.name)
+        self._read_nodeserver_config()
+
+    def _read_nodeserver_config(self):
+        """ 
+        Reads custom config file and presents it to node server as nodeserver_config 
+        """
+        if YAML:
+            if self.configfile == None: 
+                self.logger.debug('No custom "configfile" found in server.json. Trying the default of config.yaml.')
+                self.configfile = 'config.yaml'
+            else:
+                self.logger.debug('Custom config file option found in server.json: %s', self.configfile)
+            try:
+                with open(os.path.join(self.path, self.configfile), 'r') as cfg:
+                    self.nodeserver_config = yaml.safe_load(cfg)
+                    self.logger.debug('Config file loaded as dictionary to "poly.nodeserver_config"')
+            except yaml.YAMLError, exc:
+                if hasattr(exc, 'problem_mark'):
+                    mark = exc.problem_mark
+                    self.logger.error("Error in config file. Position: (Line: %s: Column: %s)" % (mark.line+1, mark.column+1))
+                    self.logger.error(exc)
+            except IOError as e:
+                self.logger.debug("No config file found, or it is unreadable. This is normal if your nodeserver doesn't need a config file.")
+        else: self.logger.info('PyYAML module not installed... skipping custom config sections. "sudo pip install pyyaml" to use')
+
+    def write_nodeserver_config(self, default_flow_style=False, indent=4):
+        """
+        Writes any changes to the nodeserver custom configuration file. 
+        self.nodeserver_config should be a dictionary. Refrain from calling
+        this in a poll of any kind. Typically you won't even have to write this
+        unless you are storing custom data you want retrieved on the next 
+        run. Saved automatically during normal Polyglot shutdown. Returns 
+        True for success, False for failure.
+        
+        :param boolean default_flow_style: YAML's default flow style formatting. Default False
+        :param int indent: Override the default indent spaces for YAML. Default 4
+        """
+        if YAML:
+            try:
+                with open(os.path.join(self.path, self.configfile), 'r') as read:
+                    existing = yaml.safe_load(read)
+                    if existing == self.nodeserver_config: 
+                        self.logger.info('NodeServer configuration file matches running config... Skipping write.')
+                        return True
+                with open(os.path.join(self.path, self.configfile), 'w') as write:
+                    yaml.dump(self.nodeserver_config, write, default_flow_style=default_flow_style, indent=indent)
+                    self.logger.info('NodeServer configuration file is different than running config... Updated file.')
+                    return True
+            except yaml.YAMLError as e:
+                self.logger.error('write_nodeserver_config: %s', e)
+                return False
+            except IOError:
+                self.logger.error('write_nodeserver_config: Could not write to nodeserver config file %s', self.configfile)
+                return False
+        else: self.logger.info('PyYAML module not installed... skipping custom config sections. "sudo pip install pyyaml" to use')
+        return True
 
     # manage output
     def _send_out(self):
@@ -1218,6 +1285,8 @@ class PolyglotConnector(object):
         self.pgver = kwargs['pgver']
         self.pgapiver = kwargs['pgapiver']
         self.profile = kwargs['profile']
+        self.configfile = kwargs['configfile']
+        self.path = kwargs['path']
         return True
 
     def setup_log(self, sandbox, name):
@@ -1453,6 +1522,7 @@ class PolyglotConnector(object):
         Tells Polyglot that this Node Server is done.
         """
         # pylint: disable=unused-argument
+        self.write_nodeserver_config()
         self._mk_cmd('exit')
         self.disconnect()
         return True

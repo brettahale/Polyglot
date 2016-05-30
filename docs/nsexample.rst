@@ -272,3 +272,41 @@ the last section) have been created, the node server directory can be placed
 in the configuration directory in a subfolder called *node_servers*. Polyglot
 should then be restarted to trigger the discovery of new node server types. If
 there is an issue with your node server, it will appear in the log.
+
+Custom Node Server Configuration File
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You may specify a custom configuration file in the server.json file as such:
+
+.. code-block:: python
+
+    "configfile": "customfile.yaml"
+	
+This should be placed in the top level of configuration, for example right after 
+"executable". If no "configfile" is specified, Polyglot will look for "config.yaml"
+in the root node_server folder(the same location as the server.json). If either
+file is found, then the contents will be loaded into a dictionary for consumption.
+The **poly.nodeserver_config** variable holds this dictionary.
+
+Your node server may modify this dictionary as necessary and use the function
+
+..code-block:: python
+
+        write_nodeserver_config():
+		
+This method has two parameters that are optional. The defaults are shown here:
+
+    default_flow_style = False 
+	indent = 4
+
+The default_flow_style is the formatting of the YAML file, look at the PyYAML 
+documentation for specifics. The indent parameter is the number of spaces
+indented for each subline in the file. The default for our method is 4 because
+Python...
+
+This method checks for any differences in the running configuration and the
+existing file, and refrains from writing if they are identical. This method is 
+also automatically called upon a normal shutdown of Polyglot. If Polyglot shuts
+down abnormally, it will not record any changes that you made if you did not
+call the write_nodeserver_config() method.
+		

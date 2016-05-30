@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Python Node Server Example &mdash; Polyglot 0.0.2 documentation</title>
+  <title>Python Node Server Example &mdash; Polyglot 0.0.4 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="Polyglot 0.0.2 documentation" href="index.html"/>
+    <link rel="top" title="Polyglot 0.0.4 documentation" href="index.html"/>
         <link rel="next" title="Polyglot Node Server API" href="nsapi.html"/>
         <link rel="prev" title="Node Server Development" href="nsdev.html"/> 
 
@@ -60,7 +60,7 @@
             
             
               <div class="version">
-                0.0.2
+                0.0.4
               </div>
             
           
@@ -89,6 +89,7 @@
 <li class="toctree-l2"><a class="reference internal" href="#node-server-creation">Node Server Creation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#starting-the-node-server">Starting the Node Server</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#installing-the-node-server">Installing the Node Server</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#custom-node-server-configuration-file">Custom Node Server Configuration File</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="nsapi.html">Polyglot Node Server API</a></li>
@@ -395,6 +396,38 @@ in the configuration directory in a subfolder called <em>node_servers</em>. Poly
 should then be restarted to trigger the discovery of new node server types. If
 there is an issue with your node server, it will appear in the log.</p>
 </div>
+<div class="section" id="custom-node-server-configuration-file">
+<h2>Custom Node Server Configuration File<a class="headerlink" href="#custom-node-server-configuration-file" title="Permalink to this headline">¶</a></h2>
+<p>You may specify a custom configuration file in the server.json file as such:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="s2">&quot;configfile&quot;</span><span class="p">:</span> <span class="s2">&quot;customfile.yaml&quot;</span>
+</pre></div>
+</div>
+<p>This should be placed in the top level of configuration, for example right after
+&#8220;executable&#8221;. If no &#8220;configfile&#8221; is specified, Polyglot will look for &#8220;config.yaml&#8221;
+in the root node_server folder(the same location as the server.json). If either
+file is found, then the contents will be loaded into a dictionary for consumption.
+The <strong>poly.nodeserver_config</strong> variable holds this dictionary.</p>
+<p>Your node server may modify this dictionary as necessary and use the function</p>
+<p>..code-block:: python</p>
+<blockquote>
+<div>write_nodeserver_config():</div></blockquote>
+<p>This method has two parameters that are optional. The defaults are shown here:</p>
+<blockquote>
+<div><dl class="docutils">
+<dt>default_flow_style = False</dt>
+<dd>indent = 4</dd>
+</dl>
+</div></blockquote>
+<p>The default_flow_style is the formatting of the YAML file, look at the PyYAML
+documentation for specifics. The indent parameter is the number of spaces
+indented for each subline in the file. The default for our method is 4 because
+Python...</p>
+<p>This method checks for any differences in the running configuration and the
+existing file, and refrains from writing if they are identical. This method is
+also automatically called upon a normal shutdown of Polyglot. If Polyglot shuts
+down abnormally, it will not record any changes that you made if you did not
+call the write_nodeserver_config() method.</p>
+</div>
 </div>
 
 
@@ -438,7 +471,7 @@ there is an issue with your node server, it will appear in the log.</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'0.0.2',
+            VERSION:'0.0.4',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

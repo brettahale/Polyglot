@@ -85,6 +85,13 @@ class NodeServerManager(object):
                 "server.json for {} is missing type or executable."
                 .format(ns_platform))
 
+        try:
+            configfile =definition['configfile']
+            _LOGGER.info('Config file option found in server.json: %s', configfile)
+        except (IOError, ValueError, KeyError):
+            _LOGGER.info('Config file option not found in server.json')
+            configfile = None
+                
         # get server base name
         while base in self.servers or base is None:
             base = random_string(5)
@@ -96,7 +103,7 @@ class NodeServerManager(object):
         try:
             server = NodeServer(self.pglot, ns_platform, profile_number,
                                 nstype, nsexe, nsname or ns_platform,
-                                config or {}, sandbox)
+                                config or {}, sandbox, configfile)
         except Exception:
             _LOGGER.exception('Node Server %s could not start', ns_platform)
             raise ValueError(
@@ -175,7 +182,7 @@ class NodeServer(object):
     # pylint: disable=too-many-instance-attributes
 
     def __init__(self, pglot, ns_platform, profile_number, nstype, nsexe,
-                 nsname, config, sandbox):
+                 nsname, config, sandbox, configfile=None):
         # build run command
         if nstype in SERVER_TYPES:
             cmd = copy.deepcopy(SERVER_TYPES[nstype])
@@ -188,6 +195,7 @@ class NodeServer(object):
         self.pglot = pglot
         self.isy_version = self.pglot.isy_version
         self.config = config
+        self.configfile = configfile
         self._cmd = cmd
         self.platform = ns_platform
         self.profile_number = profile_number
@@ -203,7 +211,9 @@ class NodeServer(object):
                        'name':     self.name,
                        'pgver':    self.pgver,
                        'pgapiver': self.pgapiver,
-                       'profile':  self.profile_number}
+                       'profile':  self.profile_number,
+                       'configfile': self.configfile,
+                       'path': self.path}
         self._proc = None
         self._inq = None
         self._rqq = None

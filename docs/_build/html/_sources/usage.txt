@@ -8,7 +8,7 @@ Polyglot is open source software provided under the MIT license.
 There are two ways to install Polyglot. Either a binary compiled version
 or the pure python (from source) version.
 
-**Version 0.0.2 Released April 19th, 2016**
+**Version 0.0.4 Released May 30th, 2016**
 
 These methods are for linux debian x86 or raspbian on a rpi. 
 
