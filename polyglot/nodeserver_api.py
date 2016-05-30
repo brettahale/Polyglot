@@ -21,7 +21,6 @@ import logging.handlers
 from polyglot.utils import AsyncFileReader, Empty, LockQueue
 import sys
 import os
-import filecmp
 import threading
 import time
 import traceback
