@@ -408,16 +408,14 @@ in the root node_server folder(the same location as the server.json). If either
 file is found, then the contents will be loaded into a dictionary for consumption.
 The <strong>poly.nodeserver_config</strong> variable holds this dictionary.</p>
 <p>Your node server may modify this dictionary as necessary and use the function</p>
-<p>..code-block:: python</p>
-<blockquote>
-<div>write_nodeserver_config():</div></blockquote>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">write_nodeserver_config</span><span class="p">():</span>
+</pre></div>
+</div>
 <p>This method has two parameters that are optional. The defaults are shown here:</p>
-<blockquote>
-<div><dl class="docutils">
-<dt>default_flow_style = False</dt>
-<dd>indent = 4</dd>
-</dl>
-</div></blockquote>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">default_flow_style</span> <span class="o">=</span> <span class="bp">False</span>
+    <span class="n">indent</span> <span class="o">=</span> <span class="mi">4</span>
+</pre></div>
+</div>
 <p>The default_flow_style is the formatting of the YAML file, look at the PyYAML
 documentation for specifics. The indent parameter is the number of spaces
 indented for each subline in the file. The default for our method is 4 because
