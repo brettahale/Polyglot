@@ -1135,22 +1135,22 @@ class PolyglotConnector(object):
         """
         if YAML:
             if self.configfile == None: 
-                self.logger.debug('No custom "configfile" found in server.json. Trying the default of config.yaml.')
+                self.smsg('**INFO: No custom "configfile" found in server.json. Trying the default of config.yaml.')
                 self.configfile = 'config.yaml'
             else:
-                self.logger.debug('Custom config file option found in server.json: %s', self.configfile)
+                self.smsg('**INFO: Custom config file option found in server.json: {}'.format(self.configfile))
             try:
                 with open(os.path.join(self.path, self.configfile), 'r') as cfg:
                     self.nodeserver_config = yaml.safe_load(cfg)
-                    self.logger.debug('Config file loaded as dictionary to "poly.nodeserver_config"')
+                    self.smsg('**INFO: {} - Config file loaded as dictionary to "poly.nodeserver_config"'.format(self.configfile))
             except yaml.YAMLError, exc:
                 if hasattr(exc, 'problem_mark'):
                     mark = exc.problem_mark
-                    self.logger.error("Error in config file. Position: (Line: %s: Column: %s)" % (mark.line+1, mark.column+1))
-                    self.logger.error(exc)
+                    self.smsg('**ERROR: Error in config file. Position: (Line: {}: Column: {})'.format(mark.line+1, mark.column+1))
+                    self.smsg('{} - '.format(exc))
             except IOError as e:
-                self.logger.debug("No config file found, or it is unreadable. This is normal if your nodeserver doesn't need a config file.")
-        else: self.logger.info('PyYAML module not installed... skipping custom config sections. "sudo pip install pyyaml" to use')
+                self.smsg('**INFO: No config file found, or it is unreadable. This is normal if your nodeserver doesn\'t need a config file.')
+        else: self.smsg('**ERROR: PyYAML module not installed... skipping custom config sections. "sudo pip install pyyaml" to use')
 
     def write_nodeserver_config(self, default_flow_style=False, indent=4):
         """
@@ -1169,19 +1169,19 @@ class PolyglotConnector(object):
                 with open(os.path.join(self.path, self.configfile), 'r') as read:
                     existing = yaml.safe_load(read)
                     if existing == self.nodeserver_config: 
-                        self.logger.info('NodeServer configuration file matches running config... Skipping write.')
+                        self.smsg('**INFO: NodeServer configuration file matches running config... Skipping write.')
                         return True
                 with open(os.path.join(self.path, self.configfile), 'w') as write:
                     yaml.dump(self.nodeserver_config, write, default_flow_style=default_flow_style, indent=indent)
-                    self.logger.info('NodeServer configuration file is different than running config... Updated file.')
+                    self.smsg('**INFO: NodeServer configuration file is different than running config... Updated file.')
                     return True
             except yaml.YAMLError as e:
-                self.logger.error('write_nodeserver_config: %s', e)
+                self.logger.error('**ERROR: write_nodeserver_config: {}'.format(e))
                 return False
             except IOError:
-                self.logger.error('write_nodeserver_config: Could not write to nodeserver config file %s', self.configfile)
+                self.smsg('**ERROR: write_nodeserver_config: Could not write to nodeserver config file %s'.format(self.configfile))
                 return False
-        else: self.logger.info('PyYAML module not installed... skipping custom config sections. "sudo pip install pyyaml" to use')
+        else: self.smsg('**ERROR: PyYAML module not installed... skipping custom config sections. "sudo pip install pyyaml" to use')
         return True
 
     # manage output
@@ -1327,6 +1327,14 @@ class PolyglotConnector(object):
         :param str err_str: Error text to be sent to Polyglot log
         """
         self._errq.put(err_str.replace('\n', ''), True, 5)
+        
+    def smsg(self, str):
+        """
+        Logs/sends a diagnostic/debug, informative, or error message.
+        Individual node servers can override this method if they desire to
+        redirect or filter these messages.
+        """
+        self.send_error(str)
 
     def send_config(self, config_data):
         """
