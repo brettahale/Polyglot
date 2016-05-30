@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Polyglot Methods and Classes &mdash; Polyglot 0.0.2 documentation</title>
+  <title>Polyglot Methods and Classes &mdash; Polyglot 0.0.4 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="Polyglot 0.0.2 documentation" href="index.html"/>
+    <link rel="top" title="Polyglot 0.0.4 documentation" href="index.html"/>
         <link rel="prev" title="Polyglot Node Server API" href="nsapi.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                0.0.2
+                0.0.4
               </div>
             
           
@@ -1135,6 +1135,29 @@ the url after the &#8220;<a class="reference external" href="https://isy/rest/">
 <dd><p>Blocks the thread until the configuration is received</p>
 </dd></dl>
 
+<dl class="method">
+<dt id="polyglot.nodeserver_api.PolyglotConnector.write_nodeserver_config">
+<code class="descname">write_nodeserver_config</code><span class="sig-paren">(</span><em>default_flow_style=False</em>, <em>indent=4</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polyglot/nodeserver_api.html#PolyglotConnector.write_nodeserver_config"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polyglot.nodeserver_api.PolyglotConnector.write_nodeserver_config" title="Permalink to this definition">¶</a></dt>
+<dd><p>Writes any changes to the nodeserver custom configuration file. 
+self.nodeserver_config should be a dictionary. Refrain from calling
+this in a poll of any kind. Typically you won&#8217;t even have to write this
+unless you are storing custom data you want retrieved on the next 
+run. Saved automatically during normal Polyglot shutdown. Returns 
+True for success, False for failure.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>default_flow_style</strong> (<em>boolean</em>) &#8211; YAML&#8217;s default flow style formatting. Default False</li>
+<li><strong>indent</strong> (<em>int</em>) &#8211; Override the default indent spaces for YAML. Default 4</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
 </dd></dl>
 
 <dl class="class">
@@ -1469,7 +1492,7 @@ be sent to the ISY. This decorator is implemented in the SimpleNodeServer.</p>
 <p>The element management module for Polyglot</p>
 <dl class="class">
 <dt id="polyglot.nodeserver_manager.NodeServer">
-<em class="property">class </em><code class="descclassname">polyglot.nodeserver_manager.</code><code class="descname">NodeServer</code><span class="sig-paren">(</span><em>pglot</em>, <em>ns_platform</em>, <em>profile_number</em>, <em>nstype</em>, <em>nsexe</em>, <em>nsname</em>, <em>config</em>, <em>sandbox</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polyglot/nodeserver_manager.html#NodeServer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polyglot.nodeserver_manager.NodeServer" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">polyglot.nodeserver_manager.</code><code class="descname">NodeServer</code><span class="sig-paren">(</span><em>pglot</em>, <em>ns_platform</em>, <em>profile_number</em>, <em>nstype</em>, <em>nsexe</em>, <em>nsname</em>, <em>config</em>, <em>sandbox</em>, <em>configfile=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polyglot/nodeserver_manager.html#NodeServer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polyglot.nodeserver_manager.NodeServer" title="Permalink to this definition">¶</a></dt>
 <dd><p>Node Server Class</p>
 <dl class="attribute">
 <dt id="polyglot.nodeserver_manager.NodeServer.alive">
@@ -1737,7 +1760,7 @@ be consumed in another thread.</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'0.0.2',
+            VERSION:'0.0.4',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true
