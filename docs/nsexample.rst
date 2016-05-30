@@ -299,7 +299,7 @@ This method has two parameters that are optional. The defaults are shown here:
 .. code-block:: python
 
     default_flow_style = False 
-	indent = 4
+    indent = 4
 
 The default_flow_style is the formatting of the YAML file, look at the PyYAML 
 documentation for specifics. The indent parameter is the number of spaces
