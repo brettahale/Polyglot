@@ -86,7 +86,8 @@ def add_node_prefix(ns_profnum, nid):
     return '{}{}'.format(prefix, nid)
 
 
-def report_node_status(ns_profnum, node_address, driver_control, value, uom):
+def report_node_status(ns_profnum, node_address, driver_control, value, uom,
+                       timeout=None, seq=None):
     '''
     Reports the node status to the ISY.
 
@@ -95,15 +96,17 @@ def report_node_status(ns_profnum, node_address, driver_control, value, uom):
     :param driver_control: Driver control for the node
     :param value: The node's value
     :param uom: The units of measurement of the value
+    :param timeout: optional, timeout in seconds
+    :param seq: optional, sequence number for reporting callback
     '''
     node_address = add_node_prefix(ns_profnum, node_address)
     url = make_url(ns_profnum, ['nodes', node_address, 'report', 'status',
                                 driver_control, value, uom])
-    request(url)
+    return request(ns_profnum, url, timeout, seq)
 
 
 def report_command(ns_profnum, node_address, command, value=None, uom=None,
-                   **kwargs):
+                   timeout=None, seq=None, **kwargs):
     '''
     Reports a command that has run on a node.
 
@@ -113,15 +116,18 @@ def report_command(ns_profnum, node_address, command, value=None, uom=None,
     :param optional value: The unnamed parameter the command ran with
     :param optional uom: The unit of measurement for the unnamed parameter
     :param optional <pN>.<uomN>: Named parameter (p) with specificed uom
+    :param timeout: optional, timeout in seconds
+    :param seq: optional, sequence number for reporting callback
     '''
     node_address = add_node_prefix(ns_profnum, node_address)
     url = make_url(ns_profnum, ['nodes', node_address, 'report', 'cmd',
                                 command, value, uom],
                    kwargs)
-    request(url)
+    return request(ns_profnum, url, timeout, seq)
 
 
-def node_add(ns_profnum, node_address, node_def_id, primary, name):
+def node_add(ns_profnum, node_address, node_def_id, primary, name,
+             timeout=None, seq=None):
     '''
     Adds a node to the ISY.
 
@@ -130,50 +136,60 @@ def node_add(ns_profnum, node_address, node_def_id, primary, name):
     :param node_def_id: The node definition ID
     :param primary: The address to the primary node
     :param name: The node name
+    :param timeout: optional, timeout in seconds
+    :param seq: optional, sequence number for reporting callback
     '''
     node_address = add_node_prefix(ns_profnum, node_address)
     primary = add_node_prefix(ns_profnum, primary)
     url = make_url(ns_profnum, ['nodes', node_address, 'add', node_def_id],
                    {'primary': primary, 'name': name})
-    request(url)
+    return request(ns_profnum, url, timeout, seq)
 
 
-def node_change(ns_profnum, node_address, node_def_id):
+def node_change(ns_profnum, node_address, node_def_id,
+                timeout=None, seq=None):
     '''
     Change node on the ISY.
 
     :param ns_profnum: Node Server ID
     :param node_address: The Node Address
     :param node_def_id: The node definition ID
+    :param timeout: optional, timeout in seconds
+    :param seq: optional, sequence number for reporting callback
     '''
     node_address = add_node_prefix(ns_profnum, node_address)
     url = make_url(ns_profnum, ['nodes', node_address, 'change', node_def_id])
-    request(url)
+    return request(ns_profnum, url, timeout, seq)
 
 
-def node_remove(ns_profnum, node_address):
+def node_remove(ns_profnum, node_address, timeout=None, seq=None):
     '''
     Remove node on the ISY.
 
     :param ns_profnum: Node Server ID
     :param node_address: The Node Address
+    :param timeout: optional, timeout in seconds
+    :param seq: optional, sequence number for reporting callback
     '''
     node_address = add_node_prefix(ns_profnum, node_address)
     url = make_url(ns_profnum, ['nodes', node_address, 'remove'])
-    request(url)
+    return request(ns_profnum, url, timeout, seq)
 
 
-def report_request_status(ns_profnum, request_id, success):
+def report_request_status(ns_profnum, request_id, success,
+                          timeout=None, seq=None):
     '''
     Report the status of a request back to the ISY.
 
     :param request_id: The request ID from the controller.
     :param result: Boolean indicating the success of the command.
+    :param timeout: optional, timeout in seconds
+    :param seq: optional, sequence number for reporting callback
     '''
     status = 'success' if success else 'failed'
     url = make_url(ns_profnum,
                    ['report', 'request', request_id, status])
-    request(url)
+    return request(ns_profnum, url, timeout, seq)
 
 def get_version():
     global VERSION
@@ -203,42 +219,42 @@ def make_url(ns_profnum, path, path_args=None):
     url += '/'.join([quote(str(item)) for item in path if item is not None])
 
     if path_args is not None:
-        url += '?{}'.format(urlencode(path_args))
+        if len(path_args) > 0:
+            url += '?{}'.format(urlencode(path_args))
 
     return url
 
-
-def request(url):
-    '''
-    Requests a URL from the ISY.
-    Returns True if success, False if failure
-
-    :param url: URL to request.
-    '''
-
-    req = base_request(url)
-    return (req['status_code'] == 200)
-
-def restcall(ns_profnum, api):
+def restcall(ns_profnum, api, timeout=None, seq=None):
     '''
     Requests a REST API from the ISY. Returns response.
 
     :param ns_profnum: Node Server ID
     :param api: API to request.
+    :param timeout: optional, timeout in seconds
+    :param seq: optional, sequence number for reporting callback
     '''
 
     url = '{}://{}:{}/rest/{}'.format(HTTPS, ADDRESS, PORT, api)
-    return base_request(url)
+    return request(ns_profnum, url, timeout, seq, text_needed=True)
 
-def base_request(url):
+def request(ns_profnum, url, timeout=None, seq=None, text_needed=False):
     '''
     Requests a URL from the ISY, returns response.
+
+    :param ns_profnum: Node Server ID
+    :param url: URL to request.
+    :param timeout: optional, timeout in seconds
+    :param seq: optional, sequence number for reporting callback
+    :param text_needed: optional, default = False
+
     Returns a dictionary r containing:
         r.text:        response text     (string or None)
-        r.status_code: HTTP status code  (integer or None)
         r.error_text:  error text        (string or None)
-
-    :param url: URL to request.
+        r.seq:         sequence number   (string or None)
+        r.status_code: response code     (integer)
+            values < 100 are connection errors,
+            values > 99 are standard HTTP status codes,
+            value of 200 = success
     '''
     global SESSION
     _LOGGER.debug('ISY: Request: %s', url)
@@ -251,42 +267,46 @@ def base_request(url):
         SESSION = s
         _LOGGER.debug('ISY: created new Session object.')
 
+    # determine timeout
+    tmo = 30.0
+    if timeout is not None:
+        try:
+            tmo = float(timeout)
+        except:
+            tmo = 30.0
+
     # make request
     ts = time.time()
     try:
-        req = s.get(url, timeout=30, verify=False)
-
-    except requests.ConnectionError:
-        elapsed = (time.time() - ts)
-        _LOGGER.error('ISY:        (%5.2f) Connection Error: %s',
-                      elapsed, url)
-        return {'text':None, 'status_code': None,
-                'error_text': 'Error',
-                'elapsed': elapsed}
-
-    except requests.HTTPError:
-        elapsed = (time.time() - ts)
-        _LOGGER.error('ISY:        (%5.2f) HTTP Error: %s',
-                      elapsed, url)
-        return {'text':None, 'status_code': None,
-                'error_text': 'HTTPError',
-                'elapsed': elapsed}
-
-    except requests.URLRequired:
-        elapsed = (time.time() - ts)
-        _LOGGER.error('ISY:        (%5.2f) Valid URL Required: %s',
-                      elapsed, url)
-        return {'text':None, 'status_code': None,
-                'error_text': 'URLRequired',
-                'elapsed': elapsed}
+        req = s.get(url, timeout=tmo, verify=False)
 
     except requests.Timeout:
         elapsed = (time.time() - ts)
         _LOGGER.error('ISY:        (%5.2f) Timeout: %s',
                       elapsed, url)
-        return {'text':None, 'status_code': None,
-                'error_text': 'Timeout',
-                'elapsed': elapsed}
+        return {'text': None, 'status_code': 1,
+                'seq': seq, 'elapsed': elapsed}
+
+    except requests.HTTPError:
+        elapsed = (time.time() - ts)
+        _LOGGER.error('ISY:        (%5.2f) HTTP Error: %s',
+                      elapsed, url)
+        return {'text': None, 'status_code': 2,
+                'seq': seq, 'elapsed': elapsed}
+
+    except requests.URLRequired:
+        elapsed = (time.time() - ts)
+        _LOGGER.error('ISY:        (%5.2f) Valid URL Required: %s',
+                      elapsed, url)
+        return {'text': None, 'status_code': 3,
+                'seq': seq, 'elapsed': elapsed}
+
+    except requests.ConnectionError:
+        elapsed = (time.time() - ts)
+        _LOGGER.error('ISY:        (%5.2f) Connection Error: %s',
+                      elapsed, url)
+        return {'text': None, 'status_code': 4,
+                'seq': seq, 'elapsed': elapsed}
 
     elapsed = (time.time() - ts)
     scode = req.status_code
@@ -295,5 +315,9 @@ def base_request(url):
     else:
         _LOGGER.error('ISY:        (%5.2f) %3d ERR: %s', elapsed, scode, url)
 
-    return {'text': req.text, 'status_code': scode,
-            'error_text': None, 'elapsed': elapsed}
+    if text_needed:
+        return {'text': req.text, 'status_code': scode,
+                'seq': seq, 'elapsed': elapsed}
+    else:
+        return {'text': None, 'status_code': scode,
+                'seq': seq, 'elapsed': elapsed}
