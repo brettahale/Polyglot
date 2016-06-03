@@ -33,7 +33,7 @@ class Server(object):
         """Issue the HTTP request to the server and return the method result (if not a notification)"""
         request_body = self.serialize(method_name, params, is_notification)
         try:
-            response = self.request(data=request_body)
+            response = self.request(data=request_body, timeout=30)
         except requests.RequestException as requests_exception:
             raise TransportError('Error calling method %r' % method_name, requests_exception)
 

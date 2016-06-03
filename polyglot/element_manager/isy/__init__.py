@@ -5,13 +5,18 @@ from polyglot.element_manager import http
 from . import incoming
 import xml.etree.ElementTree as ET
 import requests
+import time
 try:
     from urllib import quote, urlencode  # Python 2.x
 except ImportError:
     from urllib.parse import quote, urlencode  # Python 3.x
 
 DEFAULT_CONFIG = {'address': '192.168.10.100', 'https': False,
-                  'password': 'admin', 'username': 'admin', 'port': 80, 'version':'4.2.3'}
+                  'password': 'admin', 'username': 'admin',
+                  'port': 80, 'version':'4.2.3'}
+
+# [future] This single global should probably be owned by each nodeserver
+SESSION = None
 
 ADDRESS = None
 HTTPS = None
@@ -51,13 +56,14 @@ def unload():
 def get_config():
     """ Returns the element's configuration. """
     return {'address': ADDRESS, 'https': HTTPS == 'https',
-            'password': PASSWORD, 'username': USERNAME, 'port': PORT, 'version': VERSION}
+            'password': PASSWORD, 'username': USERNAME,
+            'port': PORT, 'version': VERSION}
 
 
 def set_config(config):
     """ Updates the current configuration. """
     # pylint: disable=global-statement
-    global ADDRESS, HTTPS, PASSWORD, PORT, USERNAME
+    global ADDRESS, HTTPS, PASSWORD, PORT, USERNAME, SESSION
 
     # pull config settings
     ADDRESS = config['address']
@@ -65,6 +71,9 @@ def set_config(config):
     PASSWORD = config['password']
     PORT = config['port']
     USERNAME = config['username']
+
+    # Invalidate the current global Session object
+    SESSION = None
 
 
 def add_node_prefix(ns_profnum, nid):
@@ -161,9 +170,9 @@ def report_request_status(ns_profnum, request_id, success):
     :param request_id: The request ID from the controller.
     :param result: Boolean indicating the success of the command.
     '''
-    status = 'success' if success else 'fail'
+    status = 'success' if success else 'failed'
     url = make_url(ns_profnum,
-                   ['report', 'request', 'status', request_id, status])
+                   ['report', 'request', request_id, status])
     request(url)
 
 def get_version():
@@ -172,39 +181,21 @@ def get_version():
     Get the version of the ISY when requested by the nodeservers
     Set version information in config file for reference.
     """
-    url = '{}://{}:{}/rest/config'.format(HTTPS, ADDRESS, PORT)
-
-    try:
-        req = requests.get(url, auth=(USERNAME, PASSWORD),
-                           timeout=10, verify=False)    
+    req = restcall(0, 'config')
+    if req['text'] is not None:
         try:                   
-            tree = ET.fromstring(req.content)
+            tree = ET.fromstring(req['text'])
             VERSION = tree.findall('app_version')[0].text
         except ET.ParseError:
             _LOGGER.error("No version information found on ISY.")
-        _LOGGER.info("ISY Returned Software version %s", VERSION)
-        
-    except requests.ConnectionError:
-        _LOGGER.error('ISY Could not recieve response from device because ' +
-                      'of a network issue.')
-        return None
-
-    except requests.exceptions.Timeout:
-        _LOGGER.error('Timed out waiting for response from the ISY device.')
-        return None
-
-    # process request
-    if req.status_code == 200:
-        _LOGGER.debug('Got /rest/config valid response from ISY: %s', url)
-        return VERSION
-    else:
-        _LOGGER.warning('Failed getting /rest/config from ISY: %s', url)
-        return
+        _LOGGER.info("ISY: firmware version: %s", VERSION)
+    return VERSION
 
 def make_url(ns_profnum, path, path_args=None):
     '''
     Create a URL from the given path.
 
+    :param ns_profnum: Node Server ID
     :param path: List or subdirectories in path.
     :param path_args: Dictionary of arguments to add to the path.
     '''
@@ -220,29 +211,89 @@ def make_url(ns_profnum, path, path_args=None):
 def request(url):
     '''
     Requests a URL from the ISY.
+    Returns True if success, False if failure
 
     :param url: URL to request.
     '''
-    _LOGGER.debug('ISY Request: %s', url)
+
+    req = base_request(url)
+    return (req['status_code'] == 200)
+
+def restcall(ns_profnum, api):
+    '''
+    Requests a REST API from the ISY. Returns response.
+
+    :param ns_profnum: Node Server ID
+    :param api: API to request.
+    '''
+
+    url = '{}://{}:{}/rest/{}'.format(HTTPS, ADDRESS, PORT, api)
+    return base_request(url)
+
+def base_request(url):
+    '''
+    Requests a URL from the ISY, returns response.
+    Returns a dictionary r containing:
+        r.text:        response text     (string or None)
+        r.status_code: HTTP status code  (integer or None)
+        r.error_text:  error text        (string or None)
+
+    :param url: URL to request.
+    '''
+    global SESSION
+    _LOGGER.debug('ISY: Request: %s', url)
+
+    # get, check, and possibly update the session (thread-safe)
+    s = SESSION
+    if s is None:
+        s = requests.Session()
+        s.auth = (USERNAME, PASSWORD)
+        SESSION = s
+        _LOGGER.debug('ISY: created new Session object.')
 
     # make request
+    ts = time.time()
     try:
-        req = requests.get(url, auth=(USERNAME, PASSWORD),
-                           timeout=10, verify=False)
+        req = s.get(url, timeout=30, verify=False)
 
     except requests.ConnectionError:
-        _LOGGER.error('ISY Could not recieve response from device because ' +
-                      'of a network issue.')
-        return None
+        elapsed = (time.time() - ts)
+        _LOGGER.error('ISY:        (%5.2f) Connection Error: %s',
+                      elapsed, url)
+        return {'text':None, 'status_code': None,
+                'error_text': 'Error',
+                'elapsed': elapsed}
 
-    except requests.exceptions.Timeout:
-        _LOGGER.error('Timed out waiting for response from the ISY device.')
-        return None
+    except requests.HTTPError:
+        elapsed = (time.time() - ts)
+        _LOGGER.error('ISY:        (%5.2f) HTTP Error: %s',
+                      elapsed, url)
+        return {'text':None, 'status_code': None,
+                'error_text': 'HTTPError',
+                'elapsed': elapsed}
 
-    # process request
-    if req.status_code == 200:
-        _LOGGER.debug('Sent to message to ISY: %s', url)
-        return True
+    except requests.URLRequired:
+        elapsed = (time.time() - ts)
+        _LOGGER.error('ISY:        (%5.2f) Valid URL Required: %s',
+                      elapsed, url)
+        return {'text':None, 'status_code': None,
+                'error_text': 'URLRequired',
+                'elapsed': elapsed}
+
+    except requests.Timeout:
+        elapsed = (time.time() - ts)
+        _LOGGER.error('ISY:        (%5.2f) Timeout: %s',
+                      elapsed, url)
+        return {'text':None, 'status_code': None,
+                'error_text': 'Timeout',
+                'elapsed': elapsed}
+
+    elapsed = (time.time() - ts)
+    scode = req.status_code
+    if scode == 200:
+        _LOGGER.info('ISY:        (%5.2f) %3d  OK: %s', elapsed, scode, url)
     else:
-        _LOGGER.warning('Bad ISY Request: %s', url)
-        return False
+        _LOGGER.error('ISY:        (%5.2f) %3d ERR: %s', elapsed, scode, url)
+
+    return {'text': req.text, 'status_code': scode,
+            'error_text': None, 'elapsed': elapsed}

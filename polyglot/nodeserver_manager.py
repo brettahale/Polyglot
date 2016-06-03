@@ -196,7 +196,6 @@ class NodeServer(object):
         self.path = os.path.dirname(nsexe)
         self.name = nsname
         self.sandbox = sandbox
-        """ This is the new 'API Version' Please increment if you update the API """ 
         self.pgver =  PGVERSION
         self.pgapiver = PGAPIVER
         self.params = {'isyver': self.isy_version,
@@ -206,6 +205,7 @@ class NodeServer(object):
             'pgapiver': self.pgapiver}
         self._proc = None
         self._inq = None
+        self._rqq = None
         self._lastping = None
         self._lastpong = None
 
@@ -216,6 +216,7 @@ class NodeServer(object):
                           'add': isy.node_add,
                           'change': isy.node_change,
                           'remove': isy.node_remove,
+                          'restcall': self.restcall,
                           'request': isy.report_request_status}
 
         self.start()
@@ -230,6 +231,7 @@ class NodeServer(object):
 
         self._proc = proc
         self._inq = Queue()
+        self._rqq = Queue(maxsize=4096)
         self._lastping = None
         self._lastpong = None
 
@@ -239,6 +241,8 @@ class NodeServer(object):
                                                   self._recv_out)
         self._threads['stderr'] = AsyncFileReader(self._proc.stderr,
                                                   self._recv_err)
+        self._threads['requests'] = threading.Thread(target=self._request_handler)
+        self._threads['requests'].daemon = True
         self._threads['stdin'] = threading.Thread(target=self._send_in)
         self._threads['stdin'].daemon = True
         for _, thread in self._threads.items():
@@ -303,12 +307,14 @@ class NodeServer(object):
         elif time.time() - self._lastping >= 30:
             # last ping has expired (more than 30 seconds old)
             if self._lastpong and self._lastpong > self._lastping:
-                # pong was recieved
+                # pong was received
                 self.send_ping()
                 self._lastping = time.time()
                 return True
             else:
-                # pong was not recieved
+                # pong was not received
+                _LOGGER.warning('Node Server %s: time since last pong: %5.2f',
+                                self.name, (time.time() - self._lastpong))
                 return False
 
         else:
@@ -331,6 +337,7 @@ class NodeServer(object):
                     _LOGGER.error(
                         'Node Server %s has stopped responding.', self.name)
                     self._inq = None
+                    self._rqq = None
                     self._proc.kill()
             else:
                 try:
@@ -342,6 +349,7 @@ class NodeServer(object):
                     _LOGGER.error(
                         'Node Server %s has exited unexpectedly.', self.name)
                     self._inq = None
+                    self._rqq = None
                     self._proc.kill()
                 else:
                     # line wrote successfully
@@ -349,9 +357,44 @@ class NodeServer(object):
                     if self._inq:
                         self._inq.task_done()
 
+    def _request_handler(self):
+        """
+        Read and process network requests for a node server
+        """
+        while True and self._rqq:
+
+            msg = self._rqq.get(True)
+
+            # parse message
+            command = list(msg.keys())[0]
+            arguments = msg[command]
+
+            ts = time.time()
+            _LOGGER.debug('%8s [%d] (%5.2f) _request_handler: command=%s',
+                          self.name,
+                          (0 if self._rqq is None else self._rqq.qsize()),
+                          0.0, command)
+
+            fun = self._handlers.get(command)
+            if fun:
+                fun(self.profile_number, **arguments)
+
+            # Signal that this is handled
+            if self._rqq:
+                self._rqq.task_done()
+
+            _LOGGER.debug('%8s [%d] (%5.2f) _request_handler: completed.',
+                          self.name,
+                          (0 if self._rqq is None else self._rqq.qsize()),
+                          (time.time() - ts))
+
     def _recv_out(self, line):
         """ Process node server output. """
-        _LOGGER.debug('%s STDOUT: %s', self.name, line)
+        l = (line[:57] + '...') if len(line) > 60 else line
+        _LOGGER.debug('%8s [%d] (%5.2f) STDOUT: %s', self.name,
+                      (0 if self._rqq is None else self._rqq.qsize()),
+                      0.0, l)
+        ts = time.time()
         # parse message
         message = json.loads(line)
         command = list(message.keys())[0]
@@ -367,23 +410,34 @@ class NodeServer(object):
             self.pglot.update_config()
         elif command == 'install':
             # install node server on isy
-            # [future] impliment when documentation is available
+            # [future] implement when documentation is available
             raise NotImplementedError('Install command is not yet supported.')
         elif command == 'exit':
             # node server is done. Kill it. Clean up is automatic.
             self._proc.kill()
             self._inq = None
+            self._rqq = None
         else:
             fun = self._handlers.get(command)
-            if fun:
-                fun(self.profile_number, **arguments)
+            if fun and self._rqq:
+                self._rqq.put(message, True, 30)
             else:
                 _LOGGER.error('Node Server %s delivered bad command %s',
                               self.name, command)
+        _LOGGER.debug('%8s [%d] (%5.2f)   Done: %s', self.name,
+                      (0 if self._rqq is None else self._rqq.qsize()),
+                      (time.time() - ts), l)
 
     def _recv_err(self, line):
         """ Process error stream from node server. """
-        _LOGGER.error('%s: %s', self.name, line)
+        if line.startswith('**INFO: '):
+            _LOGGER.info('%s: %s', self.name, line)
+        elif line.startswith('**DEBUG: '):
+            _LOGGER.debug('%s: %s', self.name, line)
+        elif line.startswith('**WARNING: '):
+            _LOGGER.warning('%s: %s', self.name, line)
+        else:
+            _LOGGER.error('%s: %s', self.name, line)
 
     # handle output
     def _mk_cmd(self, cmd_code, **kwargs):
@@ -466,6 +520,20 @@ class NodeServer(object):
         except MyProcessLookupError:
             pass
 
+    def restcall(self, ns_profnum, api, seq):
+        """ Perform a REST API call to the ISY, return response. """
+
+        if api is not None:
+            _LOGGER.debug('%8s: REST API call: %s', self.name, api)
+            result = self.pglot.elements.isy.restcall(self.profile_number, api)
+            self._mk_cmd('restresult', seq=seq,
+                         text=result['text'],
+                         status_code=result['status_code'],
+                         error_text=result['error_text'],
+                         elapsed=result['elapsed'])
+
+        else:
+            _LOGGER.error('%8s: malformed restcall', self.name)
 
 def random_string(length):
     """ Generate a random string of uppercase, lowercase, and digits """
