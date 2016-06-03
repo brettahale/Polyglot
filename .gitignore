@@ -3,6 +3,5 @@
 __pycache__
 build
 config
-docs/_build
-_build
+*~
 ./.git

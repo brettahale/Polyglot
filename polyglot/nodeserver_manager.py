@@ -85,6 +85,13 @@ class NodeServerManager(object):
                 "server.json for {} is missing type or executable."
                 .format(ns_platform))
 
+        try:
+            configfile =definition['configfile']
+            _LOGGER.info('Config file option found in server.json: %s', configfile)
+        except (IOError, ValueError, KeyError):
+            _LOGGER.info('Config file option not found in server.json')
+            configfile = None
+                
         # get server base name
         while base in self.servers or base is None:
             base = random_string(5)
@@ -96,7 +103,7 @@ class NodeServerManager(object):
         try:
             server = NodeServer(self.pglot, ns_platform, profile_number,
                                 nstype, nsexe, nsname or ns_platform,
-                                config or {}, sandbox)
+                                config or {}, sandbox, configfile)
         except Exception:
             _LOGGER.exception('Node Server %s could not start', ns_platform)
             raise ValueError(
@@ -175,7 +182,7 @@ class NodeServer(object):
     # pylint: disable=too-many-instance-attributes
 
     def __init__(self, pglot, ns_platform, profile_number, nstype, nsexe,
-                 nsname, config, sandbox):
+                 nsname, config, sandbox, configfile=None):
         # build run command
         if nstype in SERVER_TYPES:
             cmd = copy.deepcopy(SERVER_TYPES[nstype])
@@ -188,6 +195,7 @@ class NodeServer(object):
         self.pglot = pglot
         self.isy_version = self.pglot.isy_version
         self.config = config
+        self.configfile = configfile
         self._cmd = cmd
         self.platform = ns_platform
         self.profile_number = profile_number
@@ -198,11 +206,14 @@ class NodeServer(object):
         self.sandbox = sandbox
         self.pgver =  PGVERSION
         self.pgapiver = PGAPIVER
-        self.params = {'isyver': self.isy_version,
-            'sandbox': self.sandbox,
-            'name': self.name,
-            'pgver': self.pgver,
-            'pgapiver': self.pgapiver}
+        self.params = {'isyver':   self.isy_version,
+                       'sandbox':  self.sandbox,
+                       'name':     self.name,
+                       'pgver':    self.pgver,
+                       'pgapiver': self.pgapiver,
+                       'profile':  self.profile_number,
+                       'configfile': self.configfile,
+                       'path': self.path}
         self._proc = None
         self._inq = None
         self._rqq = None
@@ -216,7 +227,7 @@ class NodeServer(object):
                           'add': isy.node_add,
                           'change': isy.node_change,
                           'remove': isy.node_remove,
-                          'restcall': self.restcall,
+                          'restcall': isy.restcall,
                           'request': isy.report_request_status}
 
         self.start()
@@ -369,15 +380,18 @@ class NodeServer(object):
             command = list(msg.keys())[0]
             arguments = msg[command]
 
+            seq = arguments.get('seq', None)
             ts = time.time()
-            _LOGGER.debug('%8s [%d] (%5.2f) _request_handler: command=%s',
+            _LOGGER.debug('%8s [%d] (%5.2f) _request_handler: command=%s seq=%s',
                           self.name,
                           (0 if self._rqq is None else self._rqq.qsize()),
-                          0.0, command)
+                          0.0, command, ('' if seq is None else seq))
 
             fun = self._handlers.get(command)
             if fun:
-                fun(self.profile_number, **arguments)
+                result = fun(self.profile_number, **arguments)
+                if seq and result:
+                    self._mk_cmd('result', **result)
 
             # Signal that this is handled
             if self._rqq:
@@ -519,21 +533,6 @@ class NodeServer(object):
             self._proc.kill()
         except MyProcessLookupError:
             pass
-
-    def restcall(self, ns_profnum, api, seq):
-        """ Perform a REST API call to the ISY, return response. """
-
-        if api is not None:
-            _LOGGER.debug('%8s: REST API call: %s', self.name, api)
-            result = self.pglot.elements.isy.restcall(self.profile_number, api)
-            self._mk_cmd('restresult', seq=seq,
-                         text=result['text'],
-                         status_code=result['status_code'],
-                         error_text=result['error_text'],
-                         elapsed=result['elapsed'])
-
-        else:
-            _LOGGER.error('%8s: malformed restcall', self.name)
 
 def random_string(length):
     """ Generate a random string of uppercase, lowercase, and digits """
