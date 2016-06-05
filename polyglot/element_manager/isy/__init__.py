@@ -200,7 +200,7 @@ def get_version():
     Set version information in config file for reference.
     """
     ver = '0.0.0'
-    req = restcall(0, 'config')
+    req = restcall(0, 'config', 10.0)
     if req['text'] is not None:
         try:                   
             tree = ET.fromstring(req['text'])
