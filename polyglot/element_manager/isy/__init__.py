@@ -13,7 +13,7 @@ except ImportError:
 
 DEFAULT_CONFIG = {'address': '192.168.10.100', 'https': False,
                   'password': 'admin', 'username': 'admin',
-                  'port': 80, 'version':'4.2.3'}
+                  'port': 80, 'version':'0.0.0'}
 
 # [future] This single global should probably be owned by each nodeserver
 SESSION = None
@@ -23,7 +23,7 @@ HTTPS = None
 PASSWORD = None
 PORT = None
 USERNAME = None
-VERSION = None
+VERSION = '0.0.0'
 _LOGGER = logging.getLogger(__name__)
 
 # [future] only accept incoming requests from the ISY
@@ -35,8 +35,6 @@ def load(pglot, user_config):
     config = dict(DEFAULT_CONFIG)
     config.update(user_config)
     set_config(config)
-    get_version()    
-
 
     # register addresses with server
     http.register(incoming.HANDLERS, parent_dir='ns')
@@ -63,7 +61,7 @@ def get_config():
 def set_config(config):
     """ Updates the current configuration. """
     # pylint: disable=global-statement
-    global ADDRESS, HTTPS, PASSWORD, PORT, USERNAME, SESSION
+    global ADDRESS, HTTPS, PASSWORD, PORT, USERNAME, SESSION, VERSION
 
     # pull config settings
     ADDRESS = config['address']
@@ -75,6 +73,8 @@ def set_config(config):
     # Invalidate the current global Session object
     SESSION = None
 
+    # Fetch the version number using the new configuration
+    VERSION = get_version()
 
 def add_node_prefix(ns_profnum, nid):
     '''
@@ -192,20 +192,22 @@ def report_request_status(ns_profnum, request_id, success,
     return request(ns_profnum, url, timeout, seq)
 
 def get_version():
-    global VERSION
     """
     Get the version of the ISY when requested by the nodeservers
     Set version information in config file for reference.
     """
+    ver = '0.0.0'
     req = restcall(0, 'config')
     if req['text'] is not None:
         try:                   
             tree = ET.fromstring(req['text'])
-            VERSION = tree.findall('app_version')[0].text
+            ver = tree.findall('app_version')[0].text
+            if ver is None:
+                ver = '0.0.0'
+            _LOGGER.info("ISY: firmware version: %s", ver)
         except ET.ParseError:
             _LOGGER.error("No version information found on ISY.")
-        _LOGGER.info("ISY: firmware version: %s", VERSION)
-    return VERSION
+    return ver
 
 def make_url(ns_profnum, path, path_args=None):
     '''
