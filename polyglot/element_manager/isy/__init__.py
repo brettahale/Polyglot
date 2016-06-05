@@ -15,6 +15,9 @@ DEFAULT_CONFIG = {'address': '192.168.10.100', 'https': False,
                   'password': 'admin', 'username': 'admin',
                   'port': 80, 'version':'0.0.0'}
 
+# Timeout used when no timeout provided by caller (seconds)
+_TIMEOUT = 25.0
+
 # [future] This single global should probably be owned by each nodeserver
 SESSION = None
 
@@ -270,12 +273,12 @@ def request(ns_profnum, url, timeout=None, seq=None, text_needed=False):
         _LOGGER.debug('ISY: created new Session object.')
 
     # determine timeout
-    tmo = 30.0
+    tmo = _TIMEOUT
     if timeout is not None:
         try:
             tmo = float(timeout)
         except:
-            tmo = 30.0
+            tmo = _TIMEOUT
 
     # make request
     ts = time.time()
