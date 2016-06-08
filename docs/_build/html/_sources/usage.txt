@@ -129,7 +129,7 @@ instructed above.
 Start Polyglot on Boot
 ----------------------
 
-If you are running the module you already have the polyglot.server file in your Polyglot root folder.
+If you are running the module you already have the polyglot.service file in your Polyglot root folder.
 If not then get it like so:
 
 .. code-block:: bash
