@@ -129,14 +129,14 @@ instructed above.
 Start Polyglot on Boot
 ----------------------
 
-If you are running the module you already have the polyglot.server file in your Polyglot root folder.
+If you are running the module you already have the polyglot.service file in your Polyglot root folder.
 If not then get it like so:
 
 .. code-block:: bash
 
     wget https://github.com/UniversalDevicesInc/Polyglot/raw/unstable-release/polyglot.service
 
-Edit the file polyglot.server with your favorite editor.
+Edit the file polyglot.service with your favorite editor.
 Modify WorkingDirectory to be your root Polyglot directory. eg. /home/pi/Polyglot
 
 .. code-block:: bash
