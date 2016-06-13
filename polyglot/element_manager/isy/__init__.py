@@ -4,6 +4,7 @@ import logging
 from polyglot.element_manager import http
 from . import incoming
 import xml.etree.ElementTree as ET
+import os
 import requests
 import time
 try:
@@ -229,7 +230,7 @@ def make_url(ns_profnum, path, path_args=None):
 
     return url
 
-def restcall(ns_profnum, api, timeout=None, seq=None):
+def restcall(ns_profnum, api, timeout=None, seq=None, noretry=False):
     '''
     Requests a REST API from the ISY. Returns response.
 
@@ -237,12 +238,14 @@ def restcall(ns_profnum, api, timeout=None, seq=None):
     :param api: API to request.
     :param timeout: optional, timeout in seconds
     :param seq: optional, sequence number for reporting callback
+    :param noretry: optional, True to disable retry attempts
     '''
 
     url = '{}://{}:{}/rest/{}'.format(HTTPS, ADDRESS, PORT, api)
     return request(ns_profnum, url, timeout, seq, text_needed=True)
 
-def request(ns_profnum, url, timeout=None, seq=None, text_needed=False):
+def request(ns_profnum, url, timeout=None, seq=None, text_needed=False,
+            noretry=False):
     '''
     Requests a URL from the ISY, returns response.
 
@@ -250,12 +253,15 @@ def request(ns_profnum, url, timeout=None, seq=None, text_needed=False):
     :param url: URL to request.
     :param timeout: optional, timeout in seconds
     :param seq: optional, sequence number for reporting callback
+    :param noretry: optional, True to disable retry attempts
     :param text_needed: optional, default = False
 
     Returns a dictionary r containing:
         r.text:        response text     (string or None)
         r.error_text:  error text        (string or None)
         r.seq:         sequence number   (string or None)
+        r.retries:     retries required  (integer)
+        r.elapsed:     time, in seconds  (float)
         r.status_code: response code     (integer)
             values < 100 are connection errors,
             values > 99 are standard HTTP status codes,
@@ -264,13 +270,13 @@ def request(ns_profnum, url, timeout=None, seq=None, text_needed=False):
     global SESSION
     _LOGGER.debug('ISY: Request: %s', url)
 
-    # get, check, and possibly update the session (thread-safe)
-    s = SESSION
-    if s is None:
-        s = requests.Session()
-        s.auth = (USERNAME, PASSWORD)
-        SESSION = s
-        _LOGGER.debug('ISY: created new Session object.')
+    # check environment for special overrides
+    no_sessions = ('PG_NOSESSIONS' in os.environ)
+    max_retries = int(os.environ.get('PG_RETRIES', '3'))
+
+    # check for override of retry count
+    if noretry:
+        max_retries = 0
 
     # determine timeout
     tmo = _TIMEOUT
@@ -281,48 +287,97 @@ def request(ns_profnum, url, timeout=None, seq=None, text_needed=False):
             tmo = _TIMEOUT
 
     # make request
-    ts = time.time()
-    try:
-        req = s.get(url, timeout=tmo, verify=False)
 
-    except requests.Timeout:
-        elapsed = (time.time() - ts)
-        _LOGGER.error('ISY:        (%5.2f) Timeout: %s',
-                      elapsed, url)
-        return {'text': None, 'status_code': 1,
-                'seq': seq, 'elapsed': elapsed}
+    retries = 0
+    retry = True
 
-    except requests.HTTPError:
-        elapsed = (time.time() - ts)
-        _LOGGER.error('ISY:        (%5.2f) HTTP Error: %s',
-                      elapsed, url)
-        return {'text': None, 'status_code': 2,
-                'seq': seq, 'elapsed': elapsed}
+    while retry and (retries < max_retries):
 
-    except requests.URLRequired:
-        elapsed = (time.time() - ts)
-        _LOGGER.error('ISY:        (%5.2f) Valid URL Required: %s',
-                      elapsed, url)
-        return {'text': None, 'status_code': 3,
-                'seq': seq, 'elapsed': elapsed}
+        # Add a delay if we're retrying; use sane delays, though
+        if retries == 1:
+            sleep(0.25)
+        elif retries == 2:
+            sleep(1.0)
+        elif retries == 3:
+            sleep(2.0)
+        elif retries > 3:
+            sleep(3.0)
 
-    except requests.ConnectionError:
-        elapsed = (time.time() - ts)
-        _LOGGER.error('ISY:        (%5.2f) Connection Error: %s',
-                      elapsed, url)
-        return {'text': None, 'status_code': 4,
-                'seq': seq, 'elapsed': elapsed}
+        text = None
+        retry = False
+        ts = time.time()
 
-    elapsed = (time.time() - ts)
-    scode = req.status_code
-    if scode == 200:
-        _LOGGER.info('ISY:        (%5.2f) %3d  OK: %s', elapsed, scode, url)
-    else:
-        _LOGGER.error('ISY:        (%5.2f) %3d ERR: %s', elapsed, scode, url)
+        try:
+            if no_sessions:
+                # send request, new connection each time
+                req = requests.get(url, timeout=tmo, verify=False,
+                                   auth=(USERNAME, PASSWORD))
+            else:
+                # get, check, and possibly update the session (thread-safe)
+                s = SESSION
+                if s is None:
+                    s = requests.Session()
+                    s.auth = (USERNAME, PASSWORD)
+                    SESSION = s
+                    _LOGGER.debug('ISY: created new Session object.')
+                # send request, with connection re-use
+                req = s.get(url, timeout=tmo, verify=False)
 
-    if text_needed:
-        return {'text': req.text, 'status_code': scode,
-                'seq': seq, 'elapsed': elapsed}
-    else:
-        return {'text': None, 'status_code': scode,
-                'seq': seq, 'elapsed': elapsed}
+            # valid response - extract relevant information
+            elapsed = (time.time() - ts)
+            scode = req.status_code
+            if scode == 200:
+                diag = 'OK'
+            elif scode == 503:
+                # Per ISY docs, 503 means ISY too busy - retry
+                diag = 'BUSY'
+                retry = True
+            else:
+                diag = 'ERR'
+            if text_needed:
+                text = req.text
+
+        except requests.Timeout:
+            # Timeout is not retryable
+            elapsed = (time.time() - ts)
+            diag = 'Timeout'
+            scode = 1
+
+        except requests.HTTPError:
+            # Generic HTTP error is not retryable
+            elapsed = (time.time() - ts)
+            diag = 'HTTP Error'
+            scode = 2
+
+        except requests.URLRequired:
+            # Internal error?  Not retryable
+            elapsed = (time.time() - ts)
+            diag = 'Valid URL Required'
+            scode = 3
+
+        except requests.ConnectionError as err:
+            # Connection error - retryable, reset session
+            elapsed = (time.time() - ts)
+            text = repr(err)
+            diag = 'Connection Error - ' + repr(err).replace('\n', ' ')
+            scode = 4
+            retry = True
+            # Invalidate session, force new connection
+            SESSION = None
+
+        # Log at the correct level depending on the status code
+        logstr = 'ISY: [%d] (%5.2f) %3d %s: %s'
+        if scode == 200:
+            _LOGGER.info(logstr, retries, elapsed, scode, diag, url)
+        elif retry:
+            _LOGGER.warning(logstr, retries, elapsed, scode, diag, url)
+        else:
+            _LOGGER.error(logstr, retries, elapsed, scode, diag, url)
+
+        # Increment retry counter
+        retries = retries + 1
+
+    # End of loop
+
+    return {'text': text, 'status_code': scode, 'seq': seq,
+            'elapsed': elapsed, 'retries': (retries - 1)}

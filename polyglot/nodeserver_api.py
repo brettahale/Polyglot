@@ -472,7 +472,7 @@ class NodeServer(object):
         self.running = False
         return True
 
-    def on_result(self, seq, status_code, elapsed, text=None):
+    def on_result(self, seq, status_code, elapsed, text, retries, **kwargs):
         """
         Handles a result message, which contains the result from a REST API
         call to the ISY.  The result message is uniquely identified by the
@@ -482,7 +482,8 @@ class NodeServer(object):
             self.smsg('**ERROR: on_result: missing callback for seq={}'.format(seq))
             return False
         func, args = self._seq_cb.pop(seq)
-        return func(seq=seq, status_code=status_code, elapsed=elapsed, text=text, **args)
+        return func(seq=seq, status_code=status_code, elapsed=elapsed,
+                    text=text, retries=retries, **args)
 
     def register_result_cb(self, func, **kwargs):
         """
