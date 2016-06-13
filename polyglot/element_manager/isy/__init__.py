@@ -291,7 +291,7 @@ def request(ns_profnum, url, timeout=None, seq=None, text_needed=False,
     retries = 0
     retry = True
 
-    while retry and (retries < max_retries):
+    while retry and (retries <= max_retries):
 
         # Add a delay if we're retrying; use sane delays, though
         if retries == 1:
