@@ -295,13 +295,13 @@ def request(ns_profnum, url, timeout=None, seq=None, text_needed=False,
 
         # Add a delay if we're retrying; use sane delays, though
         if retries == 1:
-            sleep(0.25)
+            time.sleep(0.25)
         elif retries == 2:
-            sleep(1.0)
+            time.sleep(1.0)
         elif retries == 3:
-            sleep(2.0)
+            time.sleep(2.0)
         elif retries > 3:
-            sleep(3.0)
+            time.sleep(3.0)
 
         text = None
         retry = False
@@ -359,7 +359,7 @@ def request(ns_profnum, url, timeout=None, seq=None, text_needed=False,
             # Connection error - retryable, reset session
             elapsed = (time.time() - ts)
             text = repr(err)
-            diag = 'Connection Error - ' + repr(err).replace('\n', ' ')
+            diag = repr(err).replace('\n', ' ')
             scode = 4
             retry = True
             # Invalidate session, force new connection
