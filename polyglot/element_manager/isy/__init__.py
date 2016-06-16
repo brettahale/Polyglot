@@ -258,7 +258,6 @@ def request(ns_profnum, url, timeout=None, seq=None, text_needed=False,
 
     Returns a dictionary r containing:
         r.text:        response text     (string or None)
-        r.error_text:  error text        (string or None)
         r.seq:         sequence number   (string or None)
         r.retries:     retries required  (integer)
         r.elapsed:     time, in seconds  (float)
