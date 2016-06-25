@@ -290,7 +290,7 @@ def request(ns_profnum, url, timeout=None, seq=None, text_needed=False,
     retries = 0
     retry = True
 
-    while retry and (retries <= max_retries):
+    while retry:
 
         # Add a delay if we're retrying; use sane delays, though
         if retries == 1:
@@ -364,6 +364,11 @@ def request(ns_profnum, url, timeout=None, seq=None, text_needed=False,
             # Invalidate session, force new connection
             SESSION = None
 
+        # Increment retry counter and see if we've reached the limit
+        retries += 1
+        if retries > max_retries:
+            retry = False
+
         # Log at the correct level depending on the status code
         logstr = 'ISY: [%d] (%5.2f) %3d %s: %s'
         if scode == 200:
@@ -372,9 +377,6 @@ def request(ns_profnum, url, timeout=None, seq=None, text_needed=False,
             _LOGGER.warning(logstr, retries, elapsed, scode, diag, url)
         else:
             _LOGGER.error(logstr, retries, elapsed, scode, diag, url)
-
-        # Increment retry counter
-        retries = retries + 1
 
     # End of loop
 
