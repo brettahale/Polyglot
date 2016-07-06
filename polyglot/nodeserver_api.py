@@ -157,11 +157,17 @@ class Node(object):
         # pylint: disable=unused-argument
         if driver in self._drivers:
             clean_value = self._drivers[driver][2](value)
-            if clean_value != self._drivers[driver][0]:
+            changed = (clean_value != self._drivers[driver][0])
+            in_sync = self._isy_synced.get(driver, False)
+            if changed or not in_sync:
                 self._drivers[driver][0] = clean_value
                 if report:
                     self.report_driver(driver)
+                else:
+                    self._isy_synced[driver] = False
             return True
+        self.smsg('**ERROR: node "{}": set_driver(): invalid driver "{}"'
+                  .format(self.name, driver))
         return False
 
     def report_driver(self, driver=None):
@@ -179,9 +185,33 @@ class Node(object):
             drivers = [driver]
 
         for driver in drivers:
-            self.parent.poly.report_status(
+            self.parent.report_status(
                 self.address, driver, self._drivers[driver][0],
-                self._drivers[driver][1])
+                self._drivers[driver][1], self._report_driver_cb,
+                None, driver=driver)
+        return True
+
+    def _report_driver_cb(self, driver, status_code, **kwargs):
+        """
+        Private method - updates ISY syncronization flag based on
+        the success/fail of the status update API call to the ISY.
+        """
+
+        if driver not in self._drivers:
+            self.smsg(
+                '**ERROR: node "{}": driver "{}": no longer exists.'
+                .format(self.name, driver))
+            return False
+        if int(status_code) == 200:
+            self._isy_synced[driver] = True
+            self.smsg(
+                '**DEBUG: node "{}": driver "{}": status sent to ISY ok.'
+                .format(self.name, driver))
+        else:
+            self._isy_synced[driver] = False
+            self.smsg(
+                '**ERROR: node "{}": driver "{}": unable to report status to ISY: {}'
+                .format(self.name, driver, status_code))
         return True
 
     def get_driver(self, driver=None):
@@ -241,6 +271,12 @@ class Node(object):
 
         return manifest
 
+
+    _isy_synced = {}
+    """
+    Internal dictionary containing the synchronization status of this
+    driver with the ISY.  Used to eliminate unnecessary status updates.
+    """
 
     _drivers = {}
     """
@@ -513,6 +549,20 @@ class NodeServer(object):
             seq = self.register_result_cb(callback, **kwargs)
         self.poly.add_node(node_address, node_def_id, node_primary_addr,
                            node_name, timeout, seq)
+        return True
+
+    def report_status(self, node_address, driver_control, value, uom,
+                      callback=None, timeout=None, **kwargs):
+        """
+        Report a node status to the ISY
+
+        :returns bool: True on success
+        """
+        seq = None
+        if callback:
+            seq = self.register_result_cb(callback, **kwargs)
+        self.poly.report_status(node_address, driver_control, value, uom,
+                                timeout, seq)
         return True
 
     def restcall(self, api, callback=None, timeout=None, **kwargs):
