@@ -267,7 +267,8 @@ class Node(object):
                     'drivers': {}}
 
         for key, val in self._drivers.items():
-            manifest['drivers'][key] = val[0]
+            if len(val) < 4 or val[3] is True:
+                manifest['drivers'][key] = val[0]
 
         return manifest
 
@@ -282,8 +283,11 @@ class Node(object):
     """
     The drivers controlled by this node. This is a dictionary of lists. The
     key's are the driver names as defined by the ISY documentation. Each list
-    contains three values: the initial value, the UOM identifier, and a
-    function that will properly format the value before assignment.
+    contains at least three values: the initial value, the UOM identifier, and
+    a function that will properly format the value before assignment.  The
+    fourth value is optional -- if provided, and set to "False", the driver's
+    value will not be recorded in the manifest (this is useful to reduce I/O
+    when there is no benefit to restoring the driver's value on restart).
 
     *Insteon Dimmer Example:*
 
@@ -293,6 +297,14 @@ class Node(object):
             'ST': [0, 51, int],
             'OL': [100, 51, int],
             'RR': [0, 32, int]
+        }
+
+    *Pulse Time Example:*
+
+    .. code-block:: python
+
+        _drivers = {
+            'ST': [0, 56, int, False],
         }
 
     """
