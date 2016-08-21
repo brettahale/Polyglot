@@ -252,6 +252,60 @@ class Node(object):
         self.report_driver()
         return True
 
+    def report_isycmd(self, isycommand, value=None, uom=None,
+                      timeout=None, **kwargs):
+        """
+        Sends a single command from the node server to the ISY, optionally
+        passing in a value.
+
+        No formatting, and little validation, of the isy cmd, value, or uom
+        is done by this simple low-level API.  It is up to the caller to
+        ensure correctness.
+
+        :param str isycommand: Name of the ISY command to send (e.g. 'DON')
+        :param value: (optional) The value to be sent for the command
+        :type value: string, float, int, or None
+        :param uom: (optional) - The value's unit of measurement.  If
+                    provided, overrides the uom defined for this command
+        :type uom: int or None
+        :param timeout: (optional) - the number of seconds before this
+                        command expires and is discarded
+        :type timeout: int or None
+        :returns boolean: Indicates success or failure to queue for sending
+                          (Note: does NOT indicate if actually delivered)
+        """
+        # Test for a valid defined command
+        if isycommand not in self._sends:
+            self.smsg(
+                '**ERROR: node "{}": report_isycmd(): unknown ISY command "{}"'
+                .format(self.name, isycommand))
+            return False
+        if value is None:
+            v = None
+            u = None
+        else:
+            # Value is provided - make sure we have a uom
+            if uom is None:
+                u = self._sends[isycommand][1]
+            else:
+                u = uom
+            # Convert/clean the value if such a function was defined
+            if self._sends[isycommand][2] is not None:
+                v = self._sends[isycommand][2](value)
+            else:
+                v = value
+        # Save the value and uom we're sending, for reference
+        self._sends[isycommand][0] = v
+        self._sends[isycommand][1] = u
+        # Issue the command itself
+        return self.parent.poly.report_command(
+            self.address, isycommand, v, u, timeout, **kwargs)
+        # TODO: test/document extended ISY command API:
+        #           extras = {'GV1.uom56': int(gv1_value)}
+        #           node.report_isycmd('DON', **extras)
+        # TODO: callback for timeout/error handling -- but first
+        #       need to define desired behavior in such cases
+
     @property
     def manifest(self):
         """
@@ -305,6 +359,25 @@ class Node(object):
 
         _drivers = {
             'ST': [0, 56, int, False],
+        }
+
+    """
+
+    _sends = {}
+    """
+    A dictionary of the commands that this node sends to the ISY. The
+    keys are the command names to be sent to the ISY. Each list contains
+    at least three values: the last command value sent to the ISY, the
+    UOM identifier for that command, and a function that will properly
+    format the value before sending it.  If the command will never send
+    a value (e.g. 'DOF'), setting all three to None is appropriate.
+
+    *Simple Dimmer Switch Example:*
+
+    .. code-block:: python
+        _sends = {
+            'DON': [0, 51, int],
+            'DOF': [None, None, None]
         }
 
     """
