@@ -162,6 +162,7 @@ class Node(object):
             if changed or not in_sync:
                 self._drivers[driver][0] = clean_value
                 if report:
+                    self._isy_synced[driver] = True
                     self.report_driver(driver)
                 else:
                     self._isy_synced[driver] = False
