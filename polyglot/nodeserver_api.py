@@ -444,6 +444,7 @@ class NodeServer(object):
         poly.listen('cmd', self.on_cmd)
         poly.listen('exit', self.on_exit)
         poly.listen('result', self.on_result)
+        poly.listen('statistics', self.on_statistics)
 
     def setup(self):
         """
@@ -583,6 +584,14 @@ class NodeServer(object):
         """
         # pylint: disable=no-self-use
         return False
+
+    def on_statistics(self, **kwargs):
+        """
+        Handles a statistics message, which contains various statistics on
+        the operation of the Polyglot server and the network communications.
+        """
+        # pylint: disable=no-self-use
+        return True
 
     def on_exit(self, *args, **kwargs):
         """
@@ -1155,7 +1164,7 @@ class PolyglotConnector(object):
 
     commands = ['config', 'install', 'query', 'status', 'add_all', 'added',
                 'removed', 'renamed', 'enabled', 'disabled', 'cmd', 'ping',
-                'exit', 'params', 'result']
+                'exit', 'params', 'result', 'statistics']
     """ Commands that may be invoked by Polyglot """
     logger = None                
     """ 
@@ -1661,6 +1670,14 @@ class PolyglotConnector(object):
         self._mk_cmd('pong')
         return True
         
+    def request_stats(self, *args, **kwargs):
+        """
+        Sends a command to Polyglot to request a statistics message.
+        """
+        # pylint: disable=unused-argument
+        self._mk_cmd('statistics')
+        return True
+
     def exit(self, *args, **kwargs):
         """
         Tells Polyglot that this Node Server is done.

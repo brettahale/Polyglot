@@ -7,6 +7,7 @@ import xml.etree.ElementTree as ET
 import os
 import requests
 import time
+import threading
 try:
     from urllib import quote, urlencode  # Python 2.x
 except ImportError:
@@ -29,6 +30,17 @@ PORT = None
 USERNAME = None
 VERSION = '0.0.0'
 _LOGGER = logging.getLogger(__name__)
+
+# Global diagnostic/performance data structure
+
+SLOCK = threading.Lock()
+STATS = {'ntotal':  0,     # Total requests
+         'rtotal':  0,     # Total retries
+         'oktotal': 0,     # Total responses == 200
+         'ertotal': 0,     # Total responses != 200
+         'ettotal': 0.0,   # Sum of elapsed time for requests
+         'ethigh':  0.0,   # Longest elapsed time
+         'etlow':   0.0}   # Shortest elapsed time
 
 # [future] only accept incoming requests from the ISY
 
@@ -308,8 +320,8 @@ def request(ns_profnum, url, timeout=None, seq=None, text_needed=False,
 
         try:
             if no_sessions:
-                # send request, new connection each time
-                req = requests.get(url, timeout=tmo, verify=False,
+                # send request, new connection each time 
+               req = requests.get(url, timeout=tmo, verify=False,
                                    auth=(USERNAME, PASSWORD))
             else:
                 # get, check, and possibly update the session (thread-safe)
@@ -380,5 +392,49 @@ def request(ns_profnum, url, timeout=None, seq=None, text_needed=False,
 
     # End of loop
 
+    # Correct our retries counter
+    retries -= 1
+
+    # Update global diagnostic statistics structure
+    global SLOCK, STATS
+    # Lock the global dict
+    SLOCK.acquire()
+    # Update the statistics
+    STATS['ntotal'] += 1
+    STATS['ettotal'] += elapsed
+    STATS['rtotal'] += retries
+    if scode == 200:
+        STATS['oktotal'] += 1
+    else:
+        STATS['ertotal'] += 1
+    if STATS['ethigh'] < elapsed:
+        STATS['ethigh'] = elapsed
+    if STATS['etlow'] > elapsed or STATS['etlow'] == 0.0:
+        STATS['etlow'] = elapsed
+    # Release the global lock
+    SLOCK.release()
+
     return {'text': text, 'status_code': scode, 'seq': seq,
-            'elapsed': elapsed, 'retries': (retries - 1)}
+            'elapsed': elapsed, 'retries': retries}
+
+
+def get_stats(ns_profnum, clear=False, **kwargs):
+    """"
+    Returns and optionally clears the Polyglot-to-ISY stats
+    :param ns_profnum: Node Server ID (for future use)
+    :param clear: optional, zero out stats if True
+    """
+    global SLOCK, STATS
+    SLOCK.acquire()
+    st = STATS
+    if clear:
+        STATS['ntotal']  = 0
+        STATS['rtotal']  = 0
+        STATS['oktotal'] = 0
+        STATS['ertotal'] = 0
+        STATS['ettotal'] = 0.0
+        STATS['ethigh']  = 0.0
+        STATS['etlow']   = 0.0
+    SLOCK.release()
+    #_LOGGER.info('get_stats(): %d %f %d', st['ntotal'], st['ettotal'], st['rtotal'])
+    return st

@@ -426,6 +426,11 @@ class NodeServer(object):
             # install node server on isy
             # [future] implement when documentation is available
             raise NotImplementedError('Install command is not yet supported.')
+        elif command == 'statistics':
+            # manage Polyglot and network communications stats
+            isy = self.pglot.elements.isy
+            result = {'to_isy': isy.get_stats(self.profile_number, **arguments)}
+            self._mk_cmd('statistics', **result)
         elif command == 'exit':
             # node server is done. Kill it. Clean up is automatic.
             self._proc.kill()
