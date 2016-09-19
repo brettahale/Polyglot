@@ -1,0 +1,2 @@
+1. Install node server on the ISY controller.
+2. On the ISY, run the "add all" operation to create the nodes.
