@@ -21,6 +21,11 @@ ELEMENT = 'core'
 SERVER_TYPES = {'python': [sys.executable]}
 NS_QUIT_WAIT_TIME = 5
 
+# Global manager diagnostics/performance data structures
+NSLOCK = threading.Lock()
+NSMGR = None
+NSSTATS = {}
+
 # Increment this version number each time a breaking change is made or a
 # major new message (feature) is added to the API between the node server
 # manager (implemented by this source file) and its clients.
@@ -426,10 +431,37 @@ class NodeServer(object):
             # install node server on isy
             # [future] implement when documentation is available
             raise NotImplementedError('Install command is not yet supported.')
+        elif command == 'manager':
+            global NSLOCK, NSMGR, NSSTATS
+            # Special management node server operations
+            op = arguments.get('op', None)
+            if op == 'IAmManager':
+                NSLOCK.acquire()
+                NSMGR = self.profile_number
+                NSSTATS['manager'] = NSMGR
+                NSLOCK.release()
+            elif op == 'ClearStatistics':
+                if self.profile_number == NSMGR:
+                    _LOGGER.info('%8s manager request: ClearStatistics', self.name)
+                    isy = self.pglot.elements.isy
+                    isy.get_stats(self.profile_number, clear=True)
+                else:
+                    _LOGGER.info('%8s manager request refused: {}', self.name, op)
+            elif op == 'IsyHasRestarted':
+                if self.profile_number == NSMGR:
+                    # [TODO] send restart message to all other node server queues
+                    _LOGGER.info('%8s reports that ISY has restarted', self.name)
+                else:
+                    _LOGGER.info('%8s manager request refused: {}', self.name, op)
+            else:
+                _LOGGER.error('%8s manager op not implemented: {}', self.name, op)
         elif command == 'statistics':
             # manage Polyglot and network communications stats
             isy = self.pglot.elements.isy
             result = {'to_isy': isy.get_stats(self.profile_number, **arguments)}
+            if self.profile_number == NSMGR:
+                # TODO: may need to take NSLOCK here to avoid partial updates
+                result['ns'] = NSSTATS
             self._mk_cmd('statistics', **result)
         elif command == 'exit':
             # node server is done. Kill it. Clean up is automatic.
