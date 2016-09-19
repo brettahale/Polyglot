@@ -180,6 +180,9 @@ class Node(object):
         :type driver: str or None
         :returns boolean: Indicates success or failure to report driver value
         """
+        if not self.enabled or not self.added:
+            return True
+
         if driver is None:
             drivers = self._drivers.keys()
         else:
