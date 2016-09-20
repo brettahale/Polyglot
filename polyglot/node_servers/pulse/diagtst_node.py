@@ -99,6 +99,8 @@ class PulseDiagTest(Node):
 
     def on_statistics(self, **kwargs):
         self.smsg('**DEBUG: statistics: {}'.format(kwargs))
+
+        # Fetch the Polyglot-to-ISY statistics
         PtoI = kwargs.get('to_isy', {})
         ntotal = PtoI.get('ntotal',0)
         self._PtoI_errors = PtoI.get('ertotal',0)
@@ -109,8 +111,9 @@ class PulseDiagTest(Node):
         self._PtoI_t_low  = int(PtoI.get('etlow',0) * 1000.0)
         self._PtoI_t_high = int(PtoI.get('ethigh',0) * 1000.0)
         # Compute average time - take care not to divide by zero
-        self._PtoI_t_avg = int(PtoI.get('ettotal',0) * 1000.0 /
-                               max(ntotal, 1))
+        self._PtoI_t_avg = int(((PtoI.get('ettotal',0) * 1000.0) /
+                               float(max(ntotal, 1))) + 0.5)
+
         # Come up with some sort of "score" for the connection
         score = 0.0
         total = ntotal + self._PtoI_retries
@@ -124,13 +127,16 @@ class PulseDiagTest(Node):
             score = score / 2.0
         if self._PtoI_t_avg > 1000:
             score = 0.0
-        self._PtoI_score = int(score * 100.0)
-        self.smsg('**INFO: statistics, Polyglot-to-ISY: total: {} score: {}%'
-                  .format(ntotal, self._PtoI_score))
-        self.smsg('**INFO: statistics details: ok={}, errors={}, retries={}'
-                  .format(self._PtoI_ok, self._PtoI_errors, self._PtoI_retries))
-        self.smsg('**INFO: statistics times: low={}, high={}, average={}'
+        self._PtoI_score = int((score * 100.0) + 0.5)
+
+        # Log the statistics
+        self.smsg('**INFO: statistics: relative health: {}%'.format(self._PtoI_score))
+        self.smsg('**INFO: statistics, P2I: details: total={}, ok={}, errors={}, retries={}'
+                  .format(ntotal, self._PtoI_ok, self._PtoI_errors, self._PtoI_retries))
+        self.smsg('**INFO: statistics, P2I: times: low={}ms, high={}ms, average={}ms'
                   .format(self._PtoI_t_low, self._PtoI_t_high, self._PtoI_t_avg))
+
+        # Finish up by saving the results (updates ISY as appropriate)
         self.set_driver('ST',  self._PtoI_score,   report=True)
         self.set_driver('GV3', self._PtoI_ok,      report=True)
         self.set_driver('GV4', self._PtoI_retries, report=True)
@@ -138,6 +144,7 @@ class PulseDiagTest(Node):
         self.set_driver('GV6', self._PtoI_t_low,   report=True)
         self.set_driver('GV7', self._PtoI_t_avg,   report=True)
         self.set_driver('GV8', self._PtoI_t_high,  report=True)
+
         return True
 
     # - { = } - { = } - { = } - { = } - { = } - { = } - { = } - { = } - #
@@ -147,15 +154,15 @@ class PulseDiagTest(Node):
 
     check_interval = 62
 
-    _drivers = {'ST':  [0, 51, int, True], # PCT = 0-100%
-                'GV1': [0, 25, int, True], # UPF = Not Run/Passed/Failed
-                'GV2': [0, 56, int, True], # INT
-                'GV3': [0, 56, int, True], # INT
-                'GV4': [0, 56, int, True], # INT
-                'GV5': [0, 56, int, True], # INT
-                'GV6': [0, 56, int, True], # INT
-                'GV7': [0, 56, int, True], # INT
-                'GV8': [0, 56, int, True]} # INT
+    _drivers = {'ST':  [0, 51, int, False], # PCT = 0-100%
+                'GV1': [0, 25, int, False], # UPF = Idle/Passed/Failed
+                'GV2': [0, 56, int, False], # INT
+                'GV3': [0, 56, int, False], # INT
+                'GV4': [0, 56, int, False], # INT
+                'GV5': [0, 56, int, False], # INT
+                'GV6': [0, 56, int, False], # INT
+                'GV7': [0, 56, int, False], # INT
+                'GV8': [0, 56, int, False]} # INT
 
     _commands = {'ST':        _st,
                  'TESTQUERY': _testquery,
