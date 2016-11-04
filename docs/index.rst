@@ -30,3 +30,4 @@ additional help, please reference the `UDI Forum
    nsexample
    nsapi
    module
+   optional
