@@ -86,6 +86,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../nsexample.html">Python Node Server Example</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../nsapi.html">Polyglot Node Server API</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../module.html">Polyglot Methods and Classes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../optional.html">Optional Components</a></li>
 </ul>
 
             
@@ -153,6 +154,11 @@
 <span class="n">ELEMENT</span> <span class="o">=</span> <span class="s1">&#39;core&#39;</span>
 <span class="n">SERVER_TYPES</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;python&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">sys</span><span class="o">.</span><span class="n">executable</span><span class="p">]}</span>
 <span class="n">NS_QUIT_WAIT_TIME</span> <span class="o">=</span> <span class="mi">5</span>
+
+<span class="c1"># Global manager diagnostics/performance data structures</span>
+<span class="n">NSLOCK</span> <span class="o">=</span> <span class="n">threading</span><span class="o">.</span><span class="n">Lock</span><span class="p">()</span>
+<span class="n">NSMGR</span> <span class="o">=</span> <span class="bp">None</span>
+<span class="n">NSSTATS</span> <span class="o">=</span> <span class="p">{}</span>
 
 <span class="c1"># Increment this version number each time a breaking change is made or a</span>
 <span class="c1"># major new message (feature) is added to the API between the node server</span>
@@ -559,6 +565,38 @@
             <span class="c1"># install node server on isy</span>
             <span class="c1"># [future] implement when documentation is available</span>
             <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s1">&#39;Install command is not yet supported.&#39;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">command</span> <span class="o">==</span> <span class="s1">&#39;manager&#39;</span><span class="p">:</span>
+            <span class="k">global</span> <span class="n">NSLOCK</span><span class="p">,</span> <span class="n">NSMGR</span><span class="p">,</span> <span class="n">NSSTATS</span>
+            <span class="c1"># Special management node server operations</span>
+            <span class="n">op</span> <span class="o">=</span> <span class="n">arguments</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;op&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">op</span> <span class="o">==</span> <span class="s1">&#39;IAmManager&#39;</span><span class="p">:</span>
+                <span class="n">NSLOCK</span><span class="o">.</span><span class="n">acquire</span><span class="p">()</span>
+                <span class="n">NSMGR</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">profile_number</span>
+                <span class="n">NSSTATS</span><span class="p">[</span><span class="s1">&#39;manager&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">NSMGR</span>
+                <span class="n">NSLOCK</span><span class="o">.</span><span class="n">release</span><span class="p">()</span>
+            <span class="k">elif</span> <span class="n">op</span> <span class="o">==</span> <span class="s1">&#39;ClearStatistics&#39;</span><span class="p">:</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">profile_number</span> <span class="o">==</span> <span class="n">NSMGR</span><span class="p">:</span>
+                    <span class="n">_LOGGER</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%8s</span><span class="s1"> manager request: ClearStatistics&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+                    <span class="n">isy</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pglot</span><span class="o">.</span><span class="n">elements</span><span class="o">.</span><span class="n">isy</span>
+                    <span class="n">isy</span><span class="o">.</span><span class="n">get_stats</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">profile_number</span><span class="p">,</span> <span class="n">clear</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">_LOGGER</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%8s</span><span class="s1"> manager request refused: {}&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">op</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">op</span> <span class="o">==</span> <span class="s1">&#39;IsyHasRestarted&#39;</span><span class="p">:</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">profile_number</span> <span class="o">==</span> <span class="n">NSMGR</span><span class="p">:</span>
+                    <span class="c1"># [TODO] send restart message to all other node server queues</span>
+                    <span class="n">_LOGGER</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%8s</span><span class="s1"> reports that ISY has restarted&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">_LOGGER</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%8s</span><span class="s1"> manager request refused: {}&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">op</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">_LOGGER</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%8s</span><span class="s1"> manager op not implemented: {}&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">op</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">command</span> <span class="o">==</span> <span class="s1">&#39;statistics&#39;</span><span class="p">:</span>
+            <span class="c1"># manage Polyglot and network communications stats</span>
+            <span class="n">isy</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pglot</span><span class="o">.</span><span class="n">elements</span><span class="o">.</span><span class="n">isy</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;to_isy&#39;</span><span class="p">:</span> <span class="n">isy</span><span class="o">.</span><span class="n">get_stats</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">profile_number</span><span class="p">,</span> <span class="o">**</span><span class="n">arguments</span><span class="p">)}</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">profile_number</span> <span class="o">==</span> <span class="n">NSMGR</span><span class="p">:</span>
+                <span class="c1"># TODO: may need to take NSLOCK here to avoid partial updates</span>
+                <span class="n">result</span><span class="p">[</span><span class="s1">&#39;ns&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">NSSTATS</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_mk_cmd</span><span class="p">(</span><span class="s1">&#39;statistics&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">result</span><span class="p">)</span>
         <span class="k">elif</span> <span class="n">command</span> <span class="o">==</span> <span class="s1">&#39;exit&#39;</span><span class="p">:</span>
             <span class="c1"># node server is done. Kill it. Clean up is automatic.</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_proc</span><span class="o">.</span><span class="n">kill</span><span class="p">()</span>

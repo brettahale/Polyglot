@@ -86,6 +86,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../nsexample.html">Python Node Server Example</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../nsapi.html">Polyglot Node Server API</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../module.html">Polyglot Methods and Classes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../optional.html">Optional Components</a></li>
 </ul>
 
             
@@ -290,11 +291,18 @@
         <span class="c1"># pylint: disable=unused-argument</span>
         <span class="k">if</span> <span class="n">driver</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_drivers</span><span class="p">:</span>
             <span class="n">clean_value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_drivers</span><span class="p">[</span><span class="n">driver</span><span class="p">][</span><span class="mi">2</span><span class="p">](</span><span class="n">value</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">clean_value</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_drivers</span><span class="p">[</span><span class="n">driver</span><span class="p">][</span><span class="mi">0</span><span class="p">]:</span>
+            <span class="n">changed</span> <span class="o">=</span> <span class="p">(</span><span class="n">clean_value</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_drivers</span><span class="p">[</span><span class="n">driver</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span>
+            <span class="n">in_sync</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_isy_synced</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">driver</span><span class="p">,</span> <span class="bp">False</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">changed</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">in_sync</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_drivers</span><span class="p">[</span><span class="n">driver</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">clean_value</span>
                 <span class="k">if</span> <span class="n">report</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_isy_synced</span><span class="p">[</span><span class="n">driver</span><span class="p">]</span> <span class="o">=</span> <span class="bp">True</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">report_driver</span><span class="p">(</span><span class="n">driver</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_isy_synced</span><span class="p">[</span><span class="n">driver</span><span class="p">]</span> <span class="o">=</span> <span class="bp">False</span>
             <span class="k">return</span> <span class="bp">True</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">smsg</span><span class="p">(</span><span class="s1">&#39;**ERROR: node &quot;{}&quot;: set_driver(): invalid driver &quot;{}&quot;&#39;</span>
+                  <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">driver</span><span class="p">))</span>
         <span class="k">return</span> <span class="bp">False</span>
 </div>
 <div class="viewcode-block" id="Node.report_driver"><a class="viewcode-back" href="../../nsdev.html#polyglot.nodeserver_api.Node.report_driver">[docs]</a>    <span class="k">def</span> <span class="nf">report_driver</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">driver</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
@@ -306,15 +314,42 @@
 <span class="sd">        :type driver: str or None</span>
 <span class="sd">        :returns boolean: Indicates success or failure to report driver value</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">enabled</span> <span class="ow">or</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">added</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">True</span>
+
         <span class="k">if</span> <span class="n">driver</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
             <span class="n">drivers</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_drivers</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">drivers</span> <span class="o">=</span> <span class="p">[</span><span class="n">driver</span><span class="p">]</span>
 
         <span class="k">for</span> <span class="n">driver</span> <span class="ow">in</span> <span class="n">drivers</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">poly</span><span class="o">.</span><span class="n">report_status</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">report_status</span><span class="p">(</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">address</span><span class="p">,</span> <span class="n">driver</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_drivers</span><span class="p">[</span><span class="n">driver</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_drivers</span><span class="p">[</span><span class="n">driver</span><span class="p">][</span><span class="mi">1</span><span class="p">])</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_drivers</span><span class="p">[</span><span class="n">driver</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">_report_driver_cb</span><span class="p">,</span>
+                <span class="bp">None</span><span class="p">,</span> <span class="n">driver</span><span class="o">=</span><span class="n">driver</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">True</span>
+</div>
+<div class="viewcode-block" id="Node._report_driver_cb"><a class="viewcode-back" href="../../nsdev.html#polyglot.nodeserver_api.Node._report_driver_cb">[docs]</a>    <span class="k">def</span> <span class="nf">_report_driver_cb</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">driver</span><span class="p">,</span> <span class="n">status_code</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Private method - updates ISY syncronization flag based on</span>
+<span class="sd">        the success/fail of the status update API call to the ISY.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="n">driver</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_drivers</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">smsg</span><span class="p">(</span>
+                <span class="s1">&#39;**ERROR: node &quot;{}&quot;: driver &quot;{}&quot;: no longer exists.&#39;</span>
+                <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">driver</span><span class="p">))</span>
+            <span class="k">return</span> <span class="bp">False</span>
+        <span class="k">if</span> <span class="nb">int</span><span class="p">(</span><span class="n">status_code</span><span class="p">)</span> <span class="o">==</span> <span class="mi">200</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_isy_synced</span><span class="p">[</span><span class="n">driver</span><span class="p">]</span> <span class="o">=</span> <span class="bp">True</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">smsg</span><span class="p">(</span>
+                <span class="s1">&#39;**DEBUG: node &quot;{}&quot;: driver &quot;{}&quot;: status sent to ISY ok.&#39;</span>
+                <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">driver</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_isy_synced</span><span class="p">[</span><span class="n">driver</span><span class="p">]</span> <span class="o">=</span> <span class="bp">False</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">smsg</span><span class="p">(</span>
+                <span class="s1">&#39;**ERROR: node &quot;{}&quot;: driver &quot;{}&quot;: unable to report status to ISY: {}&#39;</span>
+                <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">driver</span><span class="p">,</span> <span class="n">status_code</span><span class="p">))</span>
         <span class="k">return</span> <span class="bp">True</span>
 </div>
 <div class="viewcode-block" id="Node.get_driver"><a class="viewcode-back" href="../../nsdev.html#polyglot.nodeserver_api.Node.get_driver">[docs]</a>    <span class="k">def</span> <span class="nf">get_driver</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">driver</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
@@ -355,6 +390,60 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">report_driver</span><span class="p">()</span>
         <span class="k">return</span> <span class="bp">True</span>
 </div>
+<div class="viewcode-block" id="Node.report_isycmd"><a class="viewcode-back" href="../../nsdev.html#polyglot.nodeserver_api.Node.report_isycmd">[docs]</a>    <span class="k">def</span> <span class="nf">report_isycmd</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">isycommand</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">uom</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                      <span class="n">timeout</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Sends a single command from the node server to the ISY, optionally</span>
+<span class="sd">        passing in a value.</span>
+
+<span class="sd">        No formatting, and little validation, of the isy cmd, value, or uom</span>
+<span class="sd">        is done by this simple low-level API.  It is up to the caller to</span>
+<span class="sd">        ensure correctness.</span>
+
+<span class="sd">        :param str isycommand: Name of the ISY command to send (e.g. &#39;DON&#39;)</span>
+<span class="sd">        :param value: (optional) The value to be sent for the command</span>
+<span class="sd">        :type value: string, float, int, or None</span>
+<span class="sd">        :param uom: (optional) - The value&#39;s unit of measurement.  If</span>
+<span class="sd">                    provided, overrides the uom defined for this command</span>
+<span class="sd">        :type uom: int or None</span>
+<span class="sd">        :param timeout: (optional) - the number of seconds before this</span>
+<span class="sd">                        command expires and is discarded</span>
+<span class="sd">        :type timeout: int or None</span>
+<span class="sd">        :returns boolean: Indicates success or failure to queue for sending</span>
+<span class="sd">                          (Note: does NOT indicate if actually delivered)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Test for a valid defined command</span>
+        <span class="k">if</span> <span class="n">isycommand</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sends</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">smsg</span><span class="p">(</span>
+                <span class="s1">&#39;**ERROR: node &quot;{}&quot;: report_isycmd(): unknown ISY command &quot;{}&quot;&#39;</span>
+                <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">isycommand</span><span class="p">))</span>
+            <span class="k">return</span> <span class="bp">False</span>
+        <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">v</span> <span class="o">=</span> <span class="bp">None</span>
+            <span class="n">u</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># Value is provided - make sure we have a uom</span>
+            <span class="k">if</span> <span class="n">uom</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+                <span class="n">u</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sends</span><span class="p">[</span><span class="n">isycommand</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">u</span> <span class="o">=</span> <span class="n">uom</span>
+            <span class="c1"># Convert/clean the value if such a function was defined</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sends</span><span class="p">[</span><span class="n">isycommand</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+                <span class="n">v</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sends</span><span class="p">[</span><span class="n">isycommand</span><span class="p">][</span><span class="mi">2</span><span class="p">](</span><span class="n">value</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">v</span> <span class="o">=</span> <span class="n">value</span>
+        <span class="c1"># Save the value and uom we&#39;re sending, for reference</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_sends</span><span class="p">[</span><span class="n">isycommand</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">v</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_sends</span><span class="p">[</span><span class="n">isycommand</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">u</span>
+        <span class="c1"># Issue the command itself</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">poly</span><span class="o">.</span><span class="n">report_command</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">address</span><span class="p">,</span> <span class="n">isycommand</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">u</span><span class="p">,</span> <span class="n">timeout</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="c1"># TODO: test/document extended ISY command API:</span>
+        <span class="c1">#           extras = {&#39;GV1.uom56&#39;: int(gv1_value)}</span>
+        <span class="c1">#           node.report_isycmd(&#39;DON&#39;, **extras)</span>
+        <span class="c1"># TODO: callback for timeout/error handling -- but first</span>
+        <span class="c1">#       need to define desired behavior in such cases</span>
+</div>
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">manifest</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -370,17 +459,27 @@
                     <span class="s1">&#39;drivers&#39;</span><span class="p">:</span> <span class="p">{}}</span>
 
         <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_drivers</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-            <span class="n">manifest</span><span class="p">[</span><span class="s1">&#39;drivers&#39;</span><span class="p">][</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">val</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">val</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">4</span> <span class="ow">or</span> <span class="n">val</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="ow">is</span> <span class="bp">True</span><span class="p">:</span>
+                <span class="n">manifest</span><span class="p">[</span><span class="s1">&#39;drivers&#39;</span><span class="p">][</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">val</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
 
         <span class="k">return</span> <span class="n">manifest</span>
 
+
+    <span class="n">_isy_synced</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Internal dictionary containing the synchronization status of this</span>
+<span class="sd">    driver with the ISY.  Used to eliminate unnecessary status updates.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">_drivers</span> <span class="o">=</span> <span class="p">{}</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    The drivers controlled by this node. This is a dictionary of lists. The</span>
 <span class="sd">    key&#39;s are the driver names as defined by the ISY documentation. Each list</span>
-<span class="sd">    contains three values: the initial value, the UOM identifier, and a</span>
-<span class="sd">    function that will properly format the value before assignment.</span>
+<span class="sd">    contains at least three values: the initial value, the UOM identifier, and</span>
+<span class="sd">    a function that will properly format the value before assignment.  The</span>
+<span class="sd">    fourth value is optional -- if provided, and set to &quot;False&quot;, the driver&#39;s</span>
+<span class="sd">    value will not be recorded in the manifest (this is useful to reduce I/O</span>
+<span class="sd">    when there is no benefit to restoring the driver&#39;s value on restart).</span>
 
 <span class="sd">    *Insteon Dimmer Example:*</span>
 
@@ -390,6 +489,33 @@
 <span class="sd">            &#39;ST&#39;: [0, 51, int],</span>
 <span class="sd">            &#39;OL&#39;: [100, 51, int],</span>
 <span class="sd">            &#39;RR&#39;: [0, 32, int]</span>
+<span class="sd">        }</span>
+
+<span class="sd">    *Pulse Time Example:*</span>
+
+<span class="sd">    .. code-block:: python</span>
+
+<span class="sd">        _drivers = {</span>
+<span class="sd">            &#39;ST&#39;: [0, 56, int, False],</span>
+<span class="sd">        }</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">_sends</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A dictionary of the commands that this node sends to the ISY. The</span>
+<span class="sd">    keys are the command names to be sent to the ISY. Each list contains</span>
+<span class="sd">    at least three values: the last command value sent to the ISY, the</span>
+<span class="sd">    UOM identifier for that command, and a function that will properly</span>
+<span class="sd">    format the value before sending it.  If the command will never send</span>
+<span class="sd">    a value (e.g. &#39;DOF&#39;), setting all three to None is appropriate.</span>
+
+<span class="sd">    *Simple Dimmer Switch Example:*</span>
+
+<span class="sd">    .. code-block:: python</span>
+<span class="sd">        _sends = {</span>
+<span class="sd">            &#39;DON&#39;: [0, 51, int],</span>
+<span class="sd">            &#39;DOF&#39;: [None, None, None]</span>
 <span class="sd">        }</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -455,6 +581,7 @@
         <span class="n">poly</span><span class="o">.</span><span class="n">listen</span><span class="p">(</span><span class="s1">&#39;cmd&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">on_cmd</span><span class="p">)</span>
         <span class="n">poly</span><span class="o">.</span><span class="n">listen</span><span class="p">(</span><span class="s1">&#39;exit&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">on_exit</span><span class="p">)</span>
         <span class="n">poly</span><span class="o">.</span><span class="n">listen</span><span class="p">(</span><span class="s1">&#39;result&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">on_result</span><span class="p">)</span>
+        <span class="n">poly</span><span class="o">.</span><span class="n">listen</span><span class="p">(</span><span class="s1">&#39;statistics&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">on_statistics</span><span class="p">)</span>
 
 <div class="viewcode-block" id="NodeServer.setup"><a class="viewcode-back" href="../../nsdev.html#polyglot.nodeserver_api.NodeServer.setup">[docs]</a>    <span class="k">def</span> <span class="nf">setup</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -595,6 +722,14 @@
         <span class="c1"># pylint: disable=no-self-use</span>
         <span class="k">return</span> <span class="bp">False</span>
 </div>
+<div class="viewcode-block" id="NodeServer.on_statistics"><a class="viewcode-back" href="../../nsdev.html#polyglot.nodeserver_api.NodeServer.on_statistics">[docs]</a>    <span class="k">def</span> <span class="nf">on_statistics</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Handles a statistics message, which contains various statistics on</span>
+<span class="sd">        the operation of the Polyglot server and the network communications.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># pylint: disable=no-self-use</span>
+        <span class="k">return</span> <span class="bp">True</span>
+</div>
 <div class="viewcode-block" id="NodeServer.on_exit"><a class="viewcode-back" href="../../nsdev.html#polyglot.nodeserver_api.NodeServer.on_exit">[docs]</a>    <span class="k">def</span> <span class="nf">on_exit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Polyglot has triggered a clean shutdown. Generally, this method does</span>
@@ -605,7 +740,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">running</span> <span class="o">=</span> <span class="bp">False</span>
         <span class="k">return</span> <span class="bp">True</span>
 </div>
-<div class="viewcode-block" id="NodeServer.on_result"><a class="viewcode-back" href="../../nsdev.html#polyglot.nodeserver_api.NodeServer.on_result">[docs]</a>    <span class="k">def</span> <span class="nf">on_result</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">seq</span><span class="p">,</span> <span class="n">status_code</span><span class="p">,</span> <span class="n">elapsed</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+<div class="viewcode-block" id="NodeServer.on_result"><a class="viewcode-back" href="../../nsdev.html#polyglot.nodeserver_api.NodeServer.on_result">[docs]</a>    <span class="k">def</span> <span class="nf">on_result</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">seq</span><span class="p">,</span> <span class="n">status_code</span><span class="p">,</span> <span class="n">elapsed</span><span class="p">,</span> <span class="n">text</span><span class="p">,</span> <span class="n">retries</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Handles a result message, which contains the result from a REST API</span>
 <span class="sd">        call to the ISY.  The result message is uniquely identified by the</span>
@@ -615,7 +750,8 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">smsg</span><span class="p">(</span><span class="s1">&#39;**ERROR: on_result: missing callback for seq={}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">seq</span><span class="p">))</span>
             <span class="k">return</span> <span class="bp">False</span>
         <span class="n">func</span><span class="p">,</span> <span class="n">args</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_seq_cb</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">seq</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">func</span><span class="p">(</span><span class="n">seq</span><span class="o">=</span><span class="n">seq</span><span class="p">,</span> <span class="n">status_code</span><span class="o">=</span><span class="n">status_code</span><span class="p">,</span> <span class="n">elapsed</span><span class="o">=</span><span class="n">elapsed</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="n">text</span><span class="p">,</span> <span class="o">**</span><span class="n">args</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">func</span><span class="p">(</span><span class="n">seq</span><span class="o">=</span><span class="n">seq</span><span class="p">,</span> <span class="n">status_code</span><span class="o">=</span><span class="n">status_code</span><span class="p">,</span> <span class="n">elapsed</span><span class="o">=</span><span class="n">elapsed</span><span class="p">,</span>
+                    <span class="n">text</span><span class="o">=</span><span class="n">text</span><span class="p">,</span> <span class="n">retries</span><span class="o">=</span><span class="n">retries</span><span class="p">,</span> <span class="o">**</span><span class="n">args</span><span class="p">)</span>
 </div>
 <div class="viewcode-block" id="NodeServer.register_result_cb"><a class="viewcode-back" href="../../nsdev.html#polyglot.nodeserver_api.NodeServer.register_result_cb">[docs]</a>    <span class="k">def</span> <span class="nf">register_result_cb</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">func</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -645,6 +781,20 @@
             <span class="n">seq</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">register_result_cb</span><span class="p">(</span><span class="n">callback</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">poly</span><span class="o">.</span><span class="n">add_node</span><span class="p">(</span><span class="n">node_address</span><span class="p">,</span> <span class="n">node_def_id</span><span class="p">,</span> <span class="n">node_primary_addr</span><span class="p">,</span>
                            <span class="n">node_name</span><span class="p">,</span> <span class="n">timeout</span><span class="p">,</span> <span class="n">seq</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">True</span>
+</div>
+<div class="viewcode-block" id="NodeServer.report_status"><a class="viewcode-back" href="../../nsdev.html#polyglot.nodeserver_api.NodeServer.report_status">[docs]</a>    <span class="k">def</span> <span class="nf">report_status</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node_address</span><span class="p">,</span> <span class="n">driver_control</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">uom</span><span class="p">,</span>
+                      <span class="n">callback</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Report a node status to the ISY</span>
+
+<span class="sd">        :returns bool: True on success</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">seq</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="k">if</span> <span class="n">callback</span><span class="p">:</span>
+            <span class="n">seq</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">register_result_cb</span><span class="p">(</span><span class="n">callback</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">poly</span><span class="o">.</span><span class="n">report_status</span><span class="p">(</span><span class="n">node_address</span><span class="p">,</span> <span class="n">driver_control</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">uom</span><span class="p">,</span>
+                                <span class="n">timeout</span><span class="p">,</span> <span class="n">seq</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">True</span>
 </div>
 <div class="viewcode-block" id="NodeServer.restcall"><a class="viewcode-back" href="../../nsdev.html#polyglot.nodeserver_api.NodeServer.restcall">[docs]</a>    <span class="k">def</span> <span class="nf">restcall</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">api</span><span class="p">,</span> <span class="n">callback</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
@@ -1151,7 +1301,7 @@
 
     <span class="n">commands</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;config&#39;</span><span class="p">,</span> <span class="s1">&#39;install&#39;</span><span class="p">,</span> <span class="s1">&#39;query&#39;</span><span class="p">,</span> <span class="s1">&#39;status&#39;</span><span class="p">,</span> <span class="s1">&#39;add_all&#39;</span><span class="p">,</span> <span class="s1">&#39;added&#39;</span><span class="p">,</span>
                 <span class="s1">&#39;removed&#39;</span><span class="p">,</span> <span class="s1">&#39;renamed&#39;</span><span class="p">,</span> <span class="s1">&#39;enabled&#39;</span><span class="p">,</span> <span class="s1">&#39;disabled&#39;</span><span class="p">,</span> <span class="s1">&#39;cmd&#39;</span><span class="p">,</span> <span class="s1">&#39;ping&#39;</span><span class="p">,</span>
-                <span class="s1">&#39;exit&#39;</span><span class="p">,</span> <span class="s1">&#39;params&#39;</span><span class="p">,</span> <span class="s1">&#39;result&#39;</span><span class="p">]</span>
+                <span class="s1">&#39;exit&#39;</span><span class="p">,</span> <span class="s1">&#39;params&#39;</span><span class="p">,</span> <span class="s1">&#39;result&#39;</span><span class="p">,</span> <span class="s1">&#39;statistics&#39;</span><span class="p">]</span>
     <span class="sd">&quot;&quot;&quot; Commands that may be invoked by Polyglot &quot;&quot;&quot;</span>
     <span class="n">logger</span> <span class="o">=</span> <span class="bp">None</span>                
     <span class="sd">&quot;&quot;&quot; </span>
@@ -1657,6 +1807,14 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_mk_cmd</span><span class="p">(</span><span class="s1">&#39;pong&#39;</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">True</span>
         </div>
+<div class="viewcode-block" id="PolyglotConnector.request_stats"><a class="viewcode-back" href="../../nsdev.html#polyglot.nodeserver_api.PolyglotConnector.request_stats">[docs]</a>    <span class="k">def</span> <span class="nf">request_stats</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Sends a command to Polyglot to request a statistics message.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># pylint: disable=unused-argument</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_mk_cmd</span><span class="p">(</span><span class="s1">&#39;statistics&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">True</span>
+</div>
 <div class="viewcode-block" id="PolyglotConnector.exit"><a class="viewcode-back" href="../../nsdev.html#polyglot.nodeserver_api.PolyglotConnector.exit">[docs]</a>    <span class="k">def</span> <span class="nf">exit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Tells Polyglot that this Node Server is done.</span>
