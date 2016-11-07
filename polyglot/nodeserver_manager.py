@@ -18,7 +18,8 @@ import time
 
 _LOGGER = logging.getLogger(__name__)
 ELEMENT = 'core'
-SERVER_TYPES = {'python': [sys.executable]}
+SERVER_TYPES = {'python': [sys.executable],
+                'node': ['/usr/bin/node']}
 NS_QUIT_WAIT_TIME = 5
 
 # Global manager diagnostics/performance data structures
