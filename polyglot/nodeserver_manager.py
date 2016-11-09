@@ -27,6 +27,9 @@ NSLOCK = threading.Lock()
 NSMGR = None
 NSSTATS = {}
 
+# Is the MQTT Module already loaded?
+MQTT = False
+
 # Increment this version number each time a breaking change is made or a
 # major new message (feature) is added to the API between the node server
 # manager (implemented by this source file) and its clients.
@@ -74,7 +77,7 @@ class NodeServerManager(object):
         _LOGGER.info('Starting Node Server: %s:%s', ns_platform, nsname)
         # find node server
         path = helpers.get_path(ns_platform)
-
+        interface, mqtt_server, mqtt_port = (None,)*3
         # read node server attributes
         try:
             def_file = os.path.join(path, 'server.json')
@@ -92,12 +95,22 @@ class NodeServerManager(object):
                 .format(ns_platform))
 
         try:
-            configfile =definition['configfile']
+            configfile = definition['configfile']
             _LOGGER.info('Config file option found in server.json: %s', configfile)
         except (IOError, ValueError, KeyError):
             _LOGGER.info('Config file option not found in server.json')
             configfile = None
-                
+
+        try:
+            interface = definition['interface'].lower()
+            if interface != 'mqtt': interface = 'Default'
+            mqtt_server = definition['mqtt_server']
+            mqtt_port = definition['mqtt_port']
+            _LOGGER.info('Using interface type ' + interface + ' at ' + mqtt_server+ ":" + mqtt_port)
+        except (IOError, ValueError, KeyError):
+            interface = 'Default'
+            _LOGGER.info('Using interface type ' + interface)
+
         # get server base name
         while base in self.servers or base is None:
             base = random_string(5)
@@ -109,7 +122,8 @@ class NodeServerManager(object):
         try:
             server = NodeServer(self.pglot, ns_platform, profile_number,
                                 nstype, nsexe, nsname or ns_platform,
-                                config or {}, sandbox, configfile)
+                                config or {}, sandbox, configfile,
+                                interface, mqtt_server, mqtt_port)
         except Exception:
             _LOGGER.exception('Node Server %s could not start', ns_platform)
             raise ValueError(
@@ -188,7 +202,8 @@ class NodeServer(object):
     # pylint: disable=too-many-instance-attributes
 
     def __init__(self, pglot, ns_platform, profile_number, nstype, nsexe,
-                 nsname, config, sandbox, configfile=None):
+                 nsname, config, sandbox, configfile=None, interface=None,
+                 mqtt_server=None, mqtt_port=None):
         # build run command
         if nstype in SERVER_TYPES:
             cmd = copy.deepcopy(SERVER_TYPES[nstype])
@@ -210,6 +225,9 @@ class NodeServer(object):
         self.path = os.path.dirname(nsexe)
         self.name = nsname
         self.sandbox = sandbox
+        self.interface = interface
+        self.mqtt_server = mqtt_server
+        self.mqtt_port = mqtt_port
         self.pgver =  PGVERSION
         self.pgapiver = PGAPIVER
         self.params = {'isyver':   self.isy_version,
@@ -219,7 +237,10 @@ class NodeServer(object):
                        'pgapiver': self.pgapiver,
                        'profile':  self.profile_number,
                        'configfile': self.configfile,
-                       'path': self.path}
+                       'path': self.path,
+                       'interface': self.interface,
+                       'mqtt_server': self.mqtt_server,
+                       'mqtt_port': self.mqtt_port}
         self._proc = None
         self._inq = None
         self._rqq = None
@@ -235,6 +256,16 @@ class NodeServer(object):
                           'remove': isy.node_remove,
                           'restcall': isy.restcall,
                           'request': isy.report_request_status}
+
+        # import the paho.mqtt.client
+        if (interface == 'mqtt' && mqtt_server is not None && mqtt_port is not None && MQTT != True):
+            try:
+                import paho.mqtt.client as mqtt
+                global MQTT
+                MQTT = True
+            except (ImportError as e):
+                _LOGGER.error('Interface was mqtt however paho.mqtt.client module not found.')
+                interface = 'Default'
 
         self.start()
 
@@ -264,6 +295,9 @@ class NodeServer(object):
         self._threads['stdin'].daemon = True
         for _, thread in self._threads.items():
             thread.start()
+        
+        if (self.interface == 'mqtt' && MQTT = True):
+            
 
         # wait, then send config
         time.sleep(1)
