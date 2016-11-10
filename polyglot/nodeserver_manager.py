@@ -688,7 +688,7 @@ class NodeServer(object):
             
         # The callback for when a PUBLISH message is received from the server.
         def _message(self, mqttc, userdata, msg):
-            _LOGGER.info('MQTT Received Message: ' + msg.topic + ": QoS: " + str(msg.qos) + ": " + str(msg.payload))
+            #_LOGGER.info('MQTT Received Message: ' + msg.topic + ": QoS: " + str(msg.qos) + ": " + str(msg.payload))
             self.parent._recv_out(msg.payload)
 
         # The callback for when a DISCONNECT occurs.    
