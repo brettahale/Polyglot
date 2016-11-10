@@ -17,6 +17,14 @@ import threading
 import time
 
 _LOGGER = logging.getLogger(__name__)
+# import the paho.mqtt.client
+MQTT = False
+try:
+    import paho.mqtt.client as mqtt
+    MQTT = True
+except ImportError as e:
+    _LOGGER.error('Interface was mqtt however paho.mqtt.client module not found.')
+
 ELEMENT = 'core'
 SERVER_TYPES = {'python': [sys.executable],
                 'node': ['/usr/bin/node']}
@@ -26,9 +34,6 @@ NS_QUIT_WAIT_TIME = 5
 NSLOCK = threading.Lock()
 NSMGR = None
 NSSTATS = {}
-
-# Is the MQTT Module already loaded?
-MQTT = False
 
 # Increment this version number each time a breaking change is made or a
 # major new message (feature) is added to the API between the node server
@@ -103,10 +108,13 @@ class NodeServerManager(object):
 
         try:
             interface = definition['interface'].lower()
-            if interface != 'mqtt': interface = 'Default'
-            mqtt_server = definition['mqtt_server']
-            mqtt_port = definition['mqtt_port']
-            _LOGGER.info('Using interface type ' + interface + ' at ' + mqtt_server+ ":" + mqtt_port)
+            if interface != 'mqtt': 
+                interface = 'Default'
+                _LOGGER.info('Using interface type ' + interface)
+            else:
+                mqtt_server = definition['mqtt_server']
+                mqtt_port = definition['mqtt_port']
+                _LOGGER.info('Using interface type ' + interface + ' at ' + mqtt_server+ ":" + mqtt_port)
         except (IOError, ValueError, KeyError):
             interface = 'Default'
             _LOGGER.info('Using interface type ' + interface)
@@ -228,6 +236,7 @@ class NodeServer(object):
         self.interface = interface
         self.mqtt_server = mqtt_server
         self.mqtt_port = mqtt_port
+        self.node_connected = False
         self.pgver =  PGVERSION
         self.pgapiver = PGAPIVER
         self.params = {'isyver':   self.isy_version,
@@ -244,6 +253,7 @@ class NodeServer(object):
         self._proc = None
         self._inq = None
         self._rqq = None
+        self._mqtt = None
         self._lastping = None
         self._lastpong = None
 
@@ -256,16 +266,6 @@ class NodeServer(object):
                           'remove': isy.node_remove,
                           'restcall': isy.restcall,
                           'request': isy.report_request_status}
-
-        # import the paho.mqtt.client
-        if (interface == 'mqtt' && mqtt_server is not None && mqtt_port is not None && MQTT != True):
-            try:
-                import paho.mqtt.client as mqtt
-                global MQTT
-                MQTT = True
-            except (ImportError as e):
-                _LOGGER.error('Interface was mqtt however paho.mqtt.client module not found.')
-                interface = 'Default'
 
         self.start()
 
@@ -283,26 +283,33 @@ class NodeServer(object):
         self._lastping = None
         self._lastpong = None
 
-        # start Threads
+        # Check if MQTT interface is used for this nodeserver
+        if (self.interface == 'mqtt' and MQTT == True):
+            self._mqtt = self.mqttSubsystem(self)
+            self._mqtt.start()
+        
+        # Create threads dictionary
         self._threads = {}
+        # Add 'stdout' thread that attaches to STDOUT of nodeserver process with _recv_out
         self._threads['stdout'] = AsyncFileReader(self._proc.stdout,
                                                   self._recv_out)
+        # Add 'stderr' thread that attaches to STERR of nodeserver process with _recv_err
         self._threads['stderr'] = AsyncFileReader(self._proc.stderr,
                                                   self._recv_err)
+        # Add 'requests' thread that attaches to REST inbound commands and daemonize it
         self._threads['requests'] = threading.Thread(target=self._request_handler)
         self._threads['requests'].daemon = True
+        # Add 'stdin' thread that attaches to STDIN of nodeserver
         self._threads['stdin'] = threading.Thread(target=self._send_in)
         self._threads['stdin'].daemon = True
         for _, thread in self._threads.items():
             thread.start()
-        
-        if (self.interface == 'mqtt' && MQTT = True):
-            
 
-        # wait, then send config
-        time.sleep(1)
-        self.send_params()        
-        self.send_config()
+        if self._mqtt is None:
+            # wait, then send config
+            time.sleep(1)
+            self.send_params()        
+            self.send_config()
 
         _LOGGER.info('Started Node Server: %s:%s (%s)',
                      self.platform, self.name, self._proc.pid)
@@ -310,6 +317,8 @@ class NodeServer(object):
     def restart(self):
         """ restart the nodeserver """
         self.send_exit()
+        if self._mqtt is not None:
+            self._mqtt.stop()
 
         for _ in range(10):
             if not self.alive:
@@ -364,8 +373,11 @@ class NodeServer(object):
                 return True
             else:
                 # pong was not received
-                _LOGGER.warning('Node Server %s: time since last pong: %5.2f',
+                if self._lastpong is not None:
+                    _LOGGER.warning('Node Server %s: time since last pong: %5.2f',
                                 self.name, (time.time() - self._lastpong))
+                else:
+                    _LOGGER.warning('Node Server %s: Never received a pong response.', self.name)
                 return False
 
         else:
@@ -378,35 +390,50 @@ class NodeServer(object):
         Write pending input to node server.
         Kill process if unresponsive.
         """
-        while True and self._inq:
-            try:
-                # try to get a line from the queue
-                line = self._inq.get(True, 5)
-            except Empty:
-                # no line in queue, check if the Node Server is responding
-                if not self.responding:
-                    _LOGGER.error(
-                        'Node Server %s has stopped responding.', self.name)
-                    self._inq = None
-                    self._rqq = None
-                    self._proc.kill()
-            else:
+        if self._mqtt is None:
+            while True and self._inq:
                 try:
-                    # found line, try to write it
-                    self._proc.stdin.write('{}\n'.format(line))
-                    self._proc.stdin.flush()
-                except IOError:
-                    # stdin pipe is broken. process is likely dead.
-                    _LOGGER.error(
-                        'Node Server %s has exited unexpectedly.', self.name)
-                    self._inq = None
-                    self._rqq = None
-                    self._proc.kill()
+                    # try to get a line from the queue
+                    line = self._inq.get(True, 5)
+                except Empty:
+                    # no line in queue, check if the Node Server is responding
+                    if not self.responding:
+                        _LOGGER.error(
+                            'Node Server %s has stopped responding.', self.name)
+                        self._inq = None
+                        self._rqq = None
+                        self._proc.kill()
                 else:
-                    # line wrote successfully
-                    _LOGGER.debug('%s STDIN: %s', self.name, line)
-                    if self._inq:
-                        self._inq.task_done()
+                    try:
+                        # found line, try to write it
+                        self._proc.stdin.write('{}\n'.format(line))
+                        self._proc.stdin.flush()
+                    except IOError:
+                        # stdin pipe is broken. process is likely dead.
+                        _LOGGER.error(
+                            'Node Server %s has exited unexpectedly.', self.name)
+                        self._inq = None
+                        self._rqq = None
+                        self._proc.kill()
+                    else:
+                        # line wrote successfully
+                        _LOGGER.debug('%s STDIN: %s', self.name, line)
+                        if self._inq:
+                            self._inq.task_done()
+        else:
+            if self.node_connected == True:
+                while True and self._mqtt:
+                    if not self.responding:
+                        _LOGGER.error(
+                            'Node Server %s has stopped responding.', self.name)
+                        self._mqtt = None
+                        self._rqq = None
+                        self._mqtt.stop()
+                        self._proc.kill()
+                    time.sleep(1)
+            else: 
+                time.sleep(2)
+                self._send_in()
 
     def _request_handler(self):
         """
@@ -443,11 +470,16 @@ class NodeServer(object):
                           (time.time() - ts))
 
     def _recv_out(self, line):
-        """ Process node server output. """
+        """ 
+        Process the output of the nodeserver 
+        (Called from STDOUT or from message receive in MQTT) 
+        """
+        type = 'STDOUT'
+        if self._mqtt is not None: type = 'MQTT'
         l = (line[:57] + '...') if len(line) > 60 else line
-        _LOGGER.debug('%8s [%d] (%5.2f) STDOUT: %s', self.name,
+        _LOGGER.debug('%8s [%d] (%5.2f) %s: %s', self.name,
                       (0 if self._rqq is None else self._rqq.qsize()),
-                      0.0, l)
+                      0.0, type, l)
         ts = time.time()
         # parse message
         message = json.loads(line)
@@ -500,9 +532,15 @@ class NodeServer(object):
             self._mk_cmd('statistics', **result)
         elif command == 'exit':
             # node server is done. Kill it. Clean up is automatic.
+            self.node_connected = False
+            self._mqtt.stop()
             self._proc.kill()
             self._inq = None
             self._rqq = None
+        elif command == 'connected':
+            self.node_connected = True
+            self.send_params()        
+            self.send_config()
         else:
             fun = self._handlers.get(command)
             if fun and self._rqq:
@@ -515,7 +553,9 @@ class NodeServer(object):
                       (time.time() - ts), l)
 
     def _recv_err(self, line):
-        """ Process error stream from node server. """
+        """
+        Process STDERR from nodeserver
+        """
         if line.startswith('**INFO: '):
             _LOGGER.info('%s: %s', self.name, line)
         elif line.startswith('**DEBUG: '):
@@ -525,11 +565,17 @@ class NodeServer(object):
         else:
             _LOGGER.error('%s: %s', self.name, line)
 
-    # handle output
     def _mk_cmd(self, cmd_code, **kwargs):
-        """ Enqueue a command for transmission to server. """
+        """ 
+        Process Output TO the nodeserver (MQTT/STDIN)
+        """
         msg = json.dumps({cmd_code: kwargs})
-        if self._inq:
+        # If using mqtt, send the msg to the nodeserver over that mechanism
+        if self._mqtt is not None:
+            self._mqtt._mqttc.publish(self._mqtt.topicOutput, str(msg), 0)
+            _LOGGER.debug('%s MQTT Publish: %s', self.name, str(msg))
+        # Else add the msg to the STDIN queue to send to the nodeserver processed by _send_in
+        elif self._inq:
             self._inq.put(msg, True, 5)
 
     def send_config(self):
@@ -538,7 +584,7 @@ class NodeServer(object):
 
     def send_params(self):
         """ Send parameters to Node Server. """
-        self._mk_cmd('params', **self.params)        
+        self._mk_cmd('params', **self.params)
 
     def send_install(self, profile_number=None):
         """ Send install command to Node Server. """
@@ -597,15 +643,93 @@ class NodeServer(object):
 
     def send_exit(self):
         """ Send exit command to the Node Server. """
+        self.node_connected = False
         self._mk_cmd('exit')
 
     def kill(self):
         """ Kill the node server process. """
         try:
             self._proc.kill()
+
         except MyProcessLookupError:
             pass
 
+    class mqttSubsystem:
+        def __init__(self, parent):
+            self.parent = parent
+            self.connected = False
+            self.topicOutput = 'udi/polyglot/' + self.parent.name + "/node"
+            self.topicInput = 'udi/polyglot/' + self.parent.name + "/poly"
+            self._mqttc = mqtt.Client(self.parent.name + "-poly", False)
+            self._mqttc.on_connect = self._connect
+            self._mqttc.on_message = self._message
+            self._mqttc.on_subscribe = self._subscribe
+            self._mqttc.on_disconnect = self._disconnect
+            self._mqttc.on_publish = self._publish
+            self._mqttc.on_log = self._log
+            self._server = self.parent.mqtt_server
+            self._port = self.parent.mqtt_port
+        
+        # The callback for when the client receives a CONNACK response from the server.
+        def _connect(self, mqttc, userdata, flags, rc):
+            # Subscribing in on_connect() means that if we lose the connection and
+            # reconnect then subscriptions will be renewed.
+            if rc == 0:
+                _LOGGER.info("MQTT Connected with result code " + str(rc) + " (Success)")
+                result, mid = self._mqttc.subscribe(self.topicInput)
+                if result == 0:
+                    _LOGGER.info("MQTT Subscribing to topic: " + self.topicInput + " - " + " MID: " + str(mid) + " Result: " + str(result))
+                else:
+                    _LOGGER.info("MQTT Subscription to " + self.topicInput + " failed. This is unusual. MID: " + str(mid) + " Result: " + str(result))
+                    # If subscription fails, try to reconnect.
+                    self._mqttc.reconnect()
+            else:
+                _LOGGER.error("MQTT Failed to connect. Result code: " + str(rc))
+            
+        # The callback for when a PUBLISH message is received from the server.
+        def _message(self, mqttc, userdata, msg):
+            _LOGGER.info('MQTT Received Message: ' + msg.topic + ": QoS: " + str(msg.qos) + ": " + str(msg.payload))
+            self.parent._recv_out(msg.payload)
+
+        # The callback for when a DISCONNECT occurs.    
+        def _disconnect(self, mqttc, userdata, rc):
+            self.connected = False
+            if rc != 0:
+                _LOGGER.info("MQTT Unexpected disconnection. Trying reconnect.")
+                self._mqttc.reconnect()
+            if rc == 0:
+                _LOGGER.info("MQTT Graceful disconnection.")
+
+        def _log(self, mqttc, userdata, level, string):
+            # Use for debugging MQTT Packets, disable for normal use, NOISY.
+            #_LOGGER.info('MQTT Log - ' + str(level) + ': ' + str(string))
+            pass
+                
+        def _subscribe(self, mqttc, userdata, mid, granted_qos):
+            #_LOGGER.info("MQTT Subscribed Succesfully for Message ID: " + str(mid) + " - QoS: " + str(granted_qos))
+            pass
+
+        def _publish(self, mqttc, userdata, mid):
+            #_LOGGER.info("MQTT Published message ID: " + str(mid))
+            pass
+            
+        def start(self):
+            _LOGGER.info('Connecting to MQTT... ' + self._server + ':' + self._port)
+            try:
+                self._mqttc.connect(str(self._server), int(self._port), 10)
+                self._mqttc.loop_start()
+                self.connected = True
+            except Exception as ex:
+                template = "An exception of type {0} occured. Arguments:\n{1!r}"
+                message = template.format(type(ex).__name__, ex.args)
+                _LOGGER.error("MQTT Connection error: " + message)
+            
+        def stop(self):
+            _LOGGER.info('Disconnecting from MQTT... ' + self._server + ':' + self._port)
+            self._mqttc.loop_stop()
+            self._mqttc.disconnect()
+
+    
 def random_string(length):
     """ Generate a random string of uppercase, lowercase, and digits """
     library = string.ascii_uppercase + string.ascii_lowercase + string.digits
