@@ -285,7 +285,8 @@ class NodeServer(object):
 
         # Check if MQTT interface is used for this nodeserver
         if (self.interface == 'mqtt' and MQTT == True):
-            self._mqtt = self.mqttSubsystem(self)
+            if self._mqtt is None:
+                self._mqtt = self.mqttSubsystem(self)
             self._mqtt.start()
         
         # Create threads dictionary
@@ -365,6 +366,8 @@ class NodeServer(object):
             return True
 
         elif time.time() - self._lastping >= 30:
+            # If MQTT is not connected, assume we are trying to reconnect and don't send a ping
+            if self._mqtt is not None and (self._mqtt.connected == False or self.node_connected == False): return True
             # last ping has expired (more than 30 seconds old)
             if self._lastpong and self._lastpong > self._lastping:
                 # pong was received
@@ -426,9 +429,9 @@ class NodeServer(object):
                     if not self.responding:
                         _LOGGER.error(
                             'Node Server %s has stopped responding.', self.name)
-                        self._mqtt = None
                         self._rqq = None
                         self._mqtt.stop()
+                        self._mqtt = None
                         self._proc.kill()
                     time.sleep(1)
             else: 
@@ -538,9 +541,15 @@ class NodeServer(object):
             self._inq = None
             self._rqq = None
         elif command == 'connected':
+            _LOGGER.info('%8s current status is connected to the broker.', self.name)
             self.node_connected = True
             self.send_params()        
             self.send_config()
+            self.send_ping()
+        elif command == 'disconnected':
+            _LOGGER.error('%8s current status is disconnected from the broker.', self.name)
+            self.node_connected = False
+
         else:
             fun = self._handlers.get(command)
             if fun and self._rqq:
@@ -660,13 +669,14 @@ class NodeServer(object):
             self.connected = False
             self.topicOutput = 'udi/polyglot/' + self.parent.name + "/node"
             self.topicInput = 'udi/polyglot/' + self.parent.name + "/poly"
-            self._mqttc = mqtt.Client(self.parent.name + "-poly", False)
+            self._mqttc = mqtt.Client(self.parent.name + "-poly", True)
             self._mqttc.on_connect = self._connect
             self._mqttc.on_message = self._message
             self._mqttc.on_subscribe = self._subscribe
             self._mqttc.on_disconnect = self._disconnect
             self._mqttc.on_publish = self._publish
             self._mqttc.on_log = self._log
+            self._mqttc.will_set(self.topicOutput,json.dumps({"disconnected": {}}), retain=True)
             self._server = self.parent.mqtt_server
             self._port = self.parent.mqtt_port
         
@@ -675,6 +685,7 @@ class NodeServer(object):
             # Subscribing in on_connect() means that if we lose the connection and
             # reconnect then subscriptions will be renewed.
             if rc == 0:
+                self.connected = True
                 _LOGGER.info("MQTT Connected with result code " + str(rc) + " (Success)")
                 result, mid = self._mqttc.subscribe(self.topicInput)
                 if result == 0:
@@ -695,11 +706,16 @@ class NodeServer(object):
         def _disconnect(self, mqttc, userdata, rc):
             self.connected = False
             if rc != 0:
-                _LOGGER.info("MQTT Unexpected disconnection. Trying reconnect.")
-                self._mqttc.reconnect()
+                _LOGGER.info("MQTT Unexpected disconnection. Trying reconnect1.")
+                try:
+                    self._mqttc.reconnect()
+                except Exception as ex:
+                    template = "An exception of type {0} occured. Arguments:\n{1!r}"
+                    message = template.format(type(ex).__name__, ex.args)
+                    _LOGGER.error("MQTT Connection error: " + message)                
             if rc == 0:
                 _LOGGER.info("MQTT Graceful disconnection.")
-
+                
         def _log(self, mqttc, userdata, level, string):
             # Use for debugging MQTT Packets, disable for normal use, NOISY.
             #_LOGGER.info('MQTT Log - ' + str(level) + ': ' + str(string))
@@ -718,7 +734,7 @@ class NodeServer(object):
             try:
                 self._mqttc.connect(str(self._server), int(self._port), 10)
                 self._mqttc.loop_start()
-                self.connected = True
+                self._mqttc.publish(self.topicOutput,json.dumps({"connected": {}}), retain=True)
             except Exception as ex:
                 template = "An exception of type {0} occured. Arguments:\n{1!r}"
                 message = template.format(type(ex).__name__, ex.args)
