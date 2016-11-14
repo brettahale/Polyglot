@@ -1320,6 +1320,19 @@ class PolyglotConnector(object):
                     if existing == self.nodeserver_config: 
                         self.smsg('**INFO: NodeServer configuration file matches running config... Skipping write.')
                         return True
+            except yaml.YAMLError as e:
+                # the saved config file is bad, report the error and fix it
+                self.logger.error('**ERROR: write_nodeserver_config: {}'.format(e))
+                # return False
+            except IOError as e:
+                # the saved config file may not exist, ignore open/read error and write one
+                #self.smsg('**ERROR: write_nodeserver_config: Could not read to nodeserver config file {}' +
+                #          ' error={}).format(
+                #         self.configfile,
+                #         e ))
+                pass
+
+            try:
                 with open(os.path.join(self.path, self.configfile), 'w') as write:
                     yaml.dump(self.nodeserver_config, write, default_flow_style=default_flow_style, indent=indent)
                     self.smsg('**INFO: NodeServer configuration file is different than running config... Updated file.')
@@ -1332,6 +1345,7 @@ class PolyglotConnector(object):
                 return False
         else: self.smsg('**ERROR: PyYAML module not installed... skipping custom config sections. "sudo pip install pyyaml" to use')
         return True
+
 
     # manage output
     def _send_out(self):
