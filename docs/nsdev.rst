@@ -224,8 +224,8 @@ To use the MQTT Subsystem for communications you must include the following
 into your server.json of your nodeserver::
 
 	"interface": "mqtt",
-    "mqtt_server": "192.168.1.20",
-    "mqtt_port": "1883",
+	"mqtt_server": "192.168.1.20",
+	"mqtt_port": "1883",
 
 When Polyglot reads the server.json file and see's the MQTT interface command
 it enables the MQTT subsystem for that particular nodeserver. It then sends 
@@ -269,5 +269,5 @@ provided in the Node Server example section of the documentation.
 MQTT Subsystem Class
 --------------------
 
-.. autoclass:: polyglot.nodeserver_manager.mqttSubsystem
+.. autoclass:: polyglot.nodeserver_manager.NodeServer.mqttSubsystem
    :members:
