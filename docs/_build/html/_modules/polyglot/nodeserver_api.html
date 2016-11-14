@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>polyglot.nodeserver_api &mdash; Polyglot 0.0.4 documentation</title>
+  <title>polyglot.nodeserver_api &mdash; Polyglot 0.0.6 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="Polyglot 0.0.4 documentation" href="../../index.html"/>
+    <link rel="top" title="Polyglot 0.0.6 documentation" href="../../index.html"/>
         <link rel="up" title="Module code" href="../index.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                0.0.4
+                0.0.6
               </div>
             
           
@@ -87,6 +87,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../nsapi.html">Polyglot Node Server API</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../module.html">Polyglot Methods and Classes</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../optional.html">Optional Components</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../changelog.html">Changelog</a></li>
 </ul>
 
             
@@ -1462,7 +1463,7 @@
                 <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s1">&#39;**ERROR: write_nodeserver_config: {}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">e</span><span class="p">))</span>
                 <span class="k">return</span> <span class="bp">False</span>
             <span class="k">except</span> <span class="ne">IOError</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">smsg</span><span class="p">(</span><span class="s1">&#39;**ERROR: write_nodeserver_config: Could not write to nodeserver config file </span><span class="si">%s</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">configfile</span><span class="p">))</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">smsg</span><span class="p">(</span><span class="s1">&#39;**ERROR: write_nodeserver_config: Could not write to nodeserver config file {}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">configfile</span><span class="p">))</span>
                 <span class="k">return</span> <span class="bp">False</span>
         <span class="k">else</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">smsg</span><span class="p">(</span><span class="s1">&#39;**ERROR: PyYAML module not installed... skipping custom config sections. &quot;sudo pip install pyyaml&quot; to use&#39;</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">True</span>
@@ -1782,7 +1783,6 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_mk_cmd</span><span class="p">(</span><span class="s1">&#39;request&#39;</span><span class="p">,</span> <span class="n">request_id</span><span class="o">=</span><span class="n">request_id</span><span class="p">,</span> <span class="n">success</span><span class="o">=</span><span class="n">success</span><span class="p">,</span>
                      <span class="n">timeout</span><span class="o">=</span><span class="n">timeout</span><span class="p">,</span> <span class="n">seq</span><span class="o">=</span><span class="n">seq</span><span class="p">)</span>
-
 </div>
 <div class="viewcode-block" id="PolyglotConnector.restcall"><a class="viewcode-back" href="../../nsdev.html#polyglot.nodeserver_api.PolyglotConnector.restcall">[docs]</a>    <span class="k">def</span> <span class="nf">restcall</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">api</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">seq</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
 
@@ -1874,7 +1874,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../',
-            VERSION:'0.0.4',
+            VERSION:'0.0.6',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

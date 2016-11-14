@@ -3,3 +3,4 @@ tornado==4.2
 backports.ssl_match_hostname==3.4.0.2
 netdisco==0.5.1
 pyyaml>=3.09
+paho-mqtt>=1.2

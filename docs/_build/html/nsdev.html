@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Node Server Development &mdash; Polyglot 0.0.4 documentation</title>
+  <title>Node Server Development &mdash; Polyglot 0.0.6 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="Polyglot 0.0.4 documentation" href="index.html"/>
+    <link rel="top" title="Polyglot 0.0.6 documentation" href="index.html"/>
         <link rel="next" title="Python Node Server Example" href="nsexample.html"/>
         <link rel="prev" title="Usage" href="usage.html"/> 
 
@@ -60,7 +60,7 @@
             
             
               <div class="version">
-                0.0.4
+                0.0.6
               </div>
             
           
@@ -96,12 +96,18 @@
 <li class="toctree-l3"><a class="reference internal" href="#helper-functions">Helper Functions</a></li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="#mqtt">MQTT</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#usage">Usage</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#mqtt-subsystem-class">MQTT Subsystem Class</a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="nsexample.html">Python Node Server Example</a></li>
 <li class="toctree-l1"><a class="reference internal" href="nsapi.html">Polyglot Node Server API</a></li>
 <li class="toctree-l1"><a class="reference internal" href="module.html">Polyglot Methods and Classes</a></li>
 <li class="toctree-l1"><a class="reference internal" href="optional.html">Optional Components</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changelog.html">Changelog</a></li>
 </ul>
 
             
@@ -155,6 +161,8 @@ managed by Polyglot. Polyglot communicates with the node servers by reading the
 STDOUT and STDERR streams as well as writing to the STDIN stream. STDIN and
 STDOUT messages are JSON formatted commands that are documented in
 <a class="reference internal" href="nsapi.html"><em>Polyglot Node Server API</em></a>.</p>
+<p>As of Polyglot 0.0.6 MQTT is available as a communication mechanism
+as well. See <a class="reference internal" href="#mqtt">MQTT</a>.</p>
 </div>
 <div class="section" id="file-structure">
 <h2>File Structure<a class="headerlink" href="#file-structure" title="Permalink to this headline">¶</a></h2>
@@ -195,6 +203,8 @@ below. It has been extracted from the Philips Hue node server.</p>
     <span class="nt">&quot;docs&quot;</span><span class="p">:</span> <span class="s2">&quot;https://www.universal-devices.com/&quot;</span><span class="p">,</span>
     <span class="nt">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;python&quot;</span><span class="p">,</span>
     <span class="nt">&quot;executable&quot;</span><span class="p">:</span> <span class="s2">&quot;hue.py&quot;</span><span class="p">,</span>
+            <span class="nt">&quot;configfile&quot;</span><span class="p">:</span> <span class="s2">&quot;config.yaml&quot;</span><span class="p">,</span>
+            <span class="nt">&quot;interface&quot;</span><span class="p">:</span> <span class="s2">&quot;Default&quot;</span><span class="p">,</span>
     <span class="nt">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;Connect Phillips Hue Personal Wireless Lighting system to the ISY994.&quot;</span><span class="p">,</span>
     <span class="nt">&quot;notice&quot;</span><span class="p">:</span> <span class="s2">&quot;\&quot;Hue Personal Wireless Lighting\&quot; is a trademark owned by Koninklijke Philips Electronics N.V., see www.meethue.com for more information. This Node Server is neither developed by nor endorsed by the Philips organization.&quot;</span><span class="p">,</span>
     <span class="nt">&quot;credits&quot;</span><span class="p">:</span> <span class="p">[</span>
@@ -1593,6 +1603,72 @@ be sent to the ISY. This decorator is implemented in the SimpleNodeServer.</p>
 
 </div>
 </div>
+<div class="section" id="mqtt">
+<span id="id1"></span><h2>MQTT<a class="headerlink" href="#mqtt" title="Permalink to this headline">¶</a></h2>
+<p>MQTT communication mechanism has been developed for communications between
+Polyglot and the nodeservers. This becomes useful so that you can connected
+many different nodes to your nodeserver without having the distributed code
+running directly on the same platform Polyglot resides on. For example, I have
+a system of nodes that all communicates over MQTT to keep updated, and I don&#8217;t
+want to wrap that entire system into Polyglot. I can develop a simple nodeserver
+that runs and listens to your existing MQTT to allow communications without
+having to completely redevelop the system as a polyglot nodeserver. This lays
+the framework of allowing for completly distributed nodeservers.</p>
+<div class="section" id="usage">
+<h3>Usage<a class="headerlink" href="#usage" title="Permalink to this headline">¶</a></h3>
+<p>To use the MQTT Subsystem for communications you must include the following
+into your server.json of your nodeserver:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span>&quot;interface&quot;: &quot;mqtt&quot;,
+&quot;mqtt_server&quot;: &quot;192.168.1.20&quot;,
+&quot;mqtt_port&quot;: &quot;1883&quot;,
+</pre></div>
+</div>
+<p>When Polyglot reads the server.json file and see&#8217;s the MQTT interface command
+it enables the MQTT subsystem for that particular nodeserver. It then sends
+these params along with the normal params and config to the nodeserver over STDIN,
+which allows for dynamic passing of the mqtt_server and mqtt_port information to
+the nodeserver. This is done to avoid having to set the connection information on
+both server.json AND your nodeserver. If the &#8220;interface&#8221; setting is missing or
+anything other than &#8220;mqtt&#8221; case insensitive, then the standard STDIN/STDOUT
+mechansims will be used, regardless of if mqtt_server and mqtt_port are provided.</p>
+<p>When the Polyglot nodeserver manager enables the MQTT interface, it automatically
+connects to the MQTT broker and subscribes to the topic:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span>udi/polyglot/&lt;nodeserver name&gt;/poly
+</pre></div>
+</div>
+<p>This topic is where your nodeserver will publish any commands destined for Polyglot
+for example the pong keepalive messages. These messages are formatted in JSON
+exactly like the exisiting STDOUT messages.</p>
+<p>When creating a nodeserver that uses MQTT, you should listen on both STDIN and MQTT
+and respond based on which mechanism was used. MQTT is a network resource,
+therefore inherently it is possible to have network disruption or connection
+issues. When using MQTT in your nodeserver you will subscribe to the topic:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span>udi/polyglot/&lt;nodeserver name&gt;/node
+</pre></div>
+</div>
+<p>There is a retianed message that you will get upon subscription to the topic above
+reflecting the current connection state of the Polyglot side. The json messages are
+listed below.:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span>{&quot;connected&quot;: {}}
+or
+{&quot;disconnected&quot;: {}}
+</pre></div>
+</div>
+<p>This state is how you should respond to Polyglot. Using STDOUT if disconnected or
+MQTT if connected. A &#8220;Last Will and Testament&#8221; message is configured on the
+Polyglot side to always make sure the state is accurate even on catastrophic
+failure. The nodeserver should be configured with this same feature. An example is
+provided in the Node Server example section of the documentation.</p>
+</div>
+<div class="section" id="mqtt-subsystem-class">
+<h3>MQTT Subsystem Class<a class="headerlink" href="#mqtt-subsystem-class" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt id="polyglot.nodeserver_manager.mqttSubsystem">
+<em class="property">class </em><code class="descclassname">polyglot.nodeserver_manager.</code><code class="descname">mqttSubsystem</code><span class="sig-paren">(</span><em>parent</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polyglot/nodeserver_manager.html#mqttSubsystem"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polyglot.nodeserver_manager.mqttSubsystem" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+</div>
 </div>
 
 
@@ -1636,7 +1712,7 @@ be sent to the ISY. This decorator is implemented in the SimpleNodeServer.</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'0.0.4',
+            VERSION:'0.0.6',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true
