@@ -312,7 +312,7 @@ class NodeServer(object):
             self.send_config()
             # If the MQTT subsystem is not created, create it (first boot) else use the existing
             if self._mqtt is None:
-                self._mqtt = self.mqttSubsystem(self)
+                self._mqtt = mqttSubsystem(self)
             self._mqtt.start()
 
         # If we aren't using MQTT
@@ -665,89 +665,89 @@ class NodeServer(object):
         except MyProcessLookupError:
             pass
 
-    class mqttSubsystem:
-        def __init__(self, parent):
-            self.parent = parent
-            self.connected = False
-            self.topicOutput = 'udi/polyglot/' + self.parent.name + "/node"
-            self.topicInput = 'udi/polyglot/' + self.parent.name + "/poly"
-            self._mqttc = mqtt.Client(self.parent.name + "-poly", True)
-            self._mqttc.will_set(self.topicOutput,json.dumps({"disconnected": {}}), retain=True)
-            self._mqttc.on_connect = self._connect
-            self._mqttc.on_message = self._message
-            self._mqttc.on_subscribe = self._subscribe
-            self._mqttc.on_disconnect = self._disconnect
-            self._mqttc.on_publish = self._publish
-            self._mqttc.on_log = self._log
-            self._server = self.parent.mqtt_server
-            self._port = self.parent.mqtt_port
-        
-        # The callback for when the client receives a CONNACK response from the server.
-        def _connect(self, mqttc, userdata, flags, rc):
-            # Subscribing in on_connect() means that if we lose the connection and
-            # reconnect then subscriptions will be renewed.
-            if rc == 0:
-                self.connected = True
-                _LOGGER.info("MQTT Connected with result code " + str(rc) + " (Success)")
-                result, mid = self._mqttc.subscribe(self.topicInput)
-                if result == 0:
-                    _LOGGER.info("MQTT Subscribing to topic: " + self.topicInput + " - " + " MID: " + str(mid) + " Result: " + str(result))
-                else:
-                    _LOGGER.info("MQTT Subscription to " + self.topicInput + " failed. This is unusual. MID: " + str(mid) + " Result: " + str(result))
-                    # If subscription fails, try to reconnect.
-                    self._mqttc.reconnect()
+class mqttSubsystem:
+    def __init__(self, parent):
+        self.parent = parent
+        self.connected = False
+        self.topicOutput = 'udi/polyglot/' + self.parent.name + "/node"
+        self.topicInput = 'udi/polyglot/' + self.parent.name + "/poly"
+        self._mqttc = mqtt.Client(self.parent.name + "-poly", True)
+        self._mqttc.will_set(self.topicOutput,json.dumps({"disconnected": {}}), retain=True)
+        self._mqttc.on_connect = self._connect
+        self._mqttc.on_message = self._message
+        self._mqttc.on_subscribe = self._subscribe
+        self._mqttc.on_disconnect = self._disconnect
+        self._mqttc.on_publish = self._publish
+        self._mqttc.on_log = self._log
+        self._server = self.parent.mqtt_server
+        self._port = self.parent.mqtt_port
+    
+    # The callback for when the client receives a CONNACK response from the server.
+    def _connect(self, mqttc, userdata, flags, rc):
+        # Subscribing in on_connect() means that if we lose the connection and
+        # reconnect then subscriptions will be renewed.
+        if rc == 0:
+            self.connected = True
+            _LOGGER.info("MQTT Connected with result code " + str(rc) + " (Success)")
+            result, mid = self._mqttc.subscribe(self.topicInput)
+            if result == 0:
+                _LOGGER.info("MQTT Subscribing to topic: " + self.topicInput + " - " + " MID: " + str(mid) + " Result: " + str(result))
             else:
-                _LOGGER.error("MQTT Failed to connect. Result code: " + str(rc))
-            
-        # The callback for when a PUBLISH message is received from the server.
-        def _message(self, mqttc, userdata, msg):
-            #_LOGGER.info('MQTT Received Message: ' + msg.topic + ": QoS: " + str(msg.qos) + ": " + str(msg.payload))
-            self.parent._recv_out(msg.payload)
+                _LOGGER.info("MQTT Subscription to " + self.topicInput + " failed. This is unusual. MID: " + str(mid) + " Result: " + str(result))
+                # If subscription fails, try to reconnect.
+                self._mqttc.reconnect()
+        else:
+            _LOGGER.error("MQTT Failed to connect. Result code: " + str(rc))
+        
+    # The callback for when a PUBLISH message is received from the server.
+    def _message(self, mqttc, userdata, msg):
+        #_LOGGER.info('MQTT Received Message: ' + msg.topic + ": QoS: " + str(msg.qos) + ": " + str(msg.payload))
+        self.parent._recv_out(msg.payload)
 
-        # The callback for when a DISCONNECT occurs.    
-        def _disconnect(self, mqttc, userdata, rc):
-            self.connected = False
-            if rc != 0:
-                _LOGGER.info("MQTT Unexpected disconnection. Trying reconnect1.")
-                try:
-                    self._mqttc.reconnect()
-                except Exception as ex:
-                    template = "An exception of type {0} occured. Arguments:\n{1!r}"
-                    message = template.format(type(ex).__name__, ex.args)
-                    _LOGGER.error("MQTT Connection error: " + message)                
-            if rc == 0:
-                _LOGGER.info("MQTT Graceful disconnection.")
-                
-        def _log(self, mqttc, userdata, level, string):
-            # Use for debugging MQTT Packets, disable for normal use, NOISY.
-            #_LOGGER.info('MQTT Log - ' + str(level) + ': ' + str(string))
-            pass
-                
-        def _subscribe(self, mqttc, userdata, mid, granted_qos):
-            #_LOGGER.info("MQTT Subscribed Succesfully for Message ID: " + str(mid) + " - QoS: " + str(granted_qos))
-            pass
-
-        def _publish(self, mqttc, userdata, mid):
-            #_LOGGER.info("MQTT Published message ID: " + str(mid))
-            pass
-            
-        def start(self):
-            _LOGGER.info('Connecting to MQTT... ' + self._server + ':' + self._port)
+    # The callback for when a DISCONNECT occurs.    
+    def _disconnect(self, mqttc, userdata, rc):
+        self.connected = False
+        if rc != 0:
+            _LOGGER.info("MQTT Unexpected disconnection. Trying reconnect1.")
             try:
-                self._mqttc.connect(str(self._server), int(self._port), 10)
-                self._mqttc.loop_start()
-                self._mqttc.publish(self.topicOutput,json.dumps({"connected": {}}), retain=True)
+                self._mqttc.reconnect()
             except Exception as ex:
                 template = "An exception of type {0} occured. Arguments:\n{1!r}"
                 message = template.format(type(ex).__name__, ex.args)
-                _LOGGER.error("MQTT Connection error: " + message)
+                _LOGGER.error("MQTT Connection error: " + message)                
+        if rc == 0:
+            _LOGGER.info("MQTT Graceful disconnection.")
             
-        def stop(self):
-            if (self.connected):
-                _LOGGER.info('Disconnecting from MQTT... ' + self._server + ':' + self._port)
-                self._mqttc.publish(self.topicOutput,json.dumps({"disconnected": {}}), retain=True)
-                self._mqttc.loop_stop()
-                self._mqttc.disconnect()
+    def _log(self, mqttc, userdata, level, string):
+        # Use for debugging MQTT Packets, disable for normal use, NOISY.
+        #_LOGGER.info('MQTT Log - ' + str(level) + ': ' + str(string))
+        pass
+            
+    def _subscribe(self, mqttc, userdata, mid, granted_qos):
+        #_LOGGER.info("MQTT Subscribed Succesfully for Message ID: " + str(mid) + " - QoS: " + str(granted_qos))
+        pass
+
+    def _publish(self, mqttc, userdata, mid):
+        #_LOGGER.info("MQTT Published message ID: " + str(mid))
+        pass
+        
+    def start(self):
+        _LOGGER.info('Connecting to MQTT... ' + self._server + ':' + self._port)
+        try:
+            self._mqttc.connect(str(self._server), int(self._port), 10)
+            self._mqttc.loop_start()
+            self._mqttc.publish(self.topicOutput,json.dumps({"connected": {}}), retain=True)
+        except Exception as ex:
+            template = "An exception of type {0} occured. Arguments:\n{1!r}"
+            message = template.format(type(ex).__name__, ex.args)
+            _LOGGER.error("MQTT Connection error: " + message)
+        
+    def stop(self):
+        if (self.connected):
+            _LOGGER.info('Disconnecting from MQTT... ' + self._server + ':' + self._port)
+            self._mqttc.publish(self.topicOutput,json.dumps({"disconnected": {}}), retain=True)
+            self._mqttc.loop_stop()
+            self._mqttc.disconnect()
    
 def random_string(length):
     """ Generate a random string of uppercase, lowercase, and digits """

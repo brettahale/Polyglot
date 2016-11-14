@@ -57,6 +57,8 @@ below. It has been extracted from the Philips Hue node server.
         "docs": "https://www.universal-devices.com/",
         "type": "python",
         "executable": "hue.py",
+		"configfile": "config.yaml",
+		"interface": "Default",
         "description": "Connect Phillips Hue Personal Wireless Lighting system to the ISY994.",
         "notice": "\"Hue Personal Wireless Lighting\" is a trademark owned by Koninklijke Philips Electronics N.V., see www.meethue.com for more information. This Node Server is neither developed by nor endorsed by the Philips organization.",
         "credits": [
@@ -269,5 +271,5 @@ provided in the Node Server example section of the documentation.
 MQTT Subsystem Class
 --------------------
 
-.. autoclass:: polyglot.nodeserver_manager.NodeServer.mqttSubsystem
+.. autoclass:: polyglot.nodeserver_manager.mqttSubsystem
    :members:

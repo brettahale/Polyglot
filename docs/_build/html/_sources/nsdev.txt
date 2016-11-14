@@ -57,6 +57,8 @@ below. It has been extracted from the Philips Hue node server.
         "docs": "https://www.universal-devices.com/",
         "type": "python",
         "executable": "hue.py",
+		"configfile": "config.yaml",
+		"interface": "Default",
         "description": "Connect Phillips Hue Personal Wireless Lighting system to the ISY994.",
         "notice": "\"Hue Personal Wireless Lighting\" is a trademark owned by Koninklijke Philips Electronics N.V., see www.meethue.com for more information. This Node Server is neither developed by nor endorsed by the Philips organization.",
         "credits": [
@@ -224,8 +226,8 @@ To use the MQTT Subsystem for communications you must include the following
 into your server.json of your nodeserver::
 
 	"interface": "mqtt",
-    "mqtt_server": "192.168.1.20",
-    "mqtt_port": "1883",
+	"mqtt_server": "192.168.1.20",
+	"mqtt_port": "1883",
 
 When Polyglot reads the server.json file and see's the MQTT interface command
 it enables the MQTT subsystem for that particular nodeserver. It then sends 

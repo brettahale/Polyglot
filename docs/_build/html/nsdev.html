@@ -203,6 +203,8 @@ below. It has been extracted from the Philips Hue node server.</p>
     <span class="nt">&quot;docs&quot;</span><span class="p">:</span> <span class="s2">&quot;https://www.universal-devices.com/&quot;</span><span class="p">,</span>
     <span class="nt">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;python&quot;</span><span class="p">,</span>
     <span class="nt">&quot;executable&quot;</span><span class="p">:</span> <span class="s2">&quot;hue.py&quot;</span><span class="p">,</span>
+            <span class="nt">&quot;configfile&quot;</span><span class="p">:</span> <span class="s2">&quot;config.yaml&quot;</span><span class="p">,</span>
+            <span class="nt">&quot;interface&quot;</span><span class="p">:</span> <span class="s2">&quot;Default&quot;</span><span class="p">,</span>
     <span class="nt">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;Connect Phillips Hue Personal Wireless Lighting system to the ISY994.&quot;</span><span class="p">,</span>
     <span class="nt">&quot;notice&quot;</span><span class="p">:</span> <span class="s2">&quot;\&quot;Hue Personal Wireless Lighting\&quot; is a trademark owned by Koninklijke Philips Electronics N.V., see www.meethue.com for more information. This Node Server is neither developed by nor endorsed by the Philips organization.&quot;</span><span class="p">,</span>
     <span class="nt">&quot;credits&quot;</span><span class="p">:</span> <span class="p">[</span>
@@ -1616,7 +1618,7 @@ the framework of allowing for completly distributed nodeservers.</p>
 <h3>Usage<a class="headerlink" href="#usage" title="Permalink to this headline">¶</a></h3>
 <p>To use the MQTT Subsystem for communications you must include the following
 into your server.json of your nodeserver:</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span>    &quot;interface&quot;: &quot;mqtt&quot;,
+<div class="highlight-python"><div class="highlight"><pre><span></span>&quot;interface&quot;: &quot;mqtt&quot;,
 &quot;mqtt_server&quot;: &quot;192.168.1.20&quot;,
 &quot;mqtt_port&quot;: &quot;1883&quot;,
 </pre></div>
@@ -1660,6 +1662,11 @@ provided in the Node Server example section of the documentation.</p>
 </div>
 <div class="section" id="mqtt-subsystem-class">
 <h3>MQTT Subsystem Class<a class="headerlink" href="#mqtt-subsystem-class" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt id="polyglot.nodeserver_manager.mqttSubsystem">
+<em class="property">class </em><code class="descclassname">polyglot.nodeserver_manager.</code><code class="descname">mqttSubsystem</code><span class="sig-paren">(</span><em>parent</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polyglot/nodeserver_manager.html#mqttSubsystem"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polyglot.nodeserver_manager.mqttSubsystem" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 </div>
 </div>
 </div>
