@@ -666,6 +666,10 @@ class NodeServer(object):
             pass
 
 class mqttSubsystem:
+    """ mqttSubsystem class instantiated if interface is mqtt in server.json """
+    # pylint: disable=too-many-instance-attributes
+    # pylint: disable=unused-argument
+    
     def __init__(self, parent):
         self.parent = parent
         self.connected = False
@@ -682,10 +686,17 @@ class mqttSubsystem:
         self._server = self.parent.mqtt_server
         self._port = self.parent.mqtt_port
     
-    # The callback for when the client receives a CONNACK response from the server.
     def _connect(self, mqttc, userdata, flags, rc):
-        # Subscribing in on_connect() means that if we lose the connection and
-        # reconnect then subscriptions will be renewed.
+        """
+        The callback for when the client receives a CONNACK response from the server.
+        Subscribing in on_connect() means that if we lose the connection and
+        reconnect then subscriptions will be renewed.
+        
+        :param mqttc: The client instance for this callback
+        :param userdata: The private userdata for the mqtt client. Not used in Polyglot
+        :param flags: The flags set on the connection.
+        :param rc: Result code of connection, 0 = Success, anything else is a failure
+        """
         if rc == 0:
             self.connected = True
             _LOGGER.info("MQTT Connected with result code " + str(rc) + " (Success)")
@@ -699,13 +710,26 @@ class mqttSubsystem:
         else:
             _LOGGER.error("MQTT Failed to connect. Result code: " + str(rc))
         
-    # The callback for when a PUBLISH message is received from the server.
     def _message(self, mqttc, userdata, msg):
+        """
+        The callback for when a PUBLISH message is received from the server.
+
+        :param mqttc: The client instance for this callback
+        :param userdata: The private userdata for the mqtt client. Not used in Polyglot
+        :param flags: The flags set on the connection.
+        :param msg: Dictionary of MQTT received message. Uses: msg.topic, msg.qos, msg.payload
+        """
         #_LOGGER.info('MQTT Received Message: ' + msg.topic + ": QoS: " + str(msg.qos) + ": " + str(msg.payload))
         self.parent._recv_out(msg.payload)
-
-    # The callback for when a DISCONNECT occurs.    
+    
     def _disconnect(self, mqttc, userdata, rc):
+        """
+        The callback for when a DISCONNECT occurs.
+        
+        :param mqttc: The client instance for this callback
+        :param userdata: The private userdata for the mqtt client. Not used in Polyglot
+        :param rc: Result code of connection, 0 = Graceful, anything else is unclean
+        """
         self.connected = False
         if rc != 0:
             _LOGGER.info("MQTT Unexpected disconnection. Trying reconnect1.")
@@ -719,19 +743,25 @@ class mqttSubsystem:
             _LOGGER.info("MQTT Graceful disconnection.")
             
     def _log(self, mqttc, userdata, level, string):
-        # Use for debugging MQTT Packets, disable for normal use, NOISY.
+        """ Use for debugging MQTT Packets, disable for normal use, NOISY. """
         #_LOGGER.info('MQTT Log - ' + str(level) + ': ' + str(string))
         pass
             
     def _subscribe(self, mqttc, userdata, mid, granted_qos):
+        """ Callback for Subscribe message. Unused currently. """
         #_LOGGER.info("MQTT Subscribed Succesfully for Message ID: " + str(mid) + " - QoS: " + str(granted_qos))
         pass
 
     def _publish(self, mqttc, userdata, mid):
+        """ Callback for publish message. Unused currently. """
         #_LOGGER.info("MQTT Published message ID: " + str(mid))
         pass
         
     def start(self):
+        """
+        The client start method. Starts the thread for the MQTT Client
+        and publishes the connected message.
+        """
         _LOGGER.info('Connecting to MQTT... ' + self._server + ':' + self._port)
         try:
             self._mqttc.connect(str(self._server), int(self._port), 10)
@@ -743,6 +773,11 @@ class mqttSubsystem:
             _LOGGER.error("MQTT Connection error: " + message)
         
     def stop(self):
+        """
+        The client stop method. If the client is currently connected
+        stop the thread and disconnect. Publish the disconnected 
+        message if clean shutdown.
+        """
         if (self.connected):
             _LOGGER.info('Disconnecting from MQTT... ' + self._server + ':' + self._port)
             self._mqttc.publish(self.topicOutput,json.dumps({"disconnected": {}}), retain=True)
