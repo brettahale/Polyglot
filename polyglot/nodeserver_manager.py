@@ -328,8 +328,7 @@ class NodeServer(object):
     def restart(self):
         """ restart the nodeserver """
         self.send_exit()
-        if self._mqtt is not None:
-            self._mqtt.stop()
+        self._mqtt.stop()
 
         for _ in range(10):
             if not self.alive:
@@ -337,7 +336,6 @@ class NodeServer(object):
             time.sleep(0.5)
         else:
             self.kill()
-
         self.start()
 
     @property
@@ -545,7 +543,6 @@ class NodeServer(object):
         elif command == 'exit':
             # node server is done. Kill it. Clean up is automatic.
             self.node_connected = False
-            self._mqtt.stop()
             self._proc.kill()
             self._inq = None
             self._rqq = None
@@ -657,8 +654,8 @@ class NodeServer(object):
 
     def send_exit(self):
         """ Send exit command to the Node Server. """
-        self.node_connected = False
         self._mk_cmd('exit')
+        self.node_connected = False
 
     def kill(self):
         """ Kill the node server process. """
@@ -675,13 +672,13 @@ class NodeServer(object):
             self.topicOutput = 'udi/polyglot/' + self.parent.name + "/node"
             self.topicInput = 'udi/polyglot/' + self.parent.name + "/poly"
             self._mqttc = mqtt.Client(self.parent.name + "-poly", True)
+            self._mqttc.will_set(self.topicOutput,json.dumps({"disconnected": {}}), retain=True)
             self._mqttc.on_connect = self._connect
             self._mqttc.on_message = self._message
             self._mqttc.on_subscribe = self._subscribe
             self._mqttc.on_disconnect = self._disconnect
             self._mqttc.on_publish = self._publish
             self._mqttc.on_log = self._log
-            self._mqttc.will_set(self.topicOutput,json.dumps({"disconnected": {}}), retain=True)
             self._server = self.parent.mqtt_server
             self._port = self.parent.mqtt_port
         
@@ -746,9 +743,11 @@ class NodeServer(object):
                 _LOGGER.error("MQTT Connection error: " + message)
             
         def stop(self):
-            _LOGGER.info('Disconnecting from MQTT... ' + self._server + ':' + self._port)
-            self._mqttc.loop_stop()
-            self._mqttc.disconnect()
+            if (self.connected):
+                _LOGGER.info('Disconnecting from MQTT... ' + self._server + ':' + self._port)
+                self._mqttc.publish(self.topicOutput,json.dumps({"disconnected": {}}), retain=True)
+                self._mqttc.loop_stop()
+                self._mqttc.disconnect()
    
 def random_string(length):
     """ Generate a random string of uppercase, lowercase, and digits """
