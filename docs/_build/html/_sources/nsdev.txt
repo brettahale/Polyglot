@@ -8,7 +8,10 @@ Node servers in Polyglot are nothing more than stand alone processes that are
 managed by Polyglot. Polyglot communicates with the node servers by reading the
 STDOUT and STDERR streams as well as writing to the STDIN stream. STDIN and
 STDOUT messages are JSON formatted commands that are documented in
-:doc:`nsapi`.
+:doc:`nsapi`. 
+
+As of Polyglot 0.0.6 MQTT is available as a communication mechanism
+as well. See MQTT_.
 
 File Structure
 ~~~~~~~~~~~~~~
@@ -199,3 +202,72 @@ Helper Functions
 ----------------
 
 .. autofunction:: polyglot.nodeserver_api.auto_request_report
+
+.. _MQTT:
+
+MQTT
+~~~~
+
+MQTT communication mechanism has been developed for communications between 
+Polyglot and the nodeservers. This becomes useful so that you can connected 
+many different nodes to your nodeserver without having the distributed code 
+running directly on the same platform Polyglot resides on. For example, I have 
+a system of nodes that all communicates over MQTT to keep updated, and I don't 
+want to wrap that entire system into Polyglot. I can develop a simple nodeserver
+that runs and listens to your existing MQTT to allow communications without 
+having to completely redevelop the system as a polyglot nodeserver. This lays 
+the framework of allowing for completly distributed nodeservers.
+
+Usage
+-----
+To use the MQTT Subsystem for communications you must include the following
+into your server.json of your nodeserver::
+
+	"interface": "mqtt",
+    "mqtt_server": "192.168.1.20",
+    "mqtt_port": "1883",
+
+When Polyglot reads the server.json file and see's the MQTT interface command
+it enables the MQTT subsystem for that particular nodeserver. It then sends 
+these params along with the normal params and config to the nodeserver over STDIN, 
+which allows for dynamic passing of the mqtt_server and mqtt_port information to 
+the nodeserver. This is done to avoid having to set the connection information on 
+both server.json AND your nodeserver. If the "interface" setting is missing or
+anything other than "mqtt" case insensitive, then the standard STDIN/STDOUT 
+mechansims will be used, regardless of if mqtt_server and mqtt_port are provided.
+
+When the Polyglot nodeserver manager enables the MQTT interface, it automatically
+connects to the MQTT broker and subscribes to the topic::
+
+	udi/polyglot/<nodeserver name>/poly
+
+This topic is where your nodeserver will publish any commands destined for Polyglot
+for example the pong keepalive messages. These messages are formatted in JSON 
+exactly like the exisiting STDOUT messages.
+
+When creating a nodeserver that uses MQTT, you should listen on both STDIN and MQTT
+and respond based on which mechanism was used. MQTT is a network resource, 
+therefore inherently it is possible to have network disruption or connection
+issues. When using MQTT in your nodeserver you will subscribe to the topic::
+
+	udi/polyglot/<nodeserver name>/node
+
+There is a retianed message that you will get upon subscription to the topic above
+reflecting the current connection state of the Polyglot side. The json messages are
+listed below.::
+
+	{"connected": {}}
+	or
+	{"disconnected": {}}
+
+This state is how you should respond to Polyglot. Using STDOUT if disconnected or 
+MQTT if connected. A "Last Will and Testament" message is configured on the
+Polyglot side to always make sure the state is accurate even on catastrophic 
+failure. The nodeserver should be configured with this same feature. An example is
+provided in the Node Server example section of the documentation.
+
+MQTT Subsystem Class
+--------------------
+
+.. autoclass:: polyglot.nodeserver_manager.mqttSubsystem
+   :members:
