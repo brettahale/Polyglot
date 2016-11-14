@@ -666,7 +666,12 @@ class NodeServer(object):
             pass
 
 class mqttSubsystem:
-    """ mqttSubsystem class instantiated if interface is mqtt in server.json """
+    """ 
+    mqttSubsystem class instantiated if interface is mqtt in server.json 
+    
+    :param parent: The NodeServer object that called this function
+    :type parent: polyglot.nodeserver_manager.NodeServer
+    """
     # pylint: disable=too-many-instance-attributes
     # pylint: disable=unused-argument
     
