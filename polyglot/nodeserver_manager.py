@@ -283,12 +283,6 @@ class NodeServer(object):
         self._lastping = None
         self._lastpong = None
 
-        # Check if MQTT interface is used for this nodeserver
-        if (self.interface == 'mqtt' and MQTT == True):
-            if self._mqtt is None:
-                self._mqtt = self.mqttSubsystem(self)
-            self._mqtt.start()
-        
         # Create threads dictionary
         self._threads = {}
         # Add 'stdout' thread that attaches to STDOUT of nodeserver process with _recv_out
@@ -306,6 +300,22 @@ class NodeServer(object):
         for _, thread in self._threads.items():
             thread.start()
 
+        # Check if MQTT interface is used for this nodeserver
+        if (self.interface == 'mqtt' and MQTT == True):
+            """
+            This sends the params and config over STDOUT before replacing it with the MQTT
+            subsystem. We do this so that the mqtt config from server.json is sent to the
+            nodeserver in the params message on startup and it can use those settings to
+            configure itself instead of requiring you to set it on that side as well.
+            """
+            self.send_params()
+            self.send_config()
+            # If the MQTT subsystem is not created, create it (first boot) else use the existing
+            if self._mqtt is None:
+                self._mqtt = self.mqttSubsystem(self)
+            self._mqtt.start()
+
+        # If we aren't using MQTT
         if self._mqtt is None:
             # wait, then send config
             time.sleep(1)
@@ -364,15 +374,14 @@ class NodeServer(object):
             self.send_ping()
             self._lastping = time.time()
             return True
-
         elif time.time() - self._lastping >= 30:
             # If MQTT is not connected, assume we are trying to reconnect and don't send a ping
             if self._mqtt is not None and (self._mqtt.connected == False or self.node_connected == False): return True
             # last ping has expired (more than 30 seconds old)
             if self._lastpong and self._lastpong > self._lastping:
                 # pong was received
-                self.send_ping()
                 self._lastping = time.time()
+                self.send_ping()
                 return True
             else:
                 # pong was not received
@@ -382,9 +391,9 @@ class NodeServer(object):
                 else:
                     _LOGGER.warning('Node Server %s: Never received a pong response.', self.name)
                 return False
-
         else:
             # ping hasn't expired, we have to assume responding
+            time.sleep(1)
             return True
 
     # manage IO
@@ -435,7 +444,7 @@ class NodeServer(object):
                         self._proc.kill()
                     time.sleep(1)
             else: 
-                time.sleep(2)
+                time.sleep(1)
                 self._send_in()
 
     def _request_handler(self):
@@ -543,8 +552,6 @@ class NodeServer(object):
         elif command == 'connected':
             _LOGGER.info('%8s current status is connected to the broker.', self.name)
             self.node_connected = True
-            self.send_params()        
-            self.send_config()
             self.send_ping()
         elif command == 'disconnected':
             _LOGGER.error('%8s current status is disconnected from the broker.', self.name)
@@ -575,12 +582,10 @@ class NodeServer(object):
             _LOGGER.error('%s: %s', self.name, line)
 
     def _mk_cmd(self, cmd_code, **kwargs):
-        """ 
-        Process Output TO the nodeserver (MQTT/STDIN)
-        """
+        """ Process Output TO the nodeserver (MQTT/STDIN) """
         msg = json.dumps({cmd_code: kwargs})
-        # If using mqtt, send the msg to the nodeserver over that mechanism
-        if self._mqtt is not None:
+        # If using mqtt, send the msg to the nodeserver over that mechanism if it is connected
+        if (self.node_connected):
             self._mqtt._mqttc.publish(self._mqtt.topicOutput, str(msg), 0)
             _LOGGER.debug('%s MQTT Publish: %s', self.name, str(msg))
         # Else add the msg to the STDIN queue to send to the nodeserver processed by _send_in
@@ -744,8 +749,7 @@ class NodeServer(object):
             _LOGGER.info('Disconnecting from MQTT... ' + self._server + ':' + self._port)
             self._mqttc.loop_stop()
             self._mqttc.disconnect()
-
-    
+   
 def random_string(length):
     """ Generate a random string of uppercase, lowercase, and digits """
     library = string.ascii_uppercase + string.ascii_lowercase + string.digits
