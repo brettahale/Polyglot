@@ -1328,7 +1328,7 @@ class PolyglotConnector(object):
                 self.logger.error('**ERROR: write_nodeserver_config: {}'.format(e))
                 return False
             except IOError:
-                self.smsg('**ERROR: write_nodeserver_config: Could not write to nodeserver config file %s'.format(self.configfile))
+                self.smsg('**ERROR: write_nodeserver_config: Could not write to nodeserver config file {}'.format(self.configfile))
                 return False
         else: self.smsg('**ERROR: PyYAML module not installed... skipping custom config sections. "sudo pip install pyyaml" to use')
         return True
@@ -1648,7 +1648,6 @@ class PolyglotConnector(object):
         """
         self._mk_cmd('request', request_id=request_id, success=success,
                      timeout=timeout, seq=seq)
-
 
     def restcall(self, api, timeout=None, seq=None):
 
