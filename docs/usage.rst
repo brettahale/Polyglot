@@ -136,7 +136,7 @@ If not then get it like so:
 
     wget https://github.com/UniversalDevicesInc/Polyglot/raw/unstable-release/polyglot.service
 
-Edit the file polyglot.server with your favorite editor.
+Edit the file polyglot.service with your favorite editor.
 Modify WorkingDirectory to be your root Polyglot directory. eg. /home/pi/Polyglot
 
 .. code-block:: bash
