@@ -35,7 +35,7 @@ an action inside of the Node Server.
 * | *{'install': {'profile_number': ...}}*
   | Instructs the node server to install itself with the specified
     *profile_number*.
-* | *{"params": {"apiver": "1.0.1", "isyver": "5.0.2", "sandbox": "/home/pi/dev/Polyglot/config/hue", "name": "NodeServerName"}}*
+* | *{"params": {"profile": 8, "pgver": "0.0.4", "name": "nodeservername", "pgapiver": "1", "sandbox": "/home/Polyglot/config/nodeservername", "configfile": "config.yaml", "interface": "mqtt", "path": "/home/Polyglot/config/node_servers/nodeservername", "isyver": "5.0.4", "mqtt_server": "pi3", "mqtt_port": "1883"}}*
   | Params passed back from Polyglot to the node server with info about the node server.
 * | *{'query': {'node_address': ..., 'request_id': ...}}*
   | Instructs the node server to query a node. *request_id* is optional.

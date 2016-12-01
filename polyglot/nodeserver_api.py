@@ -157,11 +157,18 @@ class Node(object):
         # pylint: disable=unused-argument
         if driver in self._drivers:
             clean_value = self._drivers[driver][2](value)
-            if clean_value != self._drivers[driver][0]:
+            changed = (clean_value != self._drivers[driver][0])
+            in_sync = self._isy_synced.get(driver, False)
+            if changed or not in_sync:
                 self._drivers[driver][0] = clean_value
                 if report:
+                    self._isy_synced[driver] = True
                     self.report_driver(driver)
+                else:
+                    self._isy_synced[driver] = False
             return True
+        self.smsg('**ERROR: node "{}": set_driver(): invalid driver "{}"'
+                  .format(self.name, driver))
         return False
 
     def report_driver(self, driver=None):
@@ -173,15 +180,42 @@ class Node(object):
         :type driver: str or None
         :returns boolean: Indicates success or failure to report driver value
         """
+        if not self.enabled or not self.added:
+            return True
+
         if driver is None:
             drivers = self._drivers.keys()
         else:
             drivers = [driver]
 
         for driver in drivers:
-            self.parent.poly.report_status(
+            self.parent.report_status(
                 self.address, driver, self._drivers[driver][0],
-                self._drivers[driver][1])
+                self._drivers[driver][1], self._report_driver_cb,
+                None, driver=driver)
+        return True
+
+    def _report_driver_cb(self, driver, status_code, **kwargs):
+        """
+        Private method - updates ISY syncronization flag based on
+        the success/fail of the status update API call to the ISY.
+        """
+
+        if driver not in self._drivers:
+            self.smsg(
+                '**ERROR: node "{}": driver "{}": no longer exists.'
+                .format(self.name, driver))
+            return False
+        if int(status_code) == 200:
+            self._isy_synced[driver] = True
+            self.smsg(
+                '**DEBUG: node "{}": driver "{}": status sent to ISY ok.'
+                .format(self.name, driver))
+        else:
+            self._isy_synced[driver] = False
+            self.smsg(
+                '**ERROR: node "{}": driver "{}": unable to report status to ISY: {}'
+                .format(self.name, driver, status_code))
         return True
 
     def get_driver(self, driver=None):
@@ -222,6 +256,60 @@ class Node(object):
         self.report_driver()
         return True
 
+    def report_isycmd(self, isycommand, value=None, uom=None,
+                      timeout=None, **kwargs):
+        """
+        Sends a single command from the node server to the ISY, optionally
+        passing in a value.
+
+        No formatting, and little validation, of the isy cmd, value, or uom
+        is done by this simple low-level API.  It is up to the caller to
+        ensure correctness.
+
+        :param str isycommand: Name of the ISY command to send (e.g. 'DON')
+        :param value: (optional) The value to be sent for the command
+        :type value: string, float, int, or None
+        :param uom: (optional) - The value's unit of measurement.  If
+                    provided, overrides the uom defined for this command
+        :type uom: int or None
+        :param timeout: (optional) - the number of seconds before this
+                        command expires and is discarded
+        :type timeout: int or None
+        :returns boolean: Indicates success or failure to queue for sending
+                          (Note: does NOT indicate if actually delivered)
+        """
+        # Test for a valid defined command
+        if isycommand not in self._sends:
+            self.smsg(
+                '**ERROR: node "{}": report_isycmd(): unknown ISY command "{}"'
+                .format(self.name, isycommand))
+            return False
+        if value is None:
+            v = None
+            u = None
+        else:
+            # Value is provided - make sure we have a uom
+            if uom is None:
+                u = self._sends[isycommand][1]
+            else:
+                u = uom
+            # Convert/clean the value if such a function was defined
+            if self._sends[isycommand][2] is not None:
+                v = self._sends[isycommand][2](value)
+            else:
+                v = value
+        # Save the value and uom we're sending, for reference
+        self._sends[isycommand][0] = v
+        self._sends[isycommand][1] = u
+        # Issue the command itself
+        return self.parent.poly.report_command(
+            self.address, isycommand, v, u, timeout, **kwargs)
+        # TODO: test/document extended ISY command API:
+        #           extras = {'GV1.uom56': int(gv1_value)}
+        #           node.report_isycmd('DON', **extras)
+        # TODO: callback for timeout/error handling -- but first
+        #       need to define desired behavior in such cases
+
     @property
     def manifest(self):
         """
@@ -237,17 +325,27 @@ class Node(object):
                     'drivers': {}}
 
         for key, val in self._drivers.items():
-            manifest['drivers'][key] = val[0]
+            if len(val) < 4 or val[3] is True:
+                manifest['drivers'][key] = val[0]
 
         return manifest
 
+
+    _isy_synced = {}
+    """
+    Internal dictionary containing the synchronization status of this
+    driver with the ISY.  Used to eliminate unnecessary status updates.
+    """
 
     _drivers = {}
     """
     The drivers controlled by this node. This is a dictionary of lists. The
     key's are the driver names as defined by the ISY documentation. Each list
-    contains three values: the initial value, the UOM identifier, and a
-    function that will properly format the value before assignment.
+    contains at least three values: the initial value, the UOM identifier, and
+    a function that will properly format the value before assignment.  The
+    fourth value is optional -- if provided, and set to "False", the driver's
+    value will not be recorded in the manifest (this is useful to reduce I/O
+    when there is no benefit to restoring the driver's value on restart).
 
     *Insteon Dimmer Example:*
 
@@ -257,6 +355,33 @@ class Node(object):
             'ST': [0, 51, int],
             'OL': [100, 51, int],
             'RR': [0, 32, int]
+        }
+
+    *Pulse Time Example:*
+
+    .. code-block:: python
+
+        _drivers = {
+            'ST': [0, 56, int, False],
+        }
+
+    """
+
+    _sends = {}
+    """
+    A dictionary of the commands that this node sends to the ISY. The
+    keys are the command names to be sent to the ISY. Each list contains
+    at least three values: the last command value sent to the ISY, the
+    UOM identifier for that command, and a function that will properly
+    format the value before sending it.  If the command will never send
+    a value (e.g. 'DOF'), setting all three to None is appropriate.
+
+    *Simple Dimmer Switch Example:*
+
+    .. code-block:: python
+        _sends = {
+            'DON': [0, 51, int],
+            'DOF': [None, None, None]
         }
 
     """
@@ -322,6 +447,7 @@ class NodeServer(object):
         poly.listen('cmd', self.on_cmd)
         poly.listen('exit', self.on_exit)
         poly.listen('result', self.on_result)
+        poly.listen('statistics', self.on_statistics)
 
     def setup(self):
         """
@@ -462,6 +588,14 @@ class NodeServer(object):
         # pylint: disable=no-self-use
         return False
 
+    def on_statistics(self, **kwargs):
+        """
+        Handles a statistics message, which contains various statistics on
+        the operation of the Polyglot server and the network communications.
+        """
+        # pylint: disable=no-self-use
+        return True
+
     def on_exit(self, *args, **kwargs):
         """
         Polyglot has triggered a clean shutdown. Generally, this method does
@@ -472,7 +606,7 @@ class NodeServer(object):
         self.running = False
         return True
 
-    def on_result(self, seq, status_code, elapsed, text=None):
+    def on_result(self, seq, status_code, elapsed, text, retries, **kwargs):
         """
         Handles a result message, which contains the result from a REST API
         call to the ISY.  The result message is uniquely identified by the
@@ -482,7 +616,8 @@ class NodeServer(object):
             self.smsg('**ERROR: on_result: missing callback for seq={}'.format(seq))
             return False
         func, args = self._seq_cb.pop(seq)
-        return func(seq=seq, status_code=status_code, elapsed=elapsed, text=text, **args)
+        return func(seq=seq, status_code=status_code, elapsed=elapsed,
+                    text=text, retries=retries, **args)
 
     def register_result_cb(self, func, **kwargs):
         """
@@ -512,6 +647,20 @@ class NodeServer(object):
             seq = self.register_result_cb(callback, **kwargs)
         self.poly.add_node(node_address, node_def_id, node_primary_addr,
                            node_name, timeout, seq)
+        return True
+
+    def report_status(self, node_address, driver_control, value, uom,
+                      callback=None, timeout=None, **kwargs):
+        """
+        Report a node status to the ISY
+
+        :returns bool: True on success
+        """
+        seq = None
+        if callback:
+            seq = self.register_result_cb(callback, **kwargs)
+        self.poly.report_status(node_address, driver_control, value, uom,
+                                timeout, seq)
         return True
 
     def restcall(self, api, callback=None, timeout=None, **kwargs):
@@ -1018,7 +1167,7 @@ class PolyglotConnector(object):
 
     commands = ['config', 'install', 'query', 'status', 'add_all', 'added',
                 'removed', 'renamed', 'enabled', 'disabled', 'cmd', 'ping',
-                'exit', 'params', 'result']
+                'exit', 'params', 'result', 'statistics']
     """ Commands that may be invoked by Polyglot """
     logger = None                
     """ 
@@ -1171,6 +1320,19 @@ class PolyglotConnector(object):
                     if existing == self.nodeserver_config: 
                         self.smsg('**INFO: NodeServer configuration file matches running config... Skipping write.')
                         return True
+            except yaml.YAMLError as e:
+                # the saved config file is bad, report the error and fix it
+                self.logger.error('**ERROR: write_nodeserver_config: {}'.format(e))
+                # return False
+            except IOError as e:
+                # the saved config file may not exist, ignore open/read error and write one
+                #self.smsg('**ERROR: write_nodeserver_config: Could not read to nodeserver config file {}' +
+                #          ' error={}).format(
+                #         self.configfile,
+                #         e ))
+                pass
+
+            try:
                 with open(os.path.join(self.path, self.configfile), 'w') as write:
                     yaml.dump(self.nodeserver_config, write, default_flow_style=default_flow_style, indent=indent)
                     self.smsg('**INFO: NodeServer configuration file is different than running config... Updated file.')
@@ -1179,10 +1341,11 @@ class PolyglotConnector(object):
                 self.logger.error('**ERROR: write_nodeserver_config: {}'.format(e))
                 return False
             except IOError:
-                self.smsg('**ERROR: write_nodeserver_config: Could not write to nodeserver config file %s'.format(self.configfile))
+                self.smsg('**ERROR: write_nodeserver_config: Could not write to nodeserver config file {}'.format(self.configfile))
                 return False
         else: self.smsg('**ERROR: PyYAML module not installed... skipping custom config sections. "sudo pip install pyyaml" to use')
         return True
+
 
     # manage output
     def _send_out(self):
@@ -1500,7 +1663,6 @@ class PolyglotConnector(object):
         self._mk_cmd('request', request_id=request_id, success=success,
                      timeout=timeout, seq=seq)
 
-
     def restcall(self, api, timeout=None, seq=None):
 
         """
@@ -1524,6 +1686,14 @@ class PolyglotConnector(object):
         self._mk_cmd('pong')
         return True
         
+    def request_stats(self, *args, **kwargs):
+        """
+        Sends a command to Polyglot to request a statistics message.
+        """
+        # pylint: disable=unused-argument
+        self._mk_cmd('statistics')
+        return True
+
     def exit(self, *args, **kwargs):
         """
         Tells Polyglot that this Node Server is done.
