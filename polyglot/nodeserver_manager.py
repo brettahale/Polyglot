@@ -328,7 +328,8 @@ class NodeServer(object):
     def restart(self):
         """ restart the nodeserver """
         self.send_exit()
-        self._mqtt.stop()
+        if self._mqtt is not None:
+            self._mqtt.stop()
 
         for _ in range(10):
             if not self.alive:
