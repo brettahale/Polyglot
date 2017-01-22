@@ -1,7 +1,9 @@
 PY2C= \
 	"polyglot/core.py" \
 	"polyglot/config_manager.py" \
-	"polyglot/nodeserver_manager.py"
+	"polyglot/nodeserver_manager.py" \
+	"polyglot/nodeserver_api.py" \
+	"polyglot/nodeserver_helpers.py"
 CONFIG_DIR="/etc/polyglot"
 INSTALL_DIR="/usr/local/lib"
 BIN_DIR="/usr/local/bin"
@@ -20,49 +22,57 @@ ifeq ($(OS_NAME),FreeBSD)
 	BUILD_TYPE = .freebsd.$(PROC_NAME)
 endif
 
+UPX := $(shell command -v upx 2>/dev/null)
 
 build: polyglot
-	# remove pyc files and __pycache__ directories
+	# "Removing pyc files and __pycache__ directories..."
 	find . -name "*.pyc" -exec rm -rfv {} \;  # python 2
 	find . -name "__pycache__" -exec rm -rfv {} \;  # python 3
 
-	# make pyx files
+	# "Making pyx files..."
 	for file in $(PY2C); do \
 		cp -v $$file $$file'x'; \
 		sed -i -e 's/\# \[cython\] //g' $$file'x'; \
 	done
 
-	# compile pyx files
+	# "Compiling pyx files..."
 	python setup.py build_ext --inplace
-
-	# export to build dirctory
+	
+ifdef UPX
+	# "Found UPX. Compressing Binaries."
+	find "polyglot" -name "*.so" -exec upx -9 -q {} \;
+else
+	# "UPX Not Found. Skipping, not required."
+endif
+	
+	# Exporting to build dirctory
 	rm -rf build
 	mkdir build
 	cp -r polyglot build/
 
-	# cleanup source
-	find "polyglot" -name "*.c" -exec rm -rfv {} \;
-	find "polyglot" -name "*.so" -exec rm -rfv {} \;
-	find "polyglot" -name "*.pyx*" -exec rm -rfv {} \;
+	# Cleaning up source
+	find "polyglot" -name "*.c" -exec rm -rf {} \;
+	find "polyglot" -name "*.so" -exec rm -rf {} \;
+	find "polyglot" -name "*.pyx*" -exec rm -rf {} \;
 	for file in $(PY2C); do \
 		rm -v 'build/'$$file; \
 	done
 
-	# clean build
+	# Clean build files
 	find "build/polyglot" -name "*.c" -exec rm -rfv {} \;
 	find "build/polyglot" -name "*.pyx*" -exec rm -rfv {} \;
 	find "build/polyglot" -d -type d -name "CVS" -exec rm -Rfv {} \;
 
-	# install dependencies locally
+	# Install dependencies locally
 	python -m pip install -r requirements.txt --target ./build
 
-	# create polyglot.pyz executable
+	# Create polyglot.pyz executable
 	mkdir -p bin
 	mv build/polyglot/__main__.py build/
-	cd build; zip -r polyglot.zip *
+	cd build; zip -r9q polyglot.zip *
 	echo "#!$(PYTHON_LOCATION)" > build/shebang
 	cat build/shebang build/polyglot.zip > bin/polyglot$(BUILD_TYPE).pyz
 	chmod +x bin/polyglot$(BUILD_TYPE).pyz
 
-	# remove current build directory
-	rm -rfv build
+	# Remove current build directory
+	rm -rf build

@@ -2,9 +2,14 @@
 import json
 import logging
 import os
+import sys
 
 _LOGGER = logging.getLogger(__name__)
-SOURCE_DIR = os.path.dirname(__file__)
+try:
+    SOURCE_DIR = os.path.dirname(__file__)
+except NameError:  # We are running as a binary.
+    import sys
+    SOURCE_DIR = os.path.dirname(os.path.abspath(sys.argv[0]))
 SERVER_LIB = os.path.abspath(os.path.join(SOURCE_DIR, 'node_servers'))
 SERVER_LIB_EXTERNAL = None
 
