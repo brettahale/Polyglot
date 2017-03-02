@@ -9,6 +9,8 @@ third-party Node Servers.
 
 from . import utils
 from . import nodeserver_api
+import version
 import os
 
+__version__ = version.PGVERSION
 SOURCE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))

@@ -1,9 +1,8 @@
 PY2C= \
 	"polyglot/core.py" \
 	"polyglot/config_manager.py" \
-	"polyglot/nodeserver_manager.py" \
-	"polyglot/nodeserver_api.py" \
-	"polyglot/nodeserver_helpers.py"
+	"polyglot/nodeserver_manager.py" 
+	
 CONFIG_DIR="/etc/polyglot"
 INSTALL_DIR="/usr/local/lib"
 BIN_DIR="/usr/local/bin"
