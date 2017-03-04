@@ -1354,11 +1354,11 @@ class PolyglotConnector(object):
             try:
                 line = self._outq.get(True, 5)
             except Empty:
-                pass
+                time.sleep(.1)
             else:
                 sys.stdout.write('{}\n'.format(line))
-                self._outq.task_done()
                 sys.stdout.flush()
+                self._outq.task_done()
 
     def _send_err(self):
         """ Send error through pipe """
@@ -1366,11 +1366,11 @@ class PolyglotConnector(object):
             try:
                 line = self._errq.get(True, 5)
             except Empty:
-                pass
+                time.sleep(.1)
             else:
                 sys.stderr.write('{}\n'.format(line))
-                self._errq.task_done()
                 sys.stderr.flush()
+                self._errq.task_done()
 
     # manage input
     def _parse_cmd(self, cmd):

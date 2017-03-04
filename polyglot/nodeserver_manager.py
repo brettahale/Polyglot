@@ -279,7 +279,7 @@ class NodeServer(object):
 
         self._proc = proc
         self._inq = Queue()
-        self._rqq = Queue(maxsize=4096)
+        self._rqq = Queue()
         self._lastping = None
         self._lastpong = None
 
@@ -392,7 +392,7 @@ class NodeServer(object):
                 return False
         else:
             # ping hasn't expired, we have to assume responding
-            time.sleep(1)
+            time.sleep(.1)
             return True
 
     # manage IO
@@ -407,6 +407,7 @@ class NodeServer(object):
                     # try to get a line from the queue
                     line = self._inq.get(True, 5)
                 except Empty:
+                    time.sleep(.1)
                     # no line in queue, check if the Node Server is responding
                     if not self.responding:
                         _LOGGER.error(
