@@ -407,7 +407,6 @@ class NodeServer(object):
                     # try to get a line from the queue
                     line = self._inq.get(True, 5)
                 except Empty:
-                    time.sleep(.1)
                     # no line in queue, check if the Node Server is responding
                     if not self.responding:
                         _LOGGER.error(
@@ -432,6 +431,7 @@ class NodeServer(object):
                         _LOGGER.debug('%s STDIN: %s', self.name, line)
                         if self._inq:
                             self._inq.task_done()
+                time.sleep(.1)
         else:
             if self.node_connected == True:
                 while True and self._mqtt:
@@ -442,19 +442,14 @@ class NodeServer(object):
                         self._mqtt.stop()
                         self._mqtt = None
                         self._proc.kill()
-                    time.sleep(1)
-            else: 
-                time.sleep(1)
-                self._send_in()
+                    time.sleep(.1)
 
     def _request_handler(self):
         """
         Read and process network requests for a node server
         """
         while True and self._rqq:
-
             msg = self._rqq.get(True)
-
             # parse message
             command = list(msg.keys())[0]
             arguments = msg[command]
@@ -480,6 +475,7 @@ class NodeServer(object):
                           self.name,
                           (0 if self._rqq is None else self._rqq.qsize()),
                           (time.time() - ts))
+            time.sleep(.1)
 
     def _recv_out(self, line):
         """ 
@@ -559,13 +555,14 @@ class NodeServer(object):
         else:
             fun = self._handlers.get(command)
             if fun and self._rqq:
-                self._rqq.put(message, True, 30)
+                self._rqq.put(message, True)
             else:
                 _LOGGER.error('Node Server %s delivered bad command %s',
                               self.name, command)
         _LOGGER.debug('%8s [%d] (%5.2f)   Done: %s', self.name,
                       (0 if self._rqq is None else self._rqq.qsize()),
                       (time.time() - ts), l)
+        time.sleep(.1)
 
     def _recv_err(self, line):
         """
@@ -579,6 +576,7 @@ class NodeServer(object):
             _LOGGER.warning('%s: %s', self.name, line)
         else:
             _LOGGER.error('%s: %s', self.name, line)
+        time.sleep(.1)
 
     def _mk_cmd(self, cmd_code, **kwargs):
         """ Process Output TO the nodeserver (MQTT/STDIN) """

@@ -1265,8 +1265,8 @@ class PolyglotConnector(object):
         Disconnects from Polyglot. Blocks the thread until IO stream is clear
         """
         if self.connected:
-            self._outq.locked = True
-            self._errq.locked = True
+            #self._outq.locked = True
+            #self._errq.locked = True
             self._outq.join()
             self._errq.join()
             self._threads = {}
@@ -1274,7 +1274,7 @@ class PolyglotConnector(object):
     def wait_for_config(self):
         """ Blocks the thread until the configuration is received """
         while not self._got_config:
-            time.sleep(1)
+            time.sleep(.5)
         self.logger = self.setup_log(self.sandbox, self.name)
         self._read_nodeserver_config()
 
@@ -1346,7 +1346,6 @@ class PolyglotConnector(object):
         else: self.smsg('**ERROR: PyYAML module not installed... skipping custom config sections. "sudo pip install pyyaml" to use')
         return True
 
-
     # manage output
     def _send_out(self):
         """ Send output through pipe """
@@ -1354,23 +1353,25 @@ class PolyglotConnector(object):
             try:
                 line = self._outq.get(True, 5)
             except Empty:
-                time.sleep(.1)
+                pass
             else:
                 sys.stdout.write('{}\n'.format(line))
-                sys.stdout.flush()
                 self._outq.task_done()
-
+                sys.stdout.flush()
+            time.sleep(.1)
+            
     def _send_err(self):
         """ Send error through pipe """
         while not self._errq.locked or not self._errq.empty():
             try:
                 line = self._errq.get(True, 5)
             except Empty:
-                time.sleep(.1)
+                pass
             else:
                 sys.stderr.write('{}\n'.format(line))
-                sys.stderr.flush()
                 self._errq.task_done()
+                sys.stderr.flush()
+            time.sleep(.1)
 
     # manage input
     def _parse_cmd(self, cmd):
@@ -1402,6 +1403,7 @@ class PolyglotConnector(object):
                 self.send_error('Received invalid command: {}'.format(cmd))
                 return False
 
+            time.sleep(.1)
             # execute command
             return self._recv(cmd_code, args)
 
